@@ -19,8 +19,12 @@ export const addressSchema = z.object({
     ),
   city: z
     .string()
-    .min(1, '市町村を入力してください')
-    .max(100, '市町村名が長すぎます'),
+    .min(1, '市区町村を入力してください')
+    .max(100, '市区町村名が長すぎます'),
+  town: z
+    .string()
+    .min(1, '町名を入力してください')
+    .max(100, '町名が長すぎます'),
 });
 
 // ============================================
@@ -62,10 +66,12 @@ export const defaultStep1Values: Step1FormData = {
   pickupAddress: {
     prefecture: '',
     city: '',
+    town: '',
   },
   deliveryAddress: {
     prefecture: '',
     city: '',
+    town: '',
   },
 };
 

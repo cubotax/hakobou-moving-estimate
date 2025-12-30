@@ -1,7 +1,7 @@
 /**
  * 引越し見積もりシステム 型定義
  * 
- * Design Philosophy: 和モダン・ミニマリズム
+ * Design Philosophy: ポップ＆カジュアル
  * - 拡張可能なデータ構造
  * - 明確な型安全性
  */
@@ -14,8 +14,20 @@
 export interface Address {
   /** 都道府県 */
   prefecture: string;
-  /** 市町村 */
+  /** 市区町村 */
   city: string;
+  /** 町名（オプション） */
+  town?: string;
+}
+
+/** 住所バリデーション結果 */
+export interface AddressValidationResult {
+  /** バリデーション成功 */
+  isValid: boolean;
+  /** 正規化された住所 */
+  normalizedAddress?: Address;
+  /** エラーメッセージ */
+  errorMessage?: string;
 }
 
 // ============================================
@@ -177,4 +189,16 @@ export interface EstimateApiResponse {
   success: boolean;
   data?: EstimateResult;
   error?: string;
+}
+
+/** 郵便番号検索結果 */
+export interface PostalCodeResult {
+  /** 郵便番号 */
+  postalCode: string;
+  /** 都道府県 */
+  prefecture: string;
+  /** 市区町村 */
+  city: string;
+  /** 町名 */
+  town: string;
 }

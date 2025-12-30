@@ -6,13 +6,14 @@
  * - 黒枠のカード
  * - 鮮やかな黄色のボタン
  * - カラフルなアイコンバッジ
+ * - 町名バリデーション機能
  */
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
-import { MapPin, Truck, ArrowRight, Loader2, ArrowDown, Search, MapPinned, Hash } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { MapPin, Truck, ArrowRight, Loader2, ArrowDown, Search, MapPinned, Hash, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ import { PrefectureSelector } from './PrefectureSelector';
 import { step1Schema, type Step1FormData, defaultStep1Values } from '@/lib/schema';
 import { setStep1Data, setDistanceData, getStep1Data } from '@/lib/store';
 import { getDistanceProvider } from '@/lib/distance';
-import { getAddressByPostalCode, isValidPostalCode, formatPostalCode } from '@/lib/postal';
+import { getAddressByPostalCode, isValidPostalCode, validateAddress } from '@/lib/postal';
 
 type InputMode = 'city' | 'postal';
 
@@ -40,6 +41,14 @@ export function AddressForm() {
   const [pickupPostalAddress, setPickupPostalAddress] = useState<string | null>(null);
   const [deliveryPostalAddress, setDeliveryPostalAddress] = useState<string | null>(null);
 
+  // 住所バリデーション状態
+  const [pickupValidating, setPickupValidating] = useState(false);
+  const [deliveryValidating, setDeliveryValidating] = useState(false);
+  const [pickupValidated, setPickupValidated] = useState(false);
+  const [deliveryValidated, setDeliveryValidated] = useState(false);
+  const [pickupValidationError, setPickupValidationError] = useState<string | null>(null);
+  const [deliveryValidationError, setDeliveryValidationError] = useState<string | null>(null);
+
   // 保存されたデータがあれば復元
   const savedData = getStep1Data();
 
@@ -55,7 +64,77 @@ export function AddressForm() {
   });
 
   const pickupPrefecture = watch('pickupAddress.prefecture');
+  const pickupCity = watch('pickupAddress.city');
+  const pickupTown = watch('pickupAddress.town');
   const deliveryPrefecture = watch('deliveryAddress.prefecture');
+  const deliveryCity = watch('deliveryAddress.city');
+  const deliveryTown = watch('deliveryAddress.town');
+
+  // 集荷先住所のバリデーション
+  const handleValidatePickupAddress = async () => {
+    if (!pickupPrefecture || !pickupCity || !pickupTown) {
+      toast.error('都道府県、市区町村、町名をすべて入力してください');
+      return;
+    }
+
+    setPickupValidating(true);
+    setPickupValidationError(null);
+    setPickupValidated(false);
+
+    try {
+      const result = await validateAddress({
+        prefecture: pickupPrefecture,
+        city: pickupCity,
+        town: pickupTown,
+      });
+
+      if (result.isValid) {
+        setPickupValidated(true);
+        toast.success('住所が確認できました');
+      } else {
+        setPickupValidationError(result.errorMessage || '住所が見つかりませんでした');
+        toast.error(result.errorMessage || '住所が見つかりませんでした');
+      }
+    } catch (error) {
+      setPickupValidationError('住所の確認中にエラーが発生しました');
+      toast.error('住所の確認中にエラーが発生しました');
+    } finally {
+      setPickupValidating(false);
+    }
+  };
+
+  // お届け先住所のバリデーション
+  const handleValidateDeliveryAddress = async () => {
+    if (!deliveryPrefecture || !deliveryCity || !deliveryTown) {
+      toast.error('都道府県、市区町村、町名をすべて入力してください');
+      return;
+    }
+
+    setDeliveryValidating(true);
+    setDeliveryValidationError(null);
+    setDeliveryValidated(false);
+
+    try {
+      const result = await validateAddress({
+        prefecture: deliveryPrefecture,
+        city: deliveryCity,
+        town: deliveryTown,
+      });
+
+      if (result.isValid) {
+        setDeliveryValidated(true);
+        toast.success('住所が確認できました');
+      } else {
+        setDeliveryValidationError(result.errorMessage || '住所が見つかりませんでした');
+        toast.error(result.errorMessage || '住所が見つかりませんでした');
+      }
+    } catch (error) {
+      setDeliveryValidationError('住所の確認中にエラーが発生しました');
+      toast.error('住所の確認中にエラーが発生しました');
+    } finally {
+      setDeliveryValidating(false);
+    }
+  };
 
   // 郵便番号から住所を検索（集荷先）
   const handlePickupPostalSearch = async () => {
@@ -70,7 +149,10 @@ export function AddressForm() {
       if (result.success && result.address) {
         setValue('pickupAddress.prefecture', result.address.prefecture);
         setValue('pickupAddress.city', result.address.city);
+        setValue('pickupAddress.town', result.address.town);
         setPickupPostalAddress(result.address.fullAddress);
+        setPickupValidated(true);
+        setPickupValidationError(null);
         toast.success('住所を取得しました');
       } else {
         toast.error(result.error || '住所の取得に失敗しました');
@@ -95,7 +177,10 @@ export function AddressForm() {
       if (result.success && result.address) {
         setValue('deliveryAddress.prefecture', result.address.prefecture);
         setValue('deliveryAddress.city', result.address.city);
+        setValue('deliveryAddress.town', result.address.town);
         setDeliveryPostalAddress(result.address.fullAddress);
+        setDeliveryValidated(true);
+        setDeliveryValidationError(null);
         toast.success('住所を取得しました');
       } else {
         toast.error(result.error || '住所の取得に失敗しました');
@@ -107,7 +192,30 @@ export function AddressForm() {
     }
   };
 
+  // 入力値が変更されたらバリデーション状態をリセット
+  const handlePickupInputChange = () => {
+    setPickupValidated(false);
+    setPickupValidationError(null);
+  };
+
+  const handleDeliveryInputChange = () => {
+    setDeliveryValidated(false);
+    setDeliveryValidationError(null);
+  };
+
   const onSubmit = async (data: Step1FormData) => {
+    // 市町村入力モードの場合、バリデーションを確認
+    if (inputMode === 'city') {
+      if (!pickupValidated) {
+        toast.error('集荷先の住所を確認してください');
+        return;
+      }
+      if (!deliveryValidated) {
+        toast.error('お届け先の住所を確認してください');
+        return;
+      }
+    }
+
     setIsCalculating(true);
     
     try {
@@ -142,7 +250,7 @@ export function AddressForm() {
             className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           >
             <MapPinned className="w-5 h-5 mr-2" />
-            市町村から入力
+            住所から入力
           </TabsTrigger>
           <TabsTrigger 
             value="postal" 
@@ -153,7 +261,7 @@ export function AddressForm() {
           </TabsTrigger>
         </TabsList>
 
-        {/* 市町村入力モード */}
+        {/* 住所入力モード */}
         <TabsContent value="city" className="mt-6 space-y-6">
           {/* 集荷先 */}
           <div className="pop-card p-6">
@@ -165,14 +273,17 @@ export function AddressForm() {
               <span className="badge-pink ml-auto">FROM</span>
             </div>
             
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="pickup-prefecture" className="font-bold">
                   都道府県 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
                 <PrefectureSelector
                   value={pickupPrefecture}
-                  onValueChange={(value) => setValue('pickupAddress.prefecture', value)}
+                  onValueChange={(value) => {
+                    setValue('pickupAddress.prefecture', value);
+                    handlePickupInputChange();
+                  }}
                   error={!!errors.pickupAddress?.prefecture}
                 />
                 {errors.pickupAddress?.prefecture && (
@@ -183,12 +294,14 @@ export function AddressForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pickup-city" className="font-bold">
-                  市町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
+                  市区町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
                 <Input
                   id="pickup-city"
                   placeholder="例：渋谷区"
-                  {...register('pickupAddress.city')}
+                  {...register('pickupAddress.city', {
+                    onChange: handlePickupInputChange,
+                  })}
                   className={`border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black ${
                     errors.pickupAddress?.city ? 'border-[oklch(0.75_0.2_0)]' : ''
                   }`}
@@ -199,6 +312,52 @@ export function AddressForm() {
                   </p>
                 )}
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="pickup-town" className="font-bold">
+                  町名 <span className="text-[oklch(0.75_0.2_0)]">*</span>
+                </Label>
+                <Input
+                  id="pickup-town"
+                  placeholder="例：神宮前"
+                  {...register('pickupAddress.town', {
+                    onChange: handlePickupInputChange,
+                  })}
+                  className={`border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black ${
+                    errors.pickupAddress?.town ? 'border-[oklch(0.75_0.2_0)]' : ''
+                  }`}
+                />
+                {errors.pickupAddress?.town && (
+                  <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
+                    {errors.pickupAddress.town.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* 住所確認ボタン */}
+            <div className="mt-4 flex items-center gap-3">
+              <Button
+                type="button"
+                onClick={handleValidatePickupAddress}
+                disabled={pickupValidating || !pickupPrefecture || !pickupCity || !pickupTown}
+                className={`h-10 px-4 rounded-xl font-bold border-[2px] border-black transition-all ${
+                  pickupValidated 
+                    ? 'bg-[oklch(0.75_0.2_145)] text-white' 
+                    : 'bg-white text-black hover:bg-gray-100'
+                }`}
+              >
+                {pickupValidating ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : pickupValidated ? (
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                ) : (
+                  <Search className="w-4 h-4 mr-2" />
+                )}
+                {pickupValidated ? '確認済み' : '住所を確認'}
+              </Button>
+              {pickupValidationError && (
+                <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{pickupValidationError}</p>
+              )}
             </div>
           </div>
 
@@ -219,14 +378,17 @@ export function AddressForm() {
               <span className="badge-green ml-auto">TO</span>
             </div>
             
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="delivery-prefecture" className="font-bold">
                   都道府県 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
                 <PrefectureSelector
                   value={deliveryPrefecture}
-                  onValueChange={(value) => setValue('deliveryAddress.prefecture', value)}
+                  onValueChange={(value) => {
+                    setValue('deliveryAddress.prefecture', value);
+                    handleDeliveryInputChange();
+                  }}
                   error={!!errors.deliveryAddress?.prefecture}
                 />
                 {errors.deliveryAddress?.prefecture && (
@@ -237,12 +399,14 @@ export function AddressForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="delivery-city" className="font-bold">
-                  市町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
+                  市区町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
                 <Input
                   id="delivery-city"
                   placeholder="例：大阪市北区"
-                  {...register('deliveryAddress.city')}
+                  {...register('deliveryAddress.city', {
+                    onChange: handleDeliveryInputChange,
+                  })}
                   className={`border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black ${
                     errors.deliveryAddress?.city ? 'border-[oklch(0.75_0.2_0)]' : ''
                   }`}
@@ -253,6 +417,52 @@ export function AddressForm() {
                   </p>
                 )}
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="delivery-town" className="font-bold">
+                  町名 <span className="text-[oklch(0.75_0.2_0)]">*</span>
+                </Label>
+                <Input
+                  id="delivery-town"
+                  placeholder="例：梅田"
+                  {...register('deliveryAddress.town', {
+                    onChange: handleDeliveryInputChange,
+                  })}
+                  className={`border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black ${
+                    errors.deliveryAddress?.town ? 'border-[oklch(0.75_0.2_0)]' : ''
+                  }`}
+                />
+                {errors.deliveryAddress?.town && (
+                  <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
+                    {errors.deliveryAddress.town.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* 住所確認ボタン */}
+            <div className="mt-4 flex items-center gap-3">
+              <Button
+                type="button"
+                onClick={handleValidateDeliveryAddress}
+                disabled={deliveryValidating || !deliveryPrefecture || !deliveryCity || !deliveryTown}
+                className={`h-10 px-4 rounded-xl font-bold border-[2px] border-black transition-all ${
+                  deliveryValidated 
+                    ? 'bg-[oklch(0.75_0.2_145)] text-white' 
+                    : 'bg-white text-black hover:bg-gray-100'
+                }`}
+              >
+                {deliveryValidating ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : deliveryValidated ? (
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                ) : (
+                  <Search className="w-4 h-4 mr-2" />
+                )}
+                {deliveryValidated ? '確認済み' : '住所を確認'}
+              </Button>
+              {deliveryValidationError && (
+                <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{deliveryValidationError}</p>
+              )}
             </div>
           </div>
         </TabsContent>
@@ -304,7 +514,10 @@ export function AddressForm() {
               
               {pickupPostalAddress && (
                 <div className="p-4 bg-[oklch(0.98_0.02_95)] rounded-xl border-[2px] border-dashed border-[oklch(0.8_0.1_95)]">
-                  <p className="text-sm text-gray-600 mb-1">取得した住所</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 className="w-4 h-4 text-[oklch(0.75_0.2_145)]" />
+                    <p className="text-sm text-gray-600">取得した住所</p>
+                  </div>
                   <p className="font-bold text-lg">{pickupPostalAddress}</p>
                 </div>
               )}
@@ -363,7 +576,10 @@ export function AddressForm() {
               
               {deliveryPostalAddress && (
                 <div className="p-4 bg-[oklch(0.95_0.03_145)] rounded-xl border-[2px] border-dashed border-[oklch(0.7_0.15_145)]">
-                  <p className="text-sm text-gray-600 mb-1">取得した住所</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 className="w-4 h-4 text-[oklch(0.75_0.2_145)]" />
+                    <p className="text-sm text-gray-600">取得した住所</p>
+                  </div>
                   <p className="font-bold text-lg">{deliveryPostalAddress}</p>
                 </div>
               )}

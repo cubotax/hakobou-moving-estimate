@@ -43,13 +43,17 @@ export class GoogleMapsDistanceProvider implements DistanceProvider {
 
   /**
    * 住所を座標に変換
+   * 町名がある場合は町名まで含めて検索し、より正確な位置を取得
    */
   private async geocodeAddress(address: Address): Promise<google.maps.LatLng> {
     if (!this.geocoder) {
       throw new Error('Geocoder not initialized');
     }
 
-    const fullAddress = `${address.prefecture}${address.city}`;
+    // 町名がある場合は町名まで含めて検索
+    const fullAddress = address.town 
+      ? `${address.prefecture}${address.city}${address.town}`
+      : `${address.prefecture}${address.city}`;
     
     return new Promise((resolve, reject) => {
       this.geocoder!.geocode(
