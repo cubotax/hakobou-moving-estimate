@@ -1,0 +1,221 @@
+/**
+ * 見積もり結果表示コンポーネント（Step3）
+ * 
+ * Design Philosophy: ポップ＆カジュアル
+ * - 黄色背景で金額を際立たせる
+ * - 黒枠カードで内訳を表示
+ * - カラフルなアイコン
+ */
+
+import { useLocation } from 'wouter';
+import { useEffect, useState } from 'react';
+import { 
+  MapPin, 
+  Truck, 
+  Route, 
+  Receipt,
+  ArrowLeft,
+  RotateCcw,
+  AlertCircle,
+  Sparkles,
+  PartyPopper
+} from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { 
+  getStep1Data, 
+  getDistanceData, 
+  getEstimateResult,
+  clearAllData 
+} from '@/lib/store';
+import { formatCurrency, formatDistance } from '@/lib/pricing';
+import type { Step1FormData } from '@/lib/schema';
+import type { DistanceResult, EstimateResult as EstimateResultType } from '@/lib/types';
+
+export function EstimateResult() {
+  const [, navigate] = useLocation();
+  const [step1Data, setStep1Data] = useState<Step1FormData | null>(null);
+  const [distanceData, setDistanceData] = useState<DistanceResult | null>(null);
+  const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
+
+  useEffect(() => {
+    const s1 = getStep1Data();
+    const dist = getDistanceData();
+    const result = getEstimateResult();
+
+    if (!s1 || !dist || !result) {
+      navigate('/');
+      return;
+    }
+
+    setStep1Data(s1);
+    setDistanceData(dist);
+    setEstimateResult(result);
+  }, [navigate]);
+
+  const handleStartOver = () => {
+    clearAllData();
+    navigate('/');
+  };
+
+  const handleGoBack = () => {
+    navigate('/step2');
+  };
+
+  if (!step1Data || !distanceData || !estimateResult) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* 見積もり結果ヘッダー */}
+      <div className="pop-card bg-[oklch(0.92_0.16_95)] p-8 text-center relative overflow-hidden">
+        {/* 装飾 */}
+        <div className="absolute top-4 left-4">
+          <PartyPopper className="w-8 h-8 text-black/20" />
+        </div>
+        <div className="absolute top-4 right-4">
+          <Sparkles className="w-8 h-8 text-black/20" />
+        </div>
+        <div className="absolute bottom-4 left-8">
+          <Sparkles className="w-6 h-6 text-black/20" />
+        </div>
+        <div className="absolute bottom-4 right-8">
+          <PartyPopper className="w-6 h-6 text-black/20" />
+        </div>
+        
+        <p className="text-black/70 font-bold mb-2">お見積もり金額</p>
+        <p className="text-5xl sm:text-6xl font-black text-black tracking-tight">
+          {formatCurrency(estimateResult.totalFee)}
+        </p>
+        <p className="text-black/60 text-sm mt-4">
+          ※ 概算金額です。正式な見積もりは別途お問い合わせください。
+        </p>
+      </div>
+
+      {/* ルート情報 */}
+      <div className="pop-card p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_250)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <Route className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-xl font-black">ルート情報</h3>
+        </div>
+        
+        <div className="flex items-start gap-4">
+          <div className="flex flex-col items-center">
+            <div className="w-10 h-10 rounded-full bg-[oklch(0.75_0.2_0)] flex items-center justify-center border-[2px] border-black">
+              <MapPin className="w-5 h-5 text-white" />
+            </div>
+            <div className="w-1 h-8 bg-black my-1 rounded-full" />
+            <div className="w-10 h-10 rounded-full bg-[oklch(0.75_0.2_145)] flex items-center justify-center border-[2px] border-black">
+              <Truck className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="flex-1 space-y-4">
+            <div>
+              <p className="text-sm text-gray-500 font-medium">集荷先</p>
+              <p className="font-bold text-lg">
+                {step1Data.pickupAddress.prefecture} {step1Data.pickupAddress.city}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 font-medium">お届け先</p>
+              <p className="font-bold text-lg">
+                {step1Data.deliveryAddress.prefecture} {step1Data.deliveryAddress.city}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <Separator className="my-6 border-t-2 border-dashed border-gray-300" />
+        
+        <div className="flex justify-between items-center">
+          <span className="text-gray-600 font-medium">走行距離</span>
+          <span className="text-2xl font-black">
+            {formatDistance(estimateResult.distanceKm)}
+          </span>
+        </div>
+        
+        {estimateResult.isInterPrefecture && (
+          <div className="flex items-center gap-2 text-sm bg-gray-100 rounded-xl p-3 mt-4 border-2 border-dashed border-gray-300">
+            <AlertCircle className="w-5 h-5 text-gray-500" />
+            <span className="font-medium text-gray-600">県外への引越しです</span>
+          </div>
+        )}
+      </div>
+
+      {/* 料金内訳 */}
+      <div className="pop-card p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.8_0.18_60)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <Receipt className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-xl font-black">料金内訳</h3>
+        </div>
+        
+        <div className="space-y-4">
+          {estimateResult.breakdown.map((item, index) => (
+            <div key={index} className="flex justify-between items-start py-2 border-b-2 border-dashed border-gray-200 last:border-0">
+              <div>
+                <p className="font-bold">{item.name}</p>
+                {item.note && (
+                  <p className="text-sm text-gray-500">{item.note}</p>
+                )}
+              </div>
+              <span className="font-black text-lg whitespace-nowrap ml-4">
+                {formatCurrency(item.amount)}
+              </span>
+            </div>
+          ))}
+          
+          {estimateResult.breakdown.length === 0 && (
+            <p className="text-gray-500 text-center py-4">
+              追加料金はありません
+            </p>
+          )}
+        </div>
+        
+        <div className="mt-6 p-4 bg-[oklch(0.92_0.16_95)] rounded-xl border-[3px] border-black">
+          <div className="flex justify-between items-center">
+            <span className="text-lg font-black">合計</span>
+            <span className="text-3xl font-black">
+              {formatCurrency(estimateResult.totalFee)}
+            </span>
+          </div>
+        </div>
+
+        {estimateResult.highwayFeeNote && (
+          <div className="mt-4 p-4 bg-[oklch(0.95_0.05_95)] border-2 border-[oklch(0.8_0.18_60)] rounded-xl">
+            <p className="text-sm font-medium text-[oklch(0.5_0.1_60)] flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              高速道路料金: {estimateResult.highwayFeeNote}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* ナビゲーションボタン */}
+      <div className="flex flex-col sm:flex-row gap-4 pt-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleGoBack}
+          className="h-14 flex-1 border-[3px] border-black rounded-xl font-bold text-base shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all bg-white"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          条件を変更
+        </Button>
+        <Button
+          type="button"
+          onClick={handleStartOver}
+          className="pop-button h-14 flex-1 text-base"
+        >
+          <RotateCcw className="w-5 h-5 mr-2" />
+          最初からやり直す
+        </Button>
+      </div>
+    </div>
+  );
+}

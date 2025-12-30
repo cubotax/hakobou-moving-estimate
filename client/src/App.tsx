@@ -4,32 +4,35 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import Step1 from "./pages/Step1";
+import Step2 from "./pages/Step2";
+import Result from "./pages/Result";
 
+/**
+ * 引越し見積もりフォーム アプリケーション
+ * 
+ * Design Philosophy: 和モダン・ミニマリズム
+ * - 藍色をプライマリカラーに
+ * - 生成り色の温かみのある背景
+ * - 余白を活かした静謐で上品なUI
+ */
 
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
+      <Route path="/" component={Step1} />
+      <Route path="/step2" component={Step2} />
+      <Route path="/result" component={Result} />
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
