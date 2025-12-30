@@ -68,10 +68,20 @@ export type EstimateOptions = BaseOptions & ExtendedOptions;
 // 見積もりデータ
 // ============================================
 
+/** 日付データ */
+export interface MovingDates {
+  /** 集荷日 */
+  pickupDate: string;
+  /** お届け日 */
+  deliveryDate: string;
+}
+
 /** Step1: 住所入力データ */
 export interface Step1Data {
   pickupAddress: Address;
   deliveryAddress: Address;
+  /** 引越し日程 */
+  dates: MovingDates;
 }
 
 /** Step2: 条件入力データ */
@@ -120,6 +130,10 @@ export interface EstimateResult {
   optionFee: number;
   /** 高速料金（円）- 取得不可の場合は0 */
   highwayFee: number;
+  /** 積み置き料金（円） */
+  storageFee: number;
+  /** 繁忙期割増料金（円） */
+  busySeasonFee: number;
   /** 合計見積金額（円） */
   totalFee: number;
   /** 料金内訳 */
@@ -128,6 +142,10 @@ export interface EstimateResult {
   highwayFeeNote?: string;
   /** 県外移動かどうか */
   isInterPrefecture: boolean;
+  /** 繁忙期かどうか */
+  isBusySeason: boolean;
+  /** 積み置き日数 */
+  storageDays: number;
 }
 
 // ============================================

@@ -5,6 +5,7 @@
  * - 黄色背景で金額を際立たせる
  * - 黒枠カードで内訳を表示
  * - カラフルなアイコン
+ * - 日付・繁忙期・積み置き情報の表示
  */
 
 import { useLocation } from 'wouter';
@@ -18,7 +19,9 @@ import {
   RotateCcw,
   AlertCircle,
   Sparkles,
-  PartyPopper
+  PartyPopper,
+  Calendar,
+  Clock
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -32,6 +35,17 @@ import {
 import { formatCurrency, formatDistance } from '@/lib/pricing';
 import type { Step1FormData } from '@/lib/schema';
 import type { DistanceResult, EstimateResult as EstimateResultType } from '@/lib/types';
+
+// 日付をフォーマット（YYYY-MM-DD → YYYY年MM月DD日）
+function formatDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
 
 export function EstimateResult() {
   const [, navigate] = useLocation();
@@ -89,9 +103,50 @@ export function EstimateResult() {
         <p className="text-5xl sm:text-6xl font-black text-black tracking-tight">
           {formatCurrency(estimateResult.totalFee)}
         </p>
+        
+        {/* 繁忙期バッジ */}
+        {estimateResult.isBusySeason && (
+          <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2 border-[oklch(0.7_0.2_20)]">
+            <AlertCircle className="w-4 h-4 text-[oklch(0.5_0.2_20)]" />
+            <span className="text-sm font-bold text-[oklch(0.4_0.15_20)]">繁忙期料金適用中</span>
+          </div>
+        )}
+        
         <p className="text-black/60 text-sm mt-4">
           ※ 概算金額です。正式な見積もりは別途お問い合わせください。
         </p>
+      </div>
+
+      {/* 日程情報 */}
+      <div className="pop-card p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_200)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <Calendar className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-xl font-black">引越し日程</h3>
+          <span className="badge-green ml-auto">DATE</span>
+        </div>
+        
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+            <p className="text-sm text-gray-500 font-medium mb-1">集荷日</p>
+            <p className="font-bold text-lg">{formatDate(step1Data.dates.pickupDate)}</p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+            <p className="text-sm text-gray-500 font-medium mb-1">お届け日</p>
+            <p className="font-bold text-lg">{formatDate(step1Data.dates.deliveryDate)}</p>
+          </div>
+        </div>
+        
+        {/* 積み置き日数の表示 */}
+        {estimateResult.storageDays && estimateResult.storageDays > 0 && (
+          <div className="flex items-center gap-2 mt-4 p-3 bg-[oklch(0.95_0.05_80)] rounded-xl border-2 border-[oklch(0.8_0.1_80)]">
+            <Clock className="w-5 h-5 text-[oklch(0.6_0.15_80)]" />
+            <span className="font-medium text-[oklch(0.4_0.05_80)]">
+              積み置き期間: {estimateResult.storageDays}日間
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ルート情報 */}
@@ -117,13 +172,13 @@ export function EstimateResult() {
             <div>
               <p className="text-sm text-gray-500 font-medium">集荷先</p>
               <p className="font-bold text-lg">
-                {step1Data.pickupAddress.prefecture} {step1Data.pickupAddress.city}
+                {step1Data.pickupAddress.prefecture} {step1Data.pickupAddress.city} {step1Data.pickupAddress.town}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-500 font-medium">お届け先</p>
               <p className="font-bold text-lg">
-                {step1Data.deliveryAddress.prefecture} {step1Data.deliveryAddress.city}
+                {step1Data.deliveryAddress.prefecture} {step1Data.deliveryAddress.city} {step1Data.deliveryAddress.town}
               </p>
             </div>
           </div>

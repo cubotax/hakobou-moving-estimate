@@ -36,10 +36,11 @@ import {
   setStep2Data, 
   getStep2Data, 
   getDistanceData,
+  getStep1Data,
   setEstimateResult 
 } from '@/lib/store';
 import { calculateEstimate } from '@/lib/pricing';
-import type { EstimateOptions } from '@/lib/types';
+import type { EstimateOptions, MovingDates } from '@/lib/types';
 
 // 階数の選択肢（1階〜20階）
 const FLOOR_OPTIONS = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -79,6 +80,8 @@ export function ConditionForm() {
 
     // 見積もりを計算
     const distanceData = getDistanceData();
+    const step1Data = getStep1Data();
+    
     if (distanceData) {
       const options: EstimateOptions = {
         hasElevatorPickup: data.hasElevatorPickup,
@@ -87,7 +90,14 @@ export function ConditionForm() {
         floorDelivery: data.floorDelivery,
         needsPacking: data.needsPacking,
       };
-      const result = calculateEstimate(distanceData, options);
+      
+      // 日付データを取得
+      const dates: MovingDates | undefined = step1Data?.dates ? {
+        pickupDate: step1Data.dates.pickupDate,
+        deliveryDate: step1Data.dates.deliveryDate,
+      } : undefined;
+      
+      const result = calculateEstimate(distanceData, options, dates);
       setEstimateResult(result);
     }
 

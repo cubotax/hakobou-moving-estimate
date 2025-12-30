@@ -7,12 +7,13 @@
  * - 鮮やかな黄色のボタン
  * - カラフルなアイコンバッジ
  * - 町名バリデーション機能
+ * - 日付選択機能（集荷日・お届け日）
  */
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
-import { MapPin, Truck, ArrowRight, Loader2, ArrowDown, Search, MapPinned, Hash, CheckCircle2 } from 'lucide-react';
+import { MapPin, Truck, ArrowRight, Loader2, ArrowDown, Search, MapPinned, Hash, CheckCircle2, Calendar, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -25,6 +26,8 @@ import { step1Schema, type Step1FormData, defaultStep1Values } from '@/lib/schem
 import { setStep1Data, setDistanceData, getStep1Data } from '@/lib/store';
 import { getDistanceProvider } from '@/lib/distance';
 import { getAddressByPostalCode, isValidPostalCode, validateAddress } from '@/lib/postal';
+import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
+import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
 
 type InputMode = 'city' | 'postal';
 
@@ -69,6 +72,14 @@ export function AddressForm() {
   const deliveryPrefecture = watch('deliveryAddress.prefecture');
   const deliveryCity = watch('deliveryAddress.city');
   const deliveryTown = watch('deliveryAddress.town');
+  const pickupDate = watch('dates.pickupDate');
+  const deliveryDate = watch('dates.deliveryDate');
+
+  // 繁忙期チェック
+  const isPickupBusySeason = isBusySeason(pickupDate);
+  
+  // 積み置き日数計算
+  const storageDays = calculateStorageDays({ pickupDate, deliveryDate });
 
   // 集荷先住所のバリデーション
   const handleValidatePickupAddress = async () => {
@@ -240,8 +251,101 @@ export function AddressForm() {
     }
   };
 
+  // 日付選択セクションのレンダリング
+  const renderDateSection = () => (
+    <div className="pop-card p-6 mb-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_200)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <Calendar className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-xl font-black">引越し日程</h3>
+        <span className="badge-green ml-auto">DATE</span>
+      </div>
+
+      <div className="grid gap-6 max-w-md mx-auto">
+        {/* 集荷日 */}
+        <div className="space-y-2">
+          <Label htmlFor="pickup-date" className="font-bold">
+            集荷日 <span className="text-[oklch(0.75_0.2_0)]">*</span>
+          </Label>
+          <Input
+            id="pickup-date"
+            type="date"
+            {...register('dates.pickupDate')}
+            className="pop-input"
+          />
+          {errors.dates?.pickupDate && (
+            <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
+              {errors.dates.pickupDate.message}
+            </p>
+          )}
+        </div>
+
+        {/* お届け日 */}
+        <div className="space-y-2">
+          <Label htmlFor="delivery-date" className="font-bold">
+            お届け日 <span className="text-[oklch(0.75_0.2_0)]">*</span>
+          </Label>
+          <Input
+            id="delivery-date"
+            type="date"
+            {...register('dates.deliveryDate')}
+            className="pop-input"
+          />
+          {errors.dates?.deliveryDate && (
+            <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
+              {errors.dates.deliveryDate.message}
+            </p>
+          )}
+        </div>
+
+        {/* 注意事項 */}
+        <div className="space-y-3 mt-2">
+          {/* 積み置き料金の但し書き */}
+          {storageDays > 0 && (
+            <div className="flex items-start gap-2 p-3 bg-[oklch(0.95_0.05_80)] rounded-xl border-2 border-[oklch(0.8_0.1_80)]">
+              <AlertCircle className="w-5 h-5 text-[oklch(0.6_0.15_80)] flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-[oklch(0.4_0.05_80)]">
+                <span className="font-bold">積み置き料金：</span>
+                集荷日とお届け日が異なる場合、1日あたり{STORAGE_FEE_CONFIG.perDayFee.toLocaleString()}円の積み置き料金が発生します。
+                <span className="font-bold">（{storageDays}日分）</span>
+              </p>
+            </div>
+          )}
+
+          {/* 繁忙期料金の但し書き */}
+          {isPickupBusySeason && (
+            <div className="flex items-start gap-2 p-3 bg-[oklch(0.95_0.1_20)] rounded-xl border-2 border-[oklch(0.8_0.15_20)]">
+              <AlertCircle className="w-5 h-5 text-[oklch(0.6_0.2_20)] flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-[oklch(0.4_0.1_20)]">
+                <span className="font-bold">繁忙期料金：</span>
+                {BUSY_SEASON_CONFIG.startDate.replace('-', '/')}〜{BUSY_SEASON_CONFIG.endDate.replace('-', '/')}は繁忙期のため、
+                基本料金が{Math.round(BUSY_SEASON_CONFIG.surchargeRate * 100)}%増しとなります。
+              </p>
+            </div>
+          )}
+
+          {/* 通常時の繁忙期案内 */}
+          {!isPickupBusySeason && (
+            <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-xl border-2 border-gray-200">
+              <AlertCircle className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-gray-500">
+                <span className="font-bold">繁忙期について：</span>
+                {BUSY_SEASON_CONFIG.startDate.replace('-', '/')}〜{BUSY_SEASON_CONFIG.endDate.replace('-', '/')}は繁忙期のため、
+                基本料金が{Math.round(BUSY_SEASON_CONFIG.surchargeRate * 100)}%増しとなります。
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
+      {/* 日付選択セクション（最初に表示） */}
+      {renderDateSection()}
+
       {/* 入力方法の切り替えタブ */}
       <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
         <TabsList className="grid w-full grid-cols-2 h-14 p-1 bg-gray-100 rounded-2xl border-[2px] border-black">
@@ -292,6 +396,7 @@ export function AddressForm() {
                   </p>
                 )}
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="pickup-city" className="font-bold">
                   市区町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
@@ -302,9 +407,7 @@ export function AddressForm() {
                   {...register('pickupAddress.city', {
                     onChange: handlePickupInputChange,
                   })}
-                  className={`border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black ${
-                    errors.pickupAddress?.city ? 'border-[oklch(0.75_0.2_0)]' : ''
-                  }`}
+                  className="pop-input"
                 />
                 {errors.pickupAddress?.city && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
@@ -312,6 +415,7 @@ export function AddressForm() {
                   </p>
                 )}
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="pickup-town" className="font-bold">
                   町名 <span className="text-[oklch(0.75_0.2_0)]">*</span>
@@ -322,9 +426,7 @@ export function AddressForm() {
                   {...register('pickupAddress.town', {
                     onChange: handlePickupInputChange,
                   })}
-                  className={`border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black ${
-                    errors.pickupAddress?.town ? 'border-[oklch(0.75_0.2_0)]' : ''
-                  }`}
+                  className="pop-input"
                 />
                 {errors.pickupAddress?.town && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
@@ -332,46 +434,51 @@ export function AddressForm() {
                   </p>
                 )}
               </div>
-            </div>
 
-            {/* 住所確認ボタン */}
-            <div className="mt-4 flex items-center justify-center gap-3">
-              <Button
-                type="button"
-                onClick={handleValidatePickupAddress}
-                disabled={pickupValidating || !pickupPrefecture || !pickupCity || !pickupTown}
-                className={`h-10 px-4 rounded-xl font-bold border-[2px] border-black transition-all ${
-                  pickupValidated 
-                    ? 'bg-[oklch(0.75_0.2_145)] text-white' 
-                    : 'bg-white text-black hover:bg-gray-100'
-                }`}
-              >
-                {pickupValidating ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : pickupValidated ? (
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                ) : (
-                  <Search className="w-4 h-4 mr-2" />
-                )}
-                {pickupValidated ? '確認済み' : '住所を確認'}
-              </Button>
+              {/* 住所確認ボタン */}
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleValidatePickupAddress}
+                  disabled={pickupValidating || !pickupPrefecture || !pickupCity || !pickupTown}
+                  className="border-2 border-black rounded-xl font-bold"
+                >
+                  {pickupValidating ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4 mr-2" />
+                  )}
+                  住所を確認
+                </Button>
+              </div>
+
+              {/* バリデーション結果 */}
+              {pickupValidated && (
+                <div className="flex items-center gap-2 p-3 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
+                  <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  <span className="text-sm font-bold text-[oklch(0.4_0.1_145)]">確認済み</span>
+                </div>
+              )}
               {pickupValidationError && (
-                <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{pickupValidationError}</p>
+                <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium text-center">
+                  {pickupValidationError}
+                </p>
               )}
             </div>
           </div>
 
           {/* 矢印 */}
-          <div className="flex justify-center py-2">
-            <div className="w-14 h-14 rounded-full bg-white border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] animate-bounce-subtle">
-              <ArrowDown className="w-7 h-7 text-black" />
+          <div className="flex justify-center">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center border-[3px] border-black animate-bounce-slow">
+              <ArrowDown className="w-6 h-6" />
             </div>
           </div>
 
           {/* お届け先 */}
           <div className="pop-card p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-[oklch(0.75_0.2_145)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_145)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 <Truck className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-black">お届け先</h3>
@@ -397,6 +504,7 @@ export function AddressForm() {
                   </p>
                 )}
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="delivery-city" className="font-bold">
                   市区町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
@@ -407,9 +515,7 @@ export function AddressForm() {
                   {...register('deliveryAddress.city', {
                     onChange: handleDeliveryInputChange,
                   })}
-                  className={`border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black ${
-                    errors.deliveryAddress?.city ? 'border-[oklch(0.75_0.2_0)]' : ''
-                  }`}
+                  className="pop-input"
                 />
                 {errors.deliveryAddress?.city && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
@@ -417,6 +523,7 @@ export function AddressForm() {
                   </p>
                 )}
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="delivery-town" className="font-bold">
                   町名 <span className="text-[oklch(0.75_0.2_0)]">*</span>
@@ -427,9 +534,7 @@ export function AddressForm() {
                   {...register('deliveryAddress.town', {
                     onChange: handleDeliveryInputChange,
                   })}
-                  className={`border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black ${
-                    errors.deliveryAddress?.town ? 'border-[oklch(0.75_0.2_0)]' : ''
-                  }`}
+                  className="pop-input"
                 />
                 {errors.deliveryAddress?.town && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
@@ -437,31 +542,36 @@ export function AddressForm() {
                   </p>
                 )}
               </div>
-            </div>
 
-            {/* 住所確認ボタン */}
-            <div className="mt-4 flex items-center justify-center gap-3">
-              <Button
-                type="button"
-                onClick={handleValidateDeliveryAddress}
-                disabled={deliveryValidating || !deliveryPrefecture || !deliveryCity || !deliveryTown}
-                className={`h-10 px-4 rounded-xl font-bold border-[2px] border-black transition-all ${
-                  deliveryValidated 
-                    ? 'bg-[oklch(0.75_0.2_145)] text-white' 
-                    : 'bg-white text-black hover:bg-gray-100'
-                }`}
-              >
-                {deliveryValidating ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : deliveryValidated ? (
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                ) : (
-                  <Search className="w-4 h-4 mr-2" />
-                )}
-                {deliveryValidated ? '確認済み' : '住所を確認'}
-              </Button>
+              {/* 住所確認ボタン */}
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleValidateDeliveryAddress}
+                  disabled={deliveryValidating || !deliveryPrefecture || !deliveryCity || !deliveryTown}
+                  className="border-2 border-black rounded-xl font-bold"
+                >
+                  {deliveryValidating ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4 mr-2" />
+                  )}
+                  住所を確認
+                </Button>
+              </div>
+
+              {/* バリデーション結果 */}
+              {deliveryValidated && (
+                <div className="flex items-center gap-2 p-3 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
+                  <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  <span className="text-sm font-bold text-[oklch(0.4_0.1_145)]">確認済み</span>
+                </div>
+              )}
               {deliveryValidationError && (
-                <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{deliveryValidationError}</p>
+                <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium text-center">
+                  {deliveryValidationError}
+                </p>
               )}
             </div>
           </div>
@@ -479,108 +589,100 @@ export function AddressForm() {
               <span className="badge-pink ml-auto">FROM</span>
             </div>
             
-            <div className="space-y-4">
+            <div className="grid gap-4 max-w-md mx-auto">
               <div className="space-y-2">
                 <Label htmlFor="pickup-postal" className="font-bold">
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <Input
                     id="pickup-postal"
                     placeholder="例：150-0001"
                     value={pickupPostalCode}
                     onChange={(e) => setPickupPostalCode(e.target.value)}
-                    className="border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black flex-1"
-                    maxLength={8}
+                    className="pop-input flex-1"
                   />
                   <Button
                     type="button"
+                    variant="outline"
                     onClick={handlePickupPostalSearch}
                     disabled={pickupPostalLoading}
-                    className="pop-button h-12 px-6"
+                    className="border-2 border-black rounded-xl font-bold px-4"
                   >
                     {pickupPostalLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <>
-                        <Search className="w-5 h-5 mr-2" />
-                        検索
-                      </>
+                      <Search className="w-4 h-4" />
                     )}
                   </Button>
                 </div>
-                <p className="text-sm text-gray-500">ハイフンあり・なしどちらでもOK</p>
               </div>
-              
+
               {pickupPostalAddress && (
-                <div className="p-4 bg-[oklch(0.98_0.02_95)] rounded-xl border-[2px] border-dashed border-[oklch(0.8_0.1_95)]">
-                  <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 className="w-4 h-4 text-[oklch(0.75_0.2_145)]" />
-                    <p className="text-sm text-gray-600">取得した住所</p>
+                <div className="p-4 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                    <span className="font-bold text-[oklch(0.4_0.1_145)]">取得した住所</span>
                   </div>
-                  <p className="font-bold text-lg">{pickupPostalAddress}</p>
+                  <p className="text-lg font-medium">{pickupPostalAddress}</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* 矢印 */}
-          <div className="flex justify-center py-2">
-            <div className="w-14 h-14 rounded-full bg-white border-[3px] border-black flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] animate-bounce-subtle">
-              <ArrowDown className="w-7 h-7 text-black" />
+          <div className="flex justify-center">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center border-[3px] border-black animate-bounce-slow">
+              <ArrowDown className="w-6 h-6" />
             </div>
           </div>
 
           {/* お届け先 */}
           <div className="pop-card p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-[oklch(0.75_0.2_145)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_145)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 <Truck className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-black">お届け先</h3>
               <span className="badge-green ml-auto">TO</span>
             </div>
             
-            <div className="space-y-4">
+            <div className="grid gap-4 max-w-md mx-auto">
               <div className="space-y-2">
                 <Label htmlFor="delivery-postal" className="font-bold">
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <Input
                     id="delivery-postal"
                     placeholder="例：530-0001"
                     value={deliveryPostalCode}
                     onChange={(e) => setDeliveryPostalCode(e.target.value)}
-                    className="border-[2px] border-black rounded-xl h-12 text-base focus:ring-[oklch(0.92_0.16_95)] focus:border-black flex-1"
-                    maxLength={8}
+                    className="pop-input flex-1"
                   />
                   <Button
                     type="button"
+                    variant="outline"
                     onClick={handleDeliveryPostalSearch}
                     disabled={deliveryPostalLoading}
-                    className="pop-button h-12 px-6"
+                    className="border-2 border-black rounded-xl font-bold px-4"
                   >
                     {deliveryPostalLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <>
-                        <Search className="w-5 h-5 mr-2" />
-                        検索
-                      </>
+                      <Search className="w-4 h-4" />
                     )}
                   </Button>
                 </div>
-                <p className="text-sm text-gray-500">ハイフンあり・なしどちらでもOK</p>
               </div>
-              
+
               {deliveryPostalAddress && (
-                <div className="p-4 bg-[oklch(0.95_0.03_145)] rounded-xl border-[2px] border-dashed border-[oklch(0.7_0.15_145)]">
-                  <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 className="w-4 h-4 text-[oklch(0.75_0.2_145)]" />
-                    <p className="text-sm text-gray-600">取得した住所</p>
+                <div className="p-4 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                    <span className="font-bold text-[oklch(0.4_0.1_145)]">取得した住所</span>
                   </div>
-                  <p className="font-bold text-lg">{deliveryPostalAddress}</p>
+                  <p className="text-lg font-medium">{deliveryPostalAddress}</p>
                 </div>
               )}
             </div>
@@ -593,17 +695,17 @@ export function AddressForm() {
         <Button
           type="submit"
           disabled={isCalculating}
-          className="pop-button min-w-[240px] h-14 text-lg px-8"
+          className="pop-button text-lg px-8 py-6 h-auto"
         >
           {isCalculating ? (
             <>
-              <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
               距離を計算中...
             </>
           ) : (
             <>
               次へ進む
-              <ArrowRight className="w-6 h-6 ml-2" />
+              <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}
         </Button>
