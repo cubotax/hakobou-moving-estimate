@@ -273,7 +273,7 @@ export function AddressForm() {
               <span className="badge-pink ml-auto">FROM</span>
             </div>
             
-            <div className="grid gap-4 max-w-md">
+            <div className="grid gap-4 max-w-md mx-auto">
               <div className="space-y-2">
                 <Label htmlFor="pickup-prefecture" className="font-bold">
                   都道府県 <span className="text-[oklch(0.75_0.2_0)]">*</span>
@@ -335,7 +335,7 @@ export function AddressForm() {
             </div>
 
             {/* 住所確認ボタン */}
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-4 flex items-center justify-center gap-3">
               <Button
                 type="button"
                 onClick={handleValidatePickupAddress}
@@ -378,7 +378,7 @@ export function AddressForm() {
               <span className="badge-green ml-auto">TO</span>
             </div>
             
-            <div className="grid gap-4 max-w-md">
+            <div className="grid gap-4 max-w-md mx-auto">
               <div className="space-y-2">
                 <Label htmlFor="delivery-prefecture" className="font-bold">
                   都道府県 <span className="text-[oklch(0.75_0.2_0)]">*</span>
@@ -440,7 +440,7 @@ export function AddressForm() {
             </div>
 
             {/* 住所確認ボタン */}
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-4 flex items-center justify-center gap-3">
               <Button
                 type="button"
                 onClick={handleValidateDeliveryAddress}
