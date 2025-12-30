@@ -273,7 +273,7 @@ export function AddressForm() {
               <span className="badge-pink ml-auto">FROM</span>
             </div>
             
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 max-w-md">
               <div className="space-y-2">
                 <Label htmlFor="pickup-prefecture" className="font-bold">
                   都道府県 <span className="text-[oklch(0.75_0.2_0)]">*</span>
@@ -378,7 +378,7 @@ export function AddressForm() {
               <span className="badge-green ml-auto">TO</span>
             </div>
             
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 max-w-md">
               <div className="space-y-2">
                 <Label htmlFor="delivery-prefecture" className="font-bold">
                   都道府県 <span className="text-[oklch(0.75_0.2_0)]">*</span>
