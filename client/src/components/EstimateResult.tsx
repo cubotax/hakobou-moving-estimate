@@ -151,7 +151,7 @@ export function EstimateResult() {
       {/* 日程情報 */}
       <div className="pop-card p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_200)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_200)] flex items-center justify-center">
             <Calendar className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-black">引越し日程</h3>
@@ -183,7 +183,7 @@ export function EstimateResult() {
       {/* ルート情報 */}
       <div className="pop-card p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_250)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_250)] flex items-center justify-center">
             <Route className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-black">ルート情報</h3>
@@ -191,11 +191,11 @@ export function EstimateResult() {
         
         <div className="flex items-start gap-4">
           <div className="flex flex-col items-center">
-            <div className="w-10 h-10 rounded-full bg-[oklch(0.75_0.2_0)] flex items-center justify-center border-[2px] border-black">
+            <div className="w-10 h-10 rounded-full bg-[oklch(0.75_0.2_0)] flex items-center justify-center">
               <MapPin className="w-5 h-5 text-white" />
             </div>
             <div className="w-1 h-8 bg-black my-1 rounded-full" />
-            <div className="w-10 h-10 rounded-full bg-[oklch(0.75_0.2_145)] flex items-center justify-center border-[2px] border-black">
+            <div className="w-10 h-10 rounded-full bg-[oklch(0.75_0.2_145)] flex items-center justify-center">
               <Truck className="w-5 h-5 text-white" />
             </div>
           </div>
