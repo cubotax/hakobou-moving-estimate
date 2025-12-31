@@ -24,7 +24,7 @@ export default function Step2() {
             </div>
             <Settings className="inline-block w-10 h-10 mt-2 text-[oklch(0.8_0.18_60)]" />
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-base sm:text-lg px-4">
             引越しの条件を教えてください！
           </p>
         </header>

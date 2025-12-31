@@ -24,7 +24,7 @@ export default function Result() {
             </div>
             <PartyPopper className="inline-block w-10 h-10 mt-2 text-[oklch(0.92_0.16_95)]" />
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-base sm:text-lg px-4">
             お見積もり結果はこちら！
           </p>
         </header>
