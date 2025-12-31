@@ -213,7 +213,7 @@ export function ConditionForm() {
             <Truck className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-black">お届け先の条件</h3>
-          <span className="badge-green ml-auto">TO</span>
+          <span className="badge-green-no-border ml-auto">TO</span>
         </div>
         
         <div className="grid gap-6 sm:grid-cols-2">
