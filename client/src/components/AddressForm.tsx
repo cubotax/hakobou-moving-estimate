@@ -342,7 +342,7 @@ export function AddressForm() {
                   variant="outline"
                   onClick={handleValidatePickupAddress}
                   disabled={pickupValidating || !pickupPrefecture || !pickupCity || !pickupTown}
-                  className="border-2 border-black rounded-xl font-bold"
+                  className="border-[3px] border-black rounded-xl font-bold"
                 >
                   {pickupValidating ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -450,7 +450,7 @@ export function AddressForm() {
                   variant="outline"
                   onClick={handleValidateDeliveryAddress}
                   disabled={deliveryValidating || !deliveryPrefecture || !deliveryCity || !deliveryTown}
-                  className="border-2 border-black rounded-xl font-bold"
+                  className="border-[3px] border-black rounded-xl font-bold"
                 >
                   {deliveryValidating ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -510,7 +510,7 @@ export function AddressForm() {
                   variant="outline"
                   onClick={handlePickupPostalSearch}
                   disabled={pickupPostalLoading}
-                  className="border-2 border-black rounded-xl font-bold"
+                  className="border-[3px] border-black rounded-xl font-bold"
                 >
                   {pickupPostalLoading ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -571,7 +571,7 @@ export function AddressForm() {
                   variant="outline"
                   onClick={handleDeliveryPostalSearch}
                   disabled={deliveryPostalLoading}
-                  className="border-2 border-black rounded-xl font-bold"
+                  className="border-[3px] border-black rounded-xl font-bold"
                 >
                   {deliveryPostalLoading ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
