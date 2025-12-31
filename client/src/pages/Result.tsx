@@ -18,7 +18,7 @@ export default function Result() {
             <span className="badge-green">完了！</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-black mb-4 relative inline-block">
-            <span className="hand-underline">引越し見積もり</span>
+            <span>引越し見積もり</span>
             <PartyPopper className="inline-block w-10 h-10 ml-3 -mt-2 text-[oklch(0.92_0.16_95)]" />
           </h1>
           <p className="text-gray-600 text-lg">
