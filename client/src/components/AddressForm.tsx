@@ -268,11 +268,11 @@ export function AddressForm() {
           <Label htmlFor="pickup-date" className="font-bold">
             集荷日 <span className="text-[oklch(0.75_0.2_0)]">*</span>
           </Label>
-          <Input
+          <input
             id="pickup-date"
             type="date"
             {...register('dates.pickupDate')}
-            className="pop-input"
+            className="native-date-input"
           />
           {errors.dates?.pickupDate && (
             <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
@@ -286,11 +286,11 @@ export function AddressForm() {
           <Label htmlFor="delivery-date" className="font-bold">
             お届け日 <span className="text-[oklch(0.75_0.2_0)]">*</span>
           </Label>
-          <Input
+          <input
             id="delivery-date"
             type="date"
             {...register('dates.deliveryDate')}
-            className="pop-input"
+            className="native-date-input"
           />
           {errors.dates?.deliveryDate && (
             <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
