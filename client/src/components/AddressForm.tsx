@@ -393,7 +393,7 @@ export function AddressForm() {
                 <Truck className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-black">お届け先</h3>
-              <span className="badge-green ml-auto">TO</span>
+              <span className="badge-green-no-border ml-auto">TO</span>
             </div>
             
             <div className="grid gap-4 max-w-md mx-auto">
@@ -560,7 +560,7 @@ export function AddressForm() {
                 <Truck className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-black">お届け先</h3>
-              <span className="badge-green ml-auto">TO</span>
+              <span className="badge-green-no-border ml-auto">TO</span>
             </div>
             
             <div className="grid gap-4 max-w-md mx-auto">

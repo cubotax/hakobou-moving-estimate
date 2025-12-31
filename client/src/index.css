@@ -215,6 +215,10 @@
     @apply bg-[oklch(0.75_0.2_145)] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
   }
 
+  .badge-green-no-border {
+    @apply bg-[oklch(0.75_0.2_145)] text-white font-bold px-3 py-1 rounded-full text-sm;
+  }
+
   .badge-blue {
     @apply bg-[oklch(0.75_0.2_250)] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
   }
