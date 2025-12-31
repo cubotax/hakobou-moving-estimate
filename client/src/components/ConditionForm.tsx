@@ -118,7 +118,7 @@ export function ConditionForm() {
             <MapPin className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-black">集荷先の条件</h3>
-          <span className="badge-pink ml-auto">FROM</span>
+          <span className="badge-pink-no-border ml-auto">FROM</span>
         </div>
         
         <div className="grid gap-6 sm:grid-cols-2">

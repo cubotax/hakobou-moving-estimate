@@ -206,6 +206,10 @@
   .badge-pink {
     @apply bg-[oklch(0.75_0.2_0)] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
   }
+
+  .badge-pink-no-border {
+    @apply bg-[oklch(0.75_0.2_0)] text-white font-bold px-3 py-1 rounded-full text-sm;
+  }
   
   .badge-green {
     @apply bg-[oklch(0.75_0.2_145)] text-white font-bold px-3 py-1 rounded-full text-sm;
