@@ -4,24 +4,27 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Step1 from "./pages/Step1";
-import Step2 from "./pages/Step2";
+import DateSelect from "./pages/DateSelect";
+import AddressInput from "./pages/AddressInput";
+import ConditionInput from "./pages/ConditionInput";
 import Result from "./pages/Result";
 
 /**
  * 引越し見積もりフォーム アプリケーション
  * 
- * Design Philosophy: 和モダン・ミニマリズム
- * - 藍色をプライマリカラーに
- * - 生成り色の温かみのある背景
- * - 余白を活かした静謐で上品なUI
+ * 4ステップ構成:
+ * Step1: 日程選択（集荷日・お届け日）
+ * Step2: 住所入力（集荷先・お届け先）
+ * Step3: 条件入力（階数、エレベーター、オプション）
+ * Step4: 見積結果
  */
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Step1} />
-      <Route path="/step2" component={Step2} />
+      <Route path="/" component={DateSelect} />
+      <Route path="/address" component={AddressInput} />
+      <Route path="/condition" component={ConditionInput} />
       <Route path="/result" component={Result} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

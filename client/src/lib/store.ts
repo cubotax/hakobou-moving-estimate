@@ -9,11 +9,18 @@ import type { Step1FormData, Step2FormData } from './schema';
 import type { DistanceResult, EstimateResult } from './types';
 
 const STORAGE_KEYS = {
+  DATES: 'moving_estimate_dates',
   STEP1: 'moving_estimate_step1',
   STEP2: 'moving_estimate_step2',
   DISTANCE: 'moving_estimate_distance',
   RESULT: 'moving_estimate_result',
 } as const;
+
+// 日付データ型
+export interface DateData {
+  pickupDate: string;
+  deliveryDate: string;
+}
 
 // ============================================
 // ストレージユーティリティ
@@ -52,7 +59,23 @@ function removeFromStorage(key: string): void {
 }
 
 // ============================================
-// Step1 データ
+// 日付データ（新Step1）
+// ============================================
+
+export function getDateData(): DateData | null {
+  return getFromStorage<DateData>(STORAGE_KEYS.DATES);
+}
+
+export function setDateData(data: DateData): void {
+  setToStorage(STORAGE_KEYS.DATES, data);
+}
+
+// 別名（DateSelectページから使用）
+export const saveStep1DateData = setDateData;
+export const getStep1DateData = getDateData;
+
+// ============================================
+// 住所データ（新Step2、元Step1）
 // ============================================
 
 export function getStep1Data(): Step1FormData | null {
@@ -113,6 +136,7 @@ export function clearAllData(): void {
 
 export function getAllData() {
   return {
+    dates: getDateData(),
     step1: getStep1Data(),
     step2: getStep2Data(),
     distance: getDistanceData(),

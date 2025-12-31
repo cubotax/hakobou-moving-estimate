@@ -85,7 +85,7 @@ export const OPTION_FEES: OptionFeeConfig[] = [
  * - 'fixed': 固定基本料金
  * - 'per_km': 距離に応じた基本料金
  */
-export const PRICING_CONFIG: PricingConfig = {
+export const PRICING_CONFIG: PricingConfig & { storagePerDay: number } = {
   // MVPでは 'none' を使用。後で 'per_km' に変更可能
   baseFeeMode: 'per_km',
   
@@ -98,6 +98,9 @@ export const PRICING_CONFIG: PricingConfig = {
   
   // オプション料金設定
   optionFees: OPTION_FEES,
+  
+  // 積み置き料金（1日あたり）
+  storagePerDay: 3000,
 };
 
 // ============================================
@@ -159,6 +162,28 @@ export const FORM_CONFIG = {
   /** デフォルト階数 */
   defaultFloor: 1,
 };
+
+// ============================================
+// 繁忙期判定関数
+// ============================================
+
+/**
+ * 指定された日付が繁忙期かどうかを判定
+ */
+export function isBusyPeriod(date: Date): boolean {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  
+  const [startMonth, startDay] = BUSY_SEASON_CONFIG.startDate.split('-').map(Number);
+  const [endMonth, endDay] = BUSY_SEASON_CONFIG.endDate.split('-').map(Number);
+  
+  // 月-日を数値化して比較
+  const targetValue = month * 100 + day;
+  const startValue = startMonth * 100 + startDay;
+  const endValue = endMonth * 100 + endDay;
+  
+  return targetValue >= startValue && targetValue <= endValue;
+}
 
 // ============================================
 // 距離プロバイダ設定
