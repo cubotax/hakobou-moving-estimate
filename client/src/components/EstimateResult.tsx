@@ -114,7 +114,7 @@ export function EstimateResult() {
           </div>
         )}
         
-        <p className="text-black/60 text-sm mt-4 whitespace-pre-line">
+        <p className="text-black/60 text-sm mt-4 whitespace-pre-line font-bold">
           この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
         </p>
 
