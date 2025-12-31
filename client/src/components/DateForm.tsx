@@ -51,10 +51,10 @@ export function DateForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
       {/* 日付選択セクション */}
       <div className="pop-card p-6">
-        <h3 className="text-xl font-black mb-6">
-          <span className="badge-green inline-block mr-3">DATE</span>
-          引越し日程
-        </h3>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-black">引越し日程</h3>
+          <span className="badge-green">DATE</span>
+        </div>
 
         <div className="grid gap-6 max-w-md mx-auto">
           {/* 集荷日 */}
