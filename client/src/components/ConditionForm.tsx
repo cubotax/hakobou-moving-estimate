@@ -106,7 +106,7 @@ export function ConditionForm() {
   };
 
   const goBack = () => {
-    navigate('/');
+    navigate('/step1');
   };
 
   return (

@@ -31,6 +31,15 @@ export default function Result() {
           <StepIndicator steps={ESTIMATE_STEPS} currentStep={3} />
         </div>
 
+        {/* ステップ完了バッジ */}
+        <style>{`
+          @media (max-width: 639px) {
+            .step-label {
+              font-size: 0.875rem;
+            }
+          }
+        `}</style>
+
         {/* 結果 */}
         <div className="max-w-2xl mx-auto">
           <EstimateResult />

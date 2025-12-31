@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import Step0 from "./pages/Step0";
 import Step1 from "./pages/Step1";
 import Step2 from "./pages/Step2";
 import Result from "./pages/Result";
@@ -20,7 +21,8 @@ import Result from "./pages/Result";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Step1} />
+      <Route path="/" component={Step0} />
+      <Route path="/step1" component={Step1} />
       <Route path="/step2" component={Step2} />
       <Route path="/result" component={Result} />
       <Route path="/404" component={NotFound} />

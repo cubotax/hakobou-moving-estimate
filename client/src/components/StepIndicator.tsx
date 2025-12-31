@@ -100,6 +100,11 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
 // ステップ定義
 export const ESTIMATE_STEPS: Step[] = [
   {
+    id: 0,
+    title: '引越し日程',
+    description: '集荷日・お届け日',
+  },
+  {
     id: 1,
     title: '住所入力',
     description: '集荷先・お届け先',
