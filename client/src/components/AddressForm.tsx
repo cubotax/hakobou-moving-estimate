@@ -13,7 +13,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
-import { MapPin, Truck, ArrowRight, Loader2, ArrowDown, Search, MapPinned, Hash, CheckCircle2, AlertCircle } from 'lucide-react';
+import { MapPin, Truck, ArrowRight, ArrowLeft, Loader2, ArrowDown, Search, MapPinned, Hash, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -600,12 +600,21 @@ export function AddressForm() {
         </TabsContent>
       </Tabs>
 
-      {/* 送信ボタン */}
-      <div className="flex justify-center pt-4">
+      {/* ナビゲーションボタン */}
+      <div className="flex justify-between pt-4 gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate('/')}
+          className="h-14 px-6 border-[3px] border-black rounded-xl font-bold text-base shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all bg-white"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          戻る
+        </Button>
         <Button
           type="submit"
           disabled={isCalculating}
-          className="pop-button text-lg px-8 py-6 h-auto"
+          className="pop-button flex-1 max-w-[280px] h-14 text-lg"
         >
           {isCalculating ? (
             <>
