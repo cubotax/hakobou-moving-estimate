@@ -7,7 +7,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
-import { ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowRight, AlertCircle, Calendar } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -52,7 +52,12 @@ export function DateForm() {
       {/* 日付選択セクション */}
       <div className="pop-card p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-black">引越し日程</h3>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[oklch(0.7_0.15_200)] flex items-center justify-center border-[2px] border-black">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-xl font-black">引越し日程</h3>
+          </div>
           <span className="badge-green">DATE</span>
         </div>
 
