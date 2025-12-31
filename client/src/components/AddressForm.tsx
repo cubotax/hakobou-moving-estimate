@@ -335,7 +335,7 @@ export function AddressForm() {
                 )}
               </div>
 
-              {/* 住所確認ボタン */}
+              {/* 住所確定ボタン */}
               <div className="flex justify-center">
                 <Button
                   type="button"
@@ -349,7 +349,7 @@ export function AddressForm() {
                   ) : (
                     <Search className="w-4 h-4 mr-2" />
                   )}
-                  住所を確認
+                  住所を確定
                 </Button>
               </div>
 
@@ -443,7 +443,7 @@ export function AddressForm() {
                 )}
               </div>
 
-              {/* 住所確認ボタン */}
+              {/* 住所確定ボタン */}
               <div className="flex justify-center">
                 <Button
                   type="button"
@@ -457,7 +457,7 @@ export function AddressForm() {
                   ) : (
                     <Search className="w-4 h-4 mr-2" />
                   )}
-                  住所を確認
+                  住所を確定
                 </Button>
               </div>
 
@@ -494,28 +494,31 @@ export function AddressForm() {
                 <Label htmlFor="pickup-postal" className="font-bold">
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="pickup-postal"
-                    placeholder="例：150-0001"
-                    value={pickupPostalCode}
-                    onChange={(e) => setPickupPostalCode(e.target.value)}
-                    className="pop-input flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handlePickupPostalSearch}
-                    disabled={pickupPostalLoading}
-                    className="border-2 border-black rounded-xl font-bold px-4"
-                  >
-                    {pickupPostalLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Search className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
+                <Input
+                  id="pickup-postal"
+                  placeholder="例：150-0001"
+                  value={pickupPostalCode}
+                  onChange={(e) => setPickupPostalCode(e.target.value)}
+                  className="pop-input"
+                />
+              </div>
+
+              {/* 住所を確定ボタン */}
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePickupPostalSearch}
+                  disabled={pickupPostalLoading}
+                  className="border-2 border-black rounded-xl font-bold"
+                >
+                  {pickupPostalLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4 mr-2" />
+                  )}
+                  住所を確定
+                </Button>
               </div>
 
               {pickupPostalAddress && (
@@ -552,28 +555,31 @@ export function AddressForm() {
                 <Label htmlFor="delivery-postal" className="font-bold">
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="delivery-postal"
-                    placeholder="例：530-0001"
-                    value={deliveryPostalCode}
-                    onChange={(e) => setDeliveryPostalCode(e.target.value)}
-                    className="pop-input flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleDeliveryPostalSearch}
-                    disabled={deliveryPostalLoading}
-                    className="border-2 border-black rounded-xl font-bold px-4"
-                  >
-                    {deliveryPostalLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Search className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
+                <Input
+                  id="delivery-postal"
+                  placeholder="例：530-0001"
+                  value={deliveryPostalCode}
+                  onChange={(e) => setDeliveryPostalCode(e.target.value)}
+                  className="pop-input"
+                />
+              </div>
+
+              {/* 住所を確定ボタン */}
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleDeliveryPostalSearch}
+                  disabled={deliveryPostalLoading}
+                  className="border-2 border-black rounded-xl font-bold"
+                >
+                  {deliveryPostalLoading ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Search className="w-4 h-4 mr-2" />
+                  )}
+                  住所を確定
+                </Button>
               </div>
 
               {deliveryPostalAddress && (
