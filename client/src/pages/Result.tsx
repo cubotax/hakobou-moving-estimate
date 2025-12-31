@@ -18,11 +18,8 @@ export default function Result() {
             <span className="badge-green">完了！</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-black mb-4 relative text-center">
-            <div>
-              <span>ハコボウの</span><br />
-              <span>引越し見積</span>
-            </div>
-            <PartyPopper className="inline-block w-10 h-10 mt-2 text-[oklch(0.92_0.16_95)]" />
+            <span>オンライン見積</span>
+            <PartyPopper className="inline-block w-10 h-10 ml-3 -mt-2 text-[oklch(0.92_0.16_95)]" />
           </h1>
           <p className="text-gray-600 text-lg">
             お見積もり結果はこちら！

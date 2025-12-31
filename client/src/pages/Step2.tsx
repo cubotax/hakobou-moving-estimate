@@ -18,11 +18,8 @@ export default function Step2() {
             <span className="badge-orange">ステップ3</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-black mb-4 relative text-center">
-            <div>
-              <span>ハコボウの</span><br />
-              <span>引越し見積</span>
-            </div>
-            <Settings className="inline-block w-10 h-10 mt-2 text-[oklch(0.8_0.18_60)]" />
+            <span>オンライン見積</span>
+            <Settings className="inline-block w-10 h-10 ml-3 -mt-2 text-[oklch(0.8_0.18_60)]" />
           </h1>
           <p className="text-gray-600 text-lg">
             引越しの条件を教えてください！
