@@ -28,7 +28,7 @@ export default function Step0() {
           </h1>
           <p className="text-gray-600 text-base sm:text-lg px-4">
             住所と条件を入力するだけで<br />
-            今すぐ概算料金がわかる！
+            すぐに概算料金がわかる！
           </p>
         </header>
 
