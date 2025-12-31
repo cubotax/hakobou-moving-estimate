@@ -132,8 +132,19 @@ export function EstimateResult() {
       </div>
 
       {/* ご入力内容セクション */}
-      <div className="px-6">
-        <h2 className="text-2xl font-black text-black">ご入力内容</h2>
+      <div className="px-6 py-8 text-center relative">
+        {/* 装飾アイコン */}
+        <div className="absolute top-4 left-8 opacity-30">
+          <Sparkles className="w-6 h-6 text-[oklch(0.92_0.16_95)]" />
+        </div>
+        <div className="absolute top-4 right-8 opacity-30">
+          <Sparkles className="w-6 h-6 text-[oklch(0.92_0.16_95)]" />
+        </div>
+        
+        <h2 className="text-3xl font-black text-black inline-block relative">
+          ご入力内容
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[oklch(0.92_0.16_95)] rounded-full" />
+        </h2>
       </div>
 
       {/* 日程情報 */}
