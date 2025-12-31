@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PrefectureSelector } from './PrefectureSelector';
+import { DatePickerField } from './DatePickerField';
 import { step1Schema, type Step1FormData, defaultStep1Values } from '@/lib/schema';
 import { setStep1Data, setDistanceData, getStep1Data } from '@/lib/store';
 import { getDistanceProvider } from '@/lib/distance';
@@ -268,11 +269,11 @@ export function AddressForm() {
           <Label htmlFor="pickup-date" className="font-bold">
             集荷日 <span className="text-[oklch(0.75_0.2_0)]">*</span>
           </Label>
-          <input
+          <DatePickerField
             id="pickup-date"
-            type="date"
-            {...register('dates.pickupDate')}
-            className="native-date-input"
+            value={pickupDate}
+            onChange={(value) => setValue('dates.pickupDate', value)}
+            error={!!errors.dates?.pickupDate}
           />
           {errors.dates?.pickupDate && (
             <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
@@ -286,11 +287,11 @@ export function AddressForm() {
           <Label htmlFor="delivery-date" className="font-bold">
             お届け日 <span className="text-[oklch(0.75_0.2_0)]">*</span>
           </Label>
-          <input
+          <DatePickerField
             id="delivery-date"
-            type="date"
-            {...register('dates.deliveryDate')}
-            className="native-date-input"
+            value={deliveryDate}
+            onChange={(value) => setValue('dates.deliveryDate', value)}
+            error={!!errors.dates?.deliveryDate}
           />
           {errors.dates?.deliveryDate && (
             <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
