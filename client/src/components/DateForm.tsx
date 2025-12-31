@@ -12,15 +12,17 @@ import { ArrowRight, AlertCircle, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { DatePickerField } from './DatePickerField';
-import { step1Schema, type Step1FormData, defaultStep1Values } from '@/lib/schema';
+import { dateFormSchema, type DateFormData, step1Schema, type Step1FormData, defaultStep1Values } from '@/lib/schema';
 import { setStep1Data, getStep1Data } from '@/lib/store';
 import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
 import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
 
+const today = new Date().toISOString().split('T')[0];
+
 export function DateForm() {
   const [, navigate] = useLocation();
 
-  // 保存されたデータがあれば復元
+  // 保存されたデータがあれば復元（dates フィールドのみ）
   const savedData = getStep1Data();
 
   const {
@@ -28,9 +30,14 @@ export function DateForm() {
     setValue,
     watch,
     formState: { errors },
-  } = useForm<Step1FormData>({
-    resolver: zodResolver(step1Schema),
-    defaultValues: savedData || defaultStep1Values,
+  } = useForm<DateFormData>({
+    resolver: zodResolver(dateFormSchema),
+    defaultValues: {
+      dates: {
+        pickupDate: savedData?.dates?.pickupDate || today,
+        deliveryDate: savedData?.dates?.deliveryDate || today,
+      },
+    },
   });
 
   const pickupDate = watch('dates.pickupDate');
@@ -42,8 +49,14 @@ export function DateForm() {
   // 積み置き日数計算
   const storageDays = calculateStorageDays({ pickupDate, deliveryDate });
 
-  const onSubmit = (data: Step1FormData) => {
-    setStep1Data(data);
+  const onSubmit = (data: DateFormData) => {
+    // 既存の Step1 データを保持しながら日付を更新
+    const existingData = getStep1Data() || defaultStep1Values;
+    const updatedData: Step1FormData = {
+      ...existingData,
+      dates: data.dates,
+    };
+    setStep1Data(updatedData);
     navigate('/step1');
   };
 

@@ -50,6 +50,16 @@ export const movingDatesSchema = z.object({
 );
 
 // ============================================
+// Step0: 日付入力スキーマ（DateForm用）
+// ============================================
+
+export const dateFormSchema = z.object({
+  dates: movingDatesSchema,
+});
+
+export type DateFormData = z.infer<typeof dateFormSchema>;
+
+// ============================================
 // Step1: 住所入力スキーマ
 // ============================================
 
