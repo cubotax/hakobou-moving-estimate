@@ -28,7 +28,7 @@ export default function Result() {
 
         {/* ステップインジケーター */}
         <div className="max-w-3xl mx-auto mb-8">
-          <StepIndicator steps={ESTIMATE_STEPS} currentStep={3} />
+          <StepIndicator steps={ESTIMATE_STEPS} currentStep={4} />
         </div>
 
         {/* ステップ完了バッジ */}

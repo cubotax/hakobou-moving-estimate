@@ -14,7 +14,9 @@ interface Step {
   id: number;
   title: string;
   description?: string;
+  isLast?: boolean;
 }
+
 
 interface StepIndicatorProps {
   steps: Step[];
@@ -47,6 +49,8 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                 >
                   {isCompleted ? (
                     <Check className="w-6 h-6 sm:w-7 sm:h-7 stroke-[3]" />
+                  ) : step.isLast ? (
+                    <span className="text-xl font-black">¥</span>
                   ) : (
                     <span>{step.id}</span>
                   )}
@@ -100,23 +104,24 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
 // ステップ定義
 export const ESTIMATE_STEPS: Step[] = [
   {
-    id: 0,
+    id: 1,
     title: '引越し日程',
     description: '集荷日・お届け日',
   },
   {
-    id: 1,
+    id: 2,
     title: '住所入力',
     description: '集荷先・お届け先',
   },
   {
-    id: 2,
+    id: 3,
     title: '条件入力',
     description: 'オプション選択',
   },
   {
-    id: 3,
+    id: 4,
     title: '見積結果',
     description: '料金確認',
+    isLast: true,
   },
 ];
