@@ -7,6 +7,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
+import { useEffect } from 'react';
 import { ArrowRight, AlertCircle, Calendar } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,11 @@ const today = new Date().toISOString().split('T')[0];
 
 export function DateForm() {
   const [, navigate] = useLocation();
+
+  // ページ読み込み時にトップにスクロール
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // 保存されたデータがあれば復元（dates フィールドのみ）
   const savedData = getStep1Data();

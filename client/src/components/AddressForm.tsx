@@ -14,7 +14,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
 import { MapPin, Truck, ArrowRight, ArrowLeft, Loader2, ArrowDown, Search, MapPinned, Hash, CheckCircle2, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,11 @@ export function AddressForm() {
   const [, navigate] = useLocation();
   const [isCalculating, setIsCalculating] = useState(false);
   const [inputMode, setInputMode] = useState<InputMode>('city');
+  
+  // ページ読み込み時にトップにスクロール
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   // 郵便番号入力用の状態
   const [pickupPostalCode, setPickupPostalCode] = useState('');

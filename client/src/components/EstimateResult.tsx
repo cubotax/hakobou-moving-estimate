@@ -55,6 +55,7 @@ export function EstimateResult() {
   const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const s1 = getStep1Data();
     const dist = getDistanceData();
     const result = getEstimateResult();
@@ -295,7 +296,7 @@ export function EstimateResult() {
         <Button
           type="button"
           onClick={handleStartOver}
-          className="pop-button h-14 flex-1 text-base"
+          className="pop-button h-14 flex-1 text-base font-bold"
         >
           <RotateCcw className="w-5 h-5 mr-2" />
           最初からやり直す

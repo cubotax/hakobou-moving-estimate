@@ -48,6 +48,11 @@ const FLOOR_OPTIONS = Array.from({ length: 20 }, (_, i) => i + 1);
 export function ConditionForm() {
   const [, navigate] = useLocation();
 
+  // ページ読み込み時にトップにスクロール
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // 距離データがなければStep1に戻す
   useEffect(() => {
     const distanceData = getDistanceData();
