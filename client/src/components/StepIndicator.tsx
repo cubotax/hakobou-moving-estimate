@@ -60,7 +60,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                 <div className="mt-3 text-center">
                   <p
                     className={cn(
-                      'text-sm sm:text-base font-bold transition-colors duration-300',
+                      'text-sm sm:text-base font-bold transition-colors duration-300 whitespace-pre-line leading-tight',
                       isCurrent && 'text-black',
                       isCompleted && 'text-[oklch(0.72_0.22_10)]',
                       isPending && 'text-gray-400'
@@ -105,22 +105,22 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
 export const ESTIMATE_STEPS: Step[] = [
   {
     id: 1,
-    title: '引越し日程',
+    title: '引越し\n日程',
     description: '集荷日・お届け日',
   },
   {
     id: 2,
-    title: '住所入力',
+    title: '住所\n入力',
     description: '集荷先・お届け先',
   },
   {
     id: 3,
-    title: '条件入力',
+    title: '条件\n入力',
     description: 'オプション選択',
   },
   {
     id: 4,
-    title: '見積結果',
+    title: '見積\n結果',
     description: '料金確認',
     isLast: true,
   },
