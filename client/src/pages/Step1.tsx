@@ -24,9 +24,6 @@ export default function Step1() {
             </div>
             <Truck className="inline-block w-10 h-10 mt-2 text-[oklch(0.75_0.2_145)]" />
           </h1>
-          <p className="text-gray-600 text-base sm:text-lg px-4">
-            住所・郵便番号のどちらからでも入力できます！
-          </p>
         </header>
 
         {/* ステップインジケーター */}
