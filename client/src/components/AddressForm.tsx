@@ -628,7 +628,7 @@ export function AddressForm() {
             </>
           ) : (
             <>
-              次へ進む
+              条件入力へ
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}
