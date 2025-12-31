@@ -17,9 +17,12 @@ export default function Step1() {
           <div className="inline-flex items-center gap-2 mb-4">
             <span className="badge-pink">ステップ2</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-black mb-4 relative inline-block">
-            <span>引越し見積もり</span>
-            <Truck className="inline-block w-10 h-10 ml-3 -mt-2 text-[oklch(0.75_0.2_145)]" />
+          <h1 className="text-4xl sm:text-5xl font-black text-black mb-4 relative text-center">
+            <div>
+              <span>ハコボウの</span><br />
+              <span>引越し見積</span>
+            </div>
+            <Truck className="inline-block w-10 h-10 mt-2 text-[oklch(0.75_0.2_145)]" />
           </h1>
           <p className="text-gray-600 text-lg">
             住所を入力してください！
