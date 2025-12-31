@@ -51,7 +51,10 @@ export function DateForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
       {/* 日付選択セクション */}
       <div className="pop-card p-6">
-        <h3 className="text-xl font-black mb-6">引越し日程</h3>
+        <h3 className="text-xl font-black mb-6">
+          <span className="badge-green inline-block mr-3">DATE</span>
+          引越し日程
+        </h3>
 
         <div className="grid gap-6 max-w-md mx-auto">
           {/* 集荷日 */}
@@ -132,12 +135,12 @@ export function DateForm() {
       </div>
 
       {/* ナビゲーションボタン */}
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-center pt-4">
         <Button
           type="submit"
           className="pop-button max-w-[280px] h-14 text-lg"
         >
-          住所を入力
+          次へ進む
           <ArrowRight className="w-6 h-6 ml-2" />
         </Button>
       </div>
