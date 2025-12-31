@@ -131,6 +131,11 @@ export function EstimateResult() {
         </div>
       </div>
 
+      {/* ご入力内容セクション */}
+      <div className="px-6">
+        <h2 className="text-2xl font-black text-black">ご入力内容</h2>
+      </div>
+
       {/* 日程情報 */}
       <div className="pop-card p-6">
         <div className="flex items-center gap-3 mb-6">
