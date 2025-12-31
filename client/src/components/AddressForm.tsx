@@ -339,10 +339,11 @@ export function AddressForm() {
               <div className="flex justify-center">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleValidatePickupAddress}
                   disabled={pickupValidating || !pickupPrefecture || !pickupCity || !pickupTown}
-                  className="!border-[3px] !border-black rounded-xl font-bold"
+                  className="border-[3px] rounded-xl font-bold"
+                  style={{ borderColor: 'black' }}
                 >
                   {pickupValidating ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -447,10 +448,11 @@ export function AddressForm() {
               <div className="flex justify-center">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleValidateDeliveryAddress}
                   disabled={deliveryValidating || !deliveryPrefecture || !deliveryCity || !deliveryTown}
-                  className="!border-[3px] !border-black rounded-xl font-bold"
+                  className="border-[3px] rounded-xl font-bold"
+                  style={{ borderColor: 'black' }}
                 >
                   {deliveryValidating ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -507,10 +509,11 @@ export function AddressForm() {
               <div className="flex justify-center">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={handlePickupPostalSearch}
                   disabled={pickupPostalLoading}
-                  className="!border-[3px] !border-black rounded-xl font-bold"
+                  className="border-[3px] rounded-xl font-bold"
+                  style={{ borderColor: 'black' }}
                 >
                   {pickupPostalLoading ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -568,10 +571,11 @@ export function AddressForm() {
               <div className="flex justify-center">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={handleDeliveryPostalSearch}
                   disabled={deliveryPostalLoading}
-                  className="!border-[3px] !border-black rounded-xl font-bold"
+                  className="border-[3px] rounded-xl font-bold"
+                  style={{ borderColor: 'black' }}
                 >
                   {deliveryPostalLoading ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
