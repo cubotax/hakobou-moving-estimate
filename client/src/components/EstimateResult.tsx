@@ -155,7 +155,7 @@ export function EstimateResult() {
             <Calendar className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-black">引越し日程</h3>
-          <span className="badge-green ml-auto">DATE</span>
+          <span className="badge-green-no-border ml-auto">DATE</span>
         </div>
         
         <div className="grid sm:grid-cols-2 gap-4">
