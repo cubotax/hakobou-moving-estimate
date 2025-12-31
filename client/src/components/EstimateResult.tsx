@@ -21,7 +21,8 @@ import {
   Sparkles,
   PartyPopper,
   Calendar,
-  Clock
+  Clock,
+  MessageCircle
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -115,6 +116,19 @@ export function EstimateResult() {
         <p className="text-black/60 text-sm mt-4">
           ※ 概算金額です。正式な見積もりは別途お問い合わせください。
         </p>
+
+        {/* LINE相談ボタン */}
+        <div className="mt-6">
+          <a
+            href="https://line.me/R/oaMessage/@your_line_official_account_id/?相談をはじめる"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px]"
+          >
+            <MessageCircle className="w-5 h-5" />
+            LINE で相談をはじめる
+          </a>
+        </div>
       </div>
 
       {/* 日程情報 */}
