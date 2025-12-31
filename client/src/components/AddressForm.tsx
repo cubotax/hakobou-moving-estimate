@@ -251,11 +251,6 @@ export function AddressForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
-      {/* 説明文 */}
-      <p className="text-center text-gray-600 font-bold text-sm">
-        住所・郵便番号のどちらからでも入力できます！
-      </p>
-
       {/* 入力方法の切り替えタブ */}
       <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
         <TabsList className="grid w-full grid-cols-2 h-14 p-1 bg-gray-100 rounded-2xl border-[2px] border-black">
