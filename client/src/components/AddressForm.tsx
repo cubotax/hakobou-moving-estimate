@@ -628,7 +628,7 @@ export function AddressForm() {
             </>
           ) : (
             <>
-              条件入力へ
+              <span className="font-bold">条件入力へ</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}
