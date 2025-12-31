@@ -2,14 +2,12 @@
  * 日付入力フォームコンポーネント（Step0）
  * 
  * Design Philosophy: ポップ＆カジュアル
- * - 黒枠のカード
- * - 注意事項メッセージ
  */
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
-import { Calendar, ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowRight, AlertCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -45,9 +43,7 @@ export function DateForm() {
   const storageDays = calculateStorageDays({ pickupDate, deliveryDate });
 
   const onSubmit = (data: Step1FormData) => {
-    // 日付データだけを保存（住所はまだ入力されていない）
     setStep1Data(data);
-    // 次のステップへ
     navigate('/step1');
   };
 
@@ -55,13 +51,7 @@ export function DateForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
       {/* 日付選択セクション */}
       <div className="pop-card p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_200)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            <Calendar className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="text-xl font-black">引越し日程</h3>
-          <span className="badge-green ml-auto">DATE</span>
-        </div>
+        <h3 className="text-xl font-black mb-6">引越し日程</h3>
 
         <div className="grid gap-6 max-w-md mx-auto">
           {/* 集荷日 */}

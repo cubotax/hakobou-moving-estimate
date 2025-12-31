@@ -4,7 +4,7 @@
  * - モバイル: ネイティブHTML5 date input（ホイール型）
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/useMobile';
 import { Button } from '@/components/ui/button';
 import { Calendar } from 'lucide-react';
@@ -33,8 +33,14 @@ export function DatePickerField({
 }: DatePickerFieldProps) {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const dateValue = value ? new Date(value) : undefined;
+
+  // クライアント側でのみレンダリング
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // PC用：Radix UI カレンダーピッカー
   const renderCalendarPicker = () => (
@@ -80,11 +86,17 @@ export function DatePickerField({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className={`native-date-input w-full border-[2px] border-black rounded-xl h-12 px-4 font-bold text-base bg-white ${
+      className={`native-date-input w-full border-[2px] border-black rounded-xl h-12 px-4 font-bold text-base bg-white cursor-pointer ${
         error ? 'border-[oklch(0.75_0.2_0)]' : ''
       }`}
+      style={{ colorScheme: 'light' }}
     />
   );
+
+  // マウント時または判定後、モバイルならネイティブピッカー、PCならカレンダーを表示
+  if (!mounted) {
+    return renderMobilePicker(); // 初期レンダリングはモバイル優先
+  }
 
   return isMobile ? renderMobilePicker() : renderCalendarPicker();
 }
