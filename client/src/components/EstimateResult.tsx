@@ -114,8 +114,8 @@ export function EstimateResult() {
           </div>
         )}
         
-        <p className="text-black/60 text-sm mt-4">
-          ※ 概算金額です。正式な見積もりは別途お問い合わせください。
+        <p className="text-black/60 text-sm mt-4 whitespace-pre-line">
+          この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
         </p>
 
         {/* LINE相談ボタン */}
