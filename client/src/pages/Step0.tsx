@@ -27,7 +27,8 @@ export default function Step0() {
             <Truck className="inline-block w-10 h-10 mt-2 text-[oklch(0.75_0.2_145)]" />
           </h1>
           <p className="text-gray-600 text-base sm:text-lg px-4">
-            住所を入力するだけで、すぐに概算料金がわかります！
+            住所と条件を入力するだけで<br />
+            カンタンに概算料金がわかる！
           </p>
         </header>
 
