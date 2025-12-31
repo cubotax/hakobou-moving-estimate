@@ -15,9 +15,9 @@ export default function Step0() {
         {/* ヘッダー */}
         <header className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
-            <span className="badge-pink">カンタン</span>
-            <span className="badge-yellow">3ステップ</span>
-            <span className="badge-blue">オンライン</span>
+            <span className="badge-pink">すぐわかる</span>
+            <span className="badge-yellow">カンタン</span>
+            <span className="badge-blue">3ステップ</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-black mb-4 relative text-center">
             <div>
