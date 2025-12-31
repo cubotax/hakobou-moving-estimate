@@ -97,25 +97,20 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
   );
 }
 
-// ステップ定義（4ステップ構成）
+// ステップ定義
 export const ESTIMATE_STEPS: Step[] = [
   {
     id: 1,
-    title: '日程選択',
-    description: '引越し日',
-  },
-  {
-    id: 2,
     title: '住所入力',
     description: '集荷先・お届け先',
   },
   {
-    id: 3,
+    id: 2,
     title: '条件入力',
     description: 'オプション選択',
   },
   {
-    id: 4,
+    id: 3,
     title: '見積結果',
     description: '料金確認',
   },
