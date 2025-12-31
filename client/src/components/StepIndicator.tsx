@@ -4,7 +4,7 @@
  * Design Philosophy: ポップ＆カジュアル
  * - 黒枠の丸いステップ番号
  * - 黄色でアクティブ表示
- * - グリーンで完了表示
+ * - ピンク色で完了表示
  */
 
 import { cn } from '@/lib/utils';
@@ -42,7 +42,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                     'w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center',
                     'font-black text-lg sm:text-xl border-[3px] border-black',
                     'transition-all duration-300',
-                    isCompleted && 'bg-[oklch(0.75_0.2_145)] text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]',
+                    isCompleted && 'bg-[oklch(0.72_0.22_10)] text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]',
                     isCurrent && 'bg-[oklch(0.92_0.16_95)] text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] scale-110',
                     isPending && 'bg-white text-gray-300'
                   )}
@@ -62,7 +62,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                     className={cn(
                       'text-sm sm:text-base font-bold transition-colors duration-300',
                       isCurrent && 'text-black',
-                      isCompleted && 'text-[oklch(0.75_0.2_145)]',
+                      isCompleted && 'text-[oklch(0.72_0.22_10)]',
                       isPending && 'text-gray-400'
                     )}
                   >
@@ -88,7 +88,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                     className={cn(
                       'w-8 sm:w-16 h-1 rounded-full border-2 border-black',
                       'transition-all duration-300',
-                      isCompleted ? 'bg-[oklch(0.75_0.2_145)]' : 'bg-gray-200'
+                      isCompleted ? 'bg-[oklch(0.72_0.22_10)]' : 'bg-gray-200'
                     )}
                   />
                 </div>
