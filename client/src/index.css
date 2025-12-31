@@ -214,6 +214,10 @@
   .badge-green {
     @apply bg-[oklch(0.75_0.2_145)] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
   }
+
+  .badge-blue {
+    @apply bg-[oklch(0.75_0.2_250)] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
+  }
   
   .badge-yellow {
     @apply bg-[oklch(0.92_0.16_95)] text-black font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
