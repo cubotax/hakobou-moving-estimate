@@ -101,7 +101,7 @@ export function EstimateResult() {
           <PartyPopper className="w-6 h-6 text-black/20" />
         </div>
         
-        <p className="text-black/70 font-bold mb-2">お見積もり金額</p>
+        <p className="text-black/70 font-black mb-2 text-xl">お見積もり金額</p>
         <p className="text-5xl sm:text-6xl font-black text-black tracking-tight">
           {formatCurrency(estimateResult.totalFee)}
         </p>
