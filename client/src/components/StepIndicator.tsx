@@ -68,7 +68,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                   >
                     {step.title}
                   </p>
-                  {step.description && (
+                  {!!step.description && (
                     <p 
                       className={cn(
                         'text-xs sm:text-sm mt-1 hidden sm:block',

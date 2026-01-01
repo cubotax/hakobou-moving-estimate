@@ -345,7 +345,7 @@ export function AddressForm() {
                 )}
               </div>
 
-              {/* 住所確定ボタン */}
+              {/* 住所を確定ボタン */}
               <div className="flex justify-center">
                 <Button
                   type="button"
@@ -365,13 +365,13 @@ export function AddressForm() {
               </div>
 
               {/* バリデーション結果 */}
-              {pickupValidated && (
+              {!!pickupValidated && (
                 <div className="flex items-center gap-2 p-3 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
                   <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
                   <span className="text-sm font-bold text-[oklch(0.4_0.1_145)]">確認済み</span>
                 </div>
               )}
-              {pickupValidationError && (
+              {!!pickupValidationError && (
                 <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium text-center">
                   {pickupValidationError}
                 </p>
@@ -474,13 +474,13 @@ export function AddressForm() {
               </div>
 
               {/* バリデーション結果 */}
-              {deliveryValidated && (
+              {!!deliveryValidated && (
                 <div className="flex items-center gap-2 p-3 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
                   <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
                   <span className="text-sm font-bold text-[oklch(0.4_0.1_145)]">確認済み</span>
                 </div>
               )}
-              {deliveryValidationError && (
+              {!!deliveryValidationError && (
                 <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium text-center">
                   {deliveryValidationError}
                 </p>
@@ -534,7 +534,7 @@ export function AddressForm() {
                 </Button>
               </div>
 
-              {pickupPostalAddress && (
+              {!!pickupPostalAddress && (
                 <div className="p-4 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
@@ -596,7 +596,7 @@ export function AddressForm() {
                 </Button>
               </div>
 
-              {deliveryPostalAddress && (
+              {!!deliveryPostalAddress && (
                 <div className="p-4 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
                   <div className="flex items-center gap-2 mb-2">
                     <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />

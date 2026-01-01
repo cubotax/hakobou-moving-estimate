@@ -169,12 +169,12 @@ export function ConditionForm() {
             {errors.floorPickup && (
               <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{errors.floorPickup.message}</p>
             )}
-            {floorPickup >= 2 && !hasElevatorPickup && (
+            {floorPickup >= 2 && !hasElevatorPickup ? (
               <p className="text-sm text-[oklch(0.8_0.18_60)] font-medium flex items-center gap-1">
                 <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.8_0.18_60)]"></span>
                 階段作業の追加料金が発生します
               </p>
-            )}
+            ) : null}
           </div>
 
           {/* エレベーター */}
@@ -259,12 +259,12 @@ export function ConditionForm() {
             {errors.floorDelivery && (
               <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{errors.floorDelivery.message}</p>
             )}
-            {floorDelivery >= 2 && !hasElevatorDelivery && (
+            {floorDelivery >= 2 && !hasElevatorDelivery ? (
               <p className="text-sm text-[oklch(0.8_0.18_60)] font-medium flex items-center gap-1">
                 <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.8_0.18_60)]"></span>
                 階段作業の追加料金が発生します
               </p>
-            )}
+            ) : null}
           </div>
 
           {/* エレベーター */}

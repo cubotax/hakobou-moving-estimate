@@ -107,7 +107,7 @@ export function EstimateResult() {
         </p>
         
         {/* 繁忙期バッジ */}
-        {estimateResult.isBusySeason && (
+        {!!estimateResult.isBusySeason && (
           <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2 border-[oklch(0.7_0.2_20)]">
             <AlertCircle className="w-4 h-4 text-[oklch(0.5_0.2_20)]" />
             <span className="text-sm font-bold text-[oklch(0.4_0.15_20)]">繁忙期料金適用中</span>
@@ -170,7 +170,7 @@ export function EstimateResult() {
         </div>
         
         {/* 積み置き日数の表示 */}
-        {estimateResult.storageDays && estimateResult.storageDays > 0 && (
+        {!!estimateResult.storageDays && estimateResult.storageDays > 0 && (
           <div className="flex items-center gap-2 mt-4 p-3 bg-[oklch(0.95_0.05_80)] rounded-xl border-2 border-[oklch(0.8_0.1_80)]">
             <Clock className="w-5 h-5 text-[oklch(0.6_0.15_80)]" />
             <span className="font-medium text-[oklch(0.4_0.05_80)]">
@@ -224,7 +224,7 @@ export function EstimateResult() {
           </span>
         </div>
         
-        {estimateResult.isInterPrefecture && (
+        {!!estimateResult.isInterPrefecture && (
           <div className="flex items-center gap-2 text-sm bg-gray-100 rounded-xl p-3 mt-4 border-2 border-dashed border-gray-300">
             <AlertCircle className="w-5 h-5 text-gray-500" />
             <span className="font-medium text-gray-600">県外への引越しです</span>
@@ -246,7 +246,7 @@ export function EstimateResult() {
             <div key={index} className="flex justify-between items-start py-2 border-b-2 border-dashed border-gray-200 last:border-0">
               <div>
                 <p className="font-bold">{item.name}</p>
-                {item.note && (
+                {!!item.note && (
                   <p className="text-sm text-gray-500">{item.note}</p>
                 )}
               </div>
@@ -272,7 +272,7 @@ export function EstimateResult() {
           </div>
         </div>
 
-        {estimateResult.highwayFeeNote && (
+        {!!estimateResult.highwayFeeNote && (
           <div className="mt-4 p-4 bg-[oklch(0.95_0.05_95)] border-2 border-[oklch(0.8_0.18_60)] rounded-xl">
             <p className="text-sm font-medium text-[oklch(0.5_0.1_60)] flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
