@@ -77,7 +77,7 @@ export function DateForm() {
             </div>
             <h3 className="text-xl font-black">引越し日程</h3>
           </div>
-          <span className="badge-green">DATE</span>
+          <span className="badge-green-no-border">DATE</span>
         </div>
 
         <div className="grid gap-6 max-w-md mx-auto">
