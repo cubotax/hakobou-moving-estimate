@@ -24,7 +24,6 @@ export default function Step0() {
               <span>ハコボウの</span><br />
               <span>オンライン見積</span>
             </div>
-            <Truck className="inline-block w-10 h-10 mt-2 text-[oklch(0.75_0.2_145)]" />
           </h1>
           <p className="text-gray-600 text-base sm:text-lg px-4">
             住所と条件を入力するだけで<br />
