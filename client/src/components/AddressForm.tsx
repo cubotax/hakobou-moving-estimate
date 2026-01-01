@@ -317,6 +317,12 @@ export function AddressForm() {
                   {...register('pickupAddress.city', {
                     onChange: handlePickupInputChange,
                   })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleValidatePickupAddress();
+                    }
+                  }}
                   className="pop-input"
                 />
                 {errors.pickupAddress?.city && (
@@ -336,6 +342,12 @@ export function AddressForm() {
                   {...register('pickupAddress.town', {
                     onChange: handlePickupInputChange,
                   })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleValidatePickupAddress();
+                    }
+                  }}
                   className="pop-input"
                 />
                 {errors.pickupAddress?.town && (
@@ -426,6 +438,12 @@ export function AddressForm() {
                   {...register('deliveryAddress.city', {
                     onChange: handleDeliveryInputChange,
                   })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleValidateDeliveryAddress();
+                    }
+                  }}
                   className="pop-input"
                 />
                 {errors.deliveryAddress?.city && (
@@ -445,6 +463,12 @@ export function AddressForm() {
                   {...register('deliveryAddress.town', {
                     onChange: handleDeliveryInputChange,
                   })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleValidateDeliveryAddress();
+                    }
+                  }}
                   className="pop-input"
                 />
                 {errors.deliveryAddress?.town && (
@@ -511,6 +535,12 @@ export function AddressForm() {
                   placeholder="例：150-0001"
                   value={pickupPostalCode}
                   onChange={(e) => setPickupPostalCode(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handlePickupPostalSearch();
+                    }
+                  }}
                   className="pop-input"
                 />
               </div>
@@ -573,6 +603,12 @@ export function AddressForm() {
                   placeholder="例：530-0001"
                   value={deliveryPostalCode}
                   onChange={(e) => setDeliveryPostalCode(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleDeliveryPostalSearch();
+                    }
+                  }}
                   className="pop-input"
                 />
               </div>
