@@ -228,7 +228,7 @@
   }
   
   .badge-orange {
-    @apply bg-[oklch(0.8_0.18_60)] text-white font-bold px-3 py-1 rounded-full text-sm;
+    @apply bg-[oklch(0.8_0.18_60)] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
   }
   
   /* 手書き風アンダーライン */
