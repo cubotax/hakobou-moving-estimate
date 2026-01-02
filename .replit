@@ -56,4 +56,4 @@ externalPort = 80
 [deployment]
 deploymentTarget = "autoscale"
 run = ["sh", "-c", "node line-backend/server.js"]
-build = ["pnpm", "run", "build"]
+build = ["sh", "-c", "cd line-backend && npm install"]
