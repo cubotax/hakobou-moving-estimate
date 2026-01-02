@@ -28,6 +28,7 @@ import { getDistanceProvider } from '@/lib/distance';
 import { getAddressByPostalCode, isValidPostalCode, validateAddress } from '@/lib/postal';
 import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
 import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
+import { toHalfWidth, formatPostalCode } from '@/lib/utils';
 
 type InputMode = 'city' | 'postal';
 
@@ -77,6 +78,14 @@ export function AddressForm() {
   const deliveryPrefecture = watch('deliveryAddress.prefecture');
   const deliveryCity = watch('deliveryAddress.city');
   const deliveryTown = watch('deliveryAddress.town');
+
+  // 住所入力用（IME入力中は変換しない）
+  const handleAddressBlur = (fieldName: any) => {
+    const value = watch(fieldName);
+    if (value) {
+      setValue(fieldName, toHalfWidth(value));
+    }
+  };
 
   // 集荷先住所のバリデーション
   const handleValidatePickupAddress = async () => {
@@ -316,6 +325,7 @@ export function AddressForm() {
                   placeholder="例：渋谷区"
                   {...register('pickupAddress.city', {
                     onChange: handlePickupInputChange,
+                    onBlur: () => handleAddressBlur('pickupAddress.city'),
                   })}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -341,6 +351,7 @@ export function AddressForm() {
                   placeholder="例：神宮前"
                   {...register('pickupAddress.town', {
                     onChange: handlePickupInputChange,
+                    onBlur: () => handleAddressBlur('pickupAddress.town'),
                   })}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -437,6 +448,7 @@ export function AddressForm() {
                   placeholder="例：大阪市北区"
                   {...register('deliveryAddress.city', {
                     onChange: handleDeliveryInputChange,
+                    onBlur: () => handleAddressBlur('deliveryAddress.city'),
                   })}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -462,6 +474,7 @@ export function AddressForm() {
                   placeholder="例：梅田"
                   {...register('deliveryAddress.town', {
                     onChange: handleDeliveryInputChange,
+                    onBlur: () => handleAddressBlur('deliveryAddress.town'),
                   })}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -534,7 +547,7 @@ export function AddressForm() {
                   id="pickup-postal"
                   placeholder="例：150-0001"
                   value={pickupPostalCode}
-                  onChange={(e) => setPickupPostalCode(e.target.value)}
+                  onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -602,7 +615,7 @@ export function AddressForm() {
                   id="delivery-postal"
                   placeholder="例：530-0001"
                   value={deliveryPostalCode}
-                  onChange={(e) => setDeliveryPostalCode(e.target.value)}
+                  onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
