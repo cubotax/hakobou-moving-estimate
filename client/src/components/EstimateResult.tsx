@@ -33,7 +33,8 @@ import {
   getEstimateResult,
   clearAllData 
 } from '@/lib/store';
-import { formatCurrency, formatDistance } from '@/lib/pricing';
+import { formatCurrency, formatDistance, isBusySeason } from '@/lib/pricing';
+import { UI_DISPLAY_CONFIG, BUSY_SEASON_CONFIG } from '@/lib/config';
 import type { Step1FormData } from '@/lib/schema';
 import type { DistanceResult, EstimateResult as EstimateResultType } from '@/lib/types';
 
@@ -271,6 +272,28 @@ export function EstimateResult() {
             </span>
           </div>
         </div>
+
+        {/* 繁忙期メッセージ */}
+        {isBusySeason(step1Data.dates.pickupDate) && (
+          <div className="mt-4 p-4 bg-[oklch(0.95_0.15_20)] border-2 border-[oklch(0.7_0.2_20)] rounded-xl">
+            <p className="text-sm font-bold text-[oklch(0.4_0.15_20)] flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+              <span>
+                繁忙期（{BUSY_SEASON_CONFIG.startDate.replace('-', '/')}〜{BUSY_SEASON_CONFIG.endDate.replace('-', '/')}）のため、基本料金が{BUSY_SEASON_CONFIG.surchargeRate * 100}%増しとなっております。
+              </span>
+            </p>
+          </div>
+        )}
+
+        {/* 積み置き料金メッセージ (表示フラグ制御) */}
+        {UI_DISPLAY_CONFIG.SHOW_TSUMIOKI_MESSAGE && (
+          <div className="mt-4 p-4 bg-[oklch(0.95_0.05_95)] border-2 border-[oklch(0.8_0.18_60)] rounded-xl">
+            <p className="text-sm font-medium text-[oklch(0.5_0.1_60)] flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              積み置き料金に関する注意メッセージ（将来表示用）
+            </p>
+          </div>
+        )}
 
         {!!estimateResult.highwayFeeNote && (
           <div className="mt-4 p-4 bg-[oklch(0.95_0.05_95)] border-2 border-[oklch(0.8_0.18_60)] rounded-xl">
