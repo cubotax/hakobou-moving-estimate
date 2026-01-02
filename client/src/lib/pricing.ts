@@ -18,26 +18,60 @@ import { PRICING_CONFIG, HIGHWAY_FEE_CONFIG, BUSY_SEASON_CONFIG, STORAGE_FEE_CON
 /**
  * 距離料金を計算（累進課金方式）
  */
-function calculateDistanceFee(distanceKm: number): { fee: number; breakdown: FeeBreakdownItem } {
-  let totalFee = PRICING_CONFIG.baseFee;
+function calculateDistanceFee(distanceKm: number, dates: MovingDates): { 
+  fee: number; 
+  breakdown: FeeBreakdownItem[];
+  baseFee: number;
+} {
+  const isBusy = isBusySeason(dates.pickupDate);
+  const baseFee = PRICING_CONFIG.baseFee;
+  const busySeasonSurcharge = isBusy ? Math.round(baseFee * BUSY_SEASON_CONFIG.surchargeRate) : 0;
   
-  // 累進課金の計算
+  let distanceTotal = baseFee;
+  const breakdown: FeeBreakdownItem[] = [];
+
+  // 基本料金の追加
+  breakdown.push({
+    name: '基本料金',
+    amount: baseFee,
+    note: '30kmまで',
+  });
+
+  // 繁忙期加算の追加
+  if (isBusy) {
+    breakdown.push({
+      name: BUSY_SEASON_CONFIG.label,
+      amount: busySeasonSurcharge,
+      note: `(¥19,800 × ${BUSY_SEASON_CONFIG.surchargeRate * 100}%)`,
+    });
+    distanceTotal += busySeasonSurcharge;
+  }
+  
+  // 累進課金の計算（31km以降）
+  let progressiveFee = 0;
   for (const range of PRICING_CONFIG.distanceRates) {
-    if (distanceKm > range.min) {
+    if (distanceKm > range.min && range.rate > 0) {
       const applicableDistance = Math.min(distanceKm, range.max) - range.min;
       if (applicableDistance > 0) {
-        totalFee += applicableDistance * range.rate;
+        const fee = applicableDistance * range.rate;
+        progressiveFee += fee;
       }
     }
   }
 
+  if (progressiveFee > 0) {
+    breakdown.push({
+      name: '距離超過料金',
+      amount: progressiveFee,
+      note: `${distanceKm.toFixed(1)}km（累進課金）`,
+    });
+    distanceTotal += progressiveFee;
+  }
+
   return {
-    fee: totalFee,
-    breakdown: {
-      name: '距離料金',
-      amount: totalFee,
-      note: `${distanceKm.toFixed(1)}km（累進課金適用）`,
-    },
+    fee: distanceTotal,
+    breakdown,
+    baseFee: baseFee + busySeasonSurcharge,
   };
 }
 
@@ -185,34 +219,6 @@ export function calculateStorageDays(dates: MovingDates): number {
   return Math.max(0, diffDays);
 }
 
-/**
- * 繁忙期料金を計算
- */
-function calculateBusySeasonFee(
-  baseFee: number, 
-  optionFee: number, 
-  dates: MovingDates
-): { fee: number; breakdown: FeeBreakdownItem | null; isBusy: boolean } {
-  const isBusy = isBusySeason(dates.pickupDate);
-  
-  if (!isBusy) {
-    return { fee: 0, breakdown: null, isBusy: false };
-  }
-  
-  // 基本料金とオプション料金の合計に対して割増
-  const baseAmount = baseFee + optionFee;
-  const surcharge = Math.round(baseAmount * BUSY_SEASON_CONFIG.surchargeRate);
-  
-  return {
-    fee: surcharge,
-    breakdown: {
-      name: BUSY_SEASON_CONFIG.label,
-      amount: surcharge,
-      note: `(${formatCurrency(baseAmount)} × ${BUSY_SEASON_CONFIG.surchargeRate * 100}%)`,
-    },
-    isBusy: true,
-  };
-}
 
 /**
  * 積み置き料金を計算
@@ -262,9 +268,9 @@ export function calculateEstimate(
     deliveryDate: new Date().toISOString().split('T')[0],
   };
   
-  // 1. 距離料金（基本料金含む累進課金）
-  const distanceFeeResult = calculateDistanceFee(distance.distanceKm);
-  breakdown.push(distanceFeeResult.breakdown);
+  // 1. 距離料金（基本料金含む累進課金 ＋ 繁忙期加算）
+  const distanceFeeResult = calculateDistanceFee(distance.distanceKm, movingDates);
+  breakdown.push(...distanceFeeResult.breakdown);
   
   // 2. 階数料金
   const floorFeeResult = calculateFloorFees(options);
@@ -286,37 +292,26 @@ export function calculateEstimate(
     breakdown.push(storageFeeResult.breakdown);
   }
   
-  // 6. 繁忙期料金（距離料金+階数料金+オプション料金に対して）
-  const busySeasonFeeResult = calculateBusySeasonFee(
-    distanceFeeResult.fee + floorFeeResult.totalFee, 
-    optionFeeResult.totalFee,
-    movingDates
-  );
-  if (busySeasonFeeResult.breakdown) {
-    breakdown.push(busySeasonFeeResult.breakdown);
-  }
-  
   // 合計計算
   const totalFee = 
     distanceFeeResult.fee + 
     floorFeeResult.totalFee +
     optionFeeResult.totalFee + 
     highwayFeeResult.fee + 
-    storageFeeResult.fee +
-    busySeasonFeeResult.fee;
+    storageFeeResult.fee;
   
   return {
     distanceKm: distance.distanceKm,
-    baseFee: distanceFeeResult.fee,
+    baseFee: distanceFeeResult.baseFee,
     optionFee: optionFeeResult.totalFee + floorFeeResult.totalFee,
     highwayFee: highwayFeeResult.fee,
     storageFee: storageFeeResult.fee,
-    busySeasonFee: busySeasonFeeResult.fee,
+    busySeasonFee: isBusySeason(movingDates.pickupDate) ? Math.round(PRICING_CONFIG.baseFee * BUSY_SEASON_CONFIG.surchargeRate) : 0,
     totalFee,
     breakdown,
     highwayFeeNote: highwayFeeResult.note,
     isInterPrefecture: distance.isInterPrefecture,
-    isBusySeason: busySeasonFeeResult.isBusy,
+    isBusySeason: isBusySeason(movingDates.pickupDate),
     storageDays: storageFeeResult.days,
   };
 }
