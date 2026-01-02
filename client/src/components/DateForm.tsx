@@ -57,6 +57,13 @@ export function DateForm() {
   const pickupDate = watch('dates.pickupDate');
   const deliveryDate = watch('dates.deliveryDate');
 
+  // 集荷日変更時の連動ロジック
+  useEffect(() => {
+    if (deliveryDate < pickupDate) {
+      setValue('dates.deliveryDate', pickupDate);
+    }
+  }, [pickupDate, deliveryDate, setValue]);
+
   // 繁忙期チェック（集荷日ベース）
   const isPickupBusySeason = isBusySeason(pickupDate);
 
