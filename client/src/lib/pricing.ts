@@ -184,22 +184,23 @@ function processHighwayFee(distance: DistanceResult): {
 /**
  * 繁忙期かどうかを判定
  */
-export function isBusySeason(date: string): boolean {
+export function isBusySeason(date: string | Date): boolean {
   if (!date) return false;
   
-  const targetDate = new Date(date);
-  const month = targetDate.getMonth() + 1; // 0-indexed
+  const targetDate = typeof date === 'string' ? new Date(date) : date;
+  const year = targetDate.getFullYear();
+  const month = targetDate.getMonth();
   const day = targetDate.getDate();
   
-  const [startMonth, startDay] = BUSY_SEASON_CONFIG.startDate.split('-').map(Number);
-  const [endMonth, endDay] = BUSY_SEASON_CONFIG.endDate.split('-').map(Number);
+  // 時刻を 00:00:00 にリセットした比較用の日付オブジェクトを作成
+  const moveDate = new Date(year, month, day, 0, 0, 0, 0);
   
-  // 月-日を数値化して比較（例: 3月1日 = 301, 4月10日 = 410）
-  const targetValue = month * 100 + day;
-  const startValue = startMonth * 100 + startDay;
-  const endValue = endMonth * 100 + endDay;
+  // 3/1 00:00:00
+  const start = new Date(year, 2, 1, 0, 0, 0, 0);
+  // 4/10 23:59:59 (日付比較なので 4/10 00:00:00 でも可だが、仕様に合わせる)
+  const end = new Date(year, 3, 10, 0, 0, 0, 0);
   
-  return targetValue >= startValue && targetValue <= endValue;
+  return moveDate >= start && moveDate <= end;
 }
 
 /**
