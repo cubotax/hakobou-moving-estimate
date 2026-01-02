@@ -88,40 +88,40 @@ export function EstimateResult() {
     <div className="space-y-6 animate-fade-in">
       {/* 見積もり結果ヘッダー */}
       <div className="pop-card bg-[oklch(0.92_0.16_95)] p-8 text-center relative overflow-hidden">
-        {/* 背景装飾イラスト（数学的ミラー配置：左右完全対称 & 反転） */}
+        {/* 背景装飾イラスト（数学的ミラー配置：左右完全対称 & 反転 + 内側シフト調整） */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-20">
-          {/* ペア1: 四隅上部 (Y:5%) */}
-          <PartyPopper className="absolute top-[5%] left-[5%] w-14 h-14 -rotate-12" />
+          {/* ペア1: 四隅上部 (Y:5%, X:5%→10%) */}
+          <PartyPopper className="absolute top-[5%] left-[10%] w-14 h-14 -rotate-12" />
           <PartyPopper 
-            className="absolute top-[5%] right-[5%] w-14 h-14 rotate-12" 
+            className="absolute top-[5%] right-[10%] w-14 h-14 rotate-12" 
             style={{ transform: 'scaleX(-1)' }} 
           />
           
-          {/* ペア2: 四隅下部 (Y:10%) */}
-          <Sparkles className="absolute bottom-[10%] left-[8%] w-12 h-12 -rotate-12" />
+          {/* ペア2: 四隅下部 (Y:10%, X:8%→13%) */}
+          <Sparkles className="absolute bottom-[10%] left-[13%] w-12 h-12 -rotate-12" />
           <Sparkles 
-            className="absolute bottom-[10%] right-[8%] w-12 h-12 rotate-12" 
+            className="absolute bottom-[10%] right-[13%] w-12 h-12 rotate-12" 
             style={{ transform: 'scaleX(-1)' }} 
           />
 
-          {/* ペア3: 中央上部寄り左右 (Y:20%) */}
-          <Sparkles className="absolute top-[20%] left-[12%] w-6 h-6 rotate-6" />
+          {/* ペア3: 中央上部寄り左右 (Y:20%, X:12%→17%) */}
+          <Sparkles className="absolute top-[20%] left-[17%] w-6 h-6 rotate-6" />
           <Sparkles 
-            className="absolute top-[20%] right-[12%] w-6 h-6 -rotate-6" 
+            className="absolute top-[20%] right-[17%] w-6 h-6 -rotate-6" 
             style={{ transform: 'scaleX(-1)' }} 
           />
 
-          {/* ペア4: ボタン上部左右 (Y:65%) */}
-          <Sparkles className="absolute top-[65%] left-[15%] w-5 h-5 rotate-12" />
+          {/* ペア4: ボタン上部左右 (Y:65%, X:15%→20%) */}
+          <Sparkles className="absolute top-[65%] left-[20%] w-5 h-5 rotate-12" />
           <Sparkles 
-            className="absolute top-[65%] right-[15%] w-5 h-5 -rotate-12" 
+            className="absolute top-[65%] right-[20%] w-5 h-5 -rotate-12" 
             style={{ transform: 'scaleX(-1)' }} 
           />
           
-          {/* ペア5: 左右端中央 (Y:45%) */}
-          <PartyPopper className="absolute top-[45%] left-[3%] w-8 h-8 -rotate-90" />
+          {/* ペア5: 左右端中央 (Y:45%, X:3%→8%) */}
+          <PartyPopper className="absolute top-[45%] left-[8%] w-8 h-8 -rotate-90" />
           <PartyPopper 
-            className="absolute top-[45%] right-[3%] w-8 h-8 rotate-90" 
+            className="absolute top-[45%] right-[8%] w-8 h-8 rotate-90" 
             style={{ transform: 'scaleX(-1)' }} 
           />
         </div>
