@@ -40,37 +40,10 @@ export type Prefecture = typeof PREFECTURES[number];
 export const OPTION_FEES: OptionFeeConfig[] = [
   {
     id: 'packing',
-    label: '梱包サービス',
-    fee: 1000,
+    label: '簡易梱包サービス',
+    fee: 10000,
     condition: (options: EstimateOptions) => options.needsPacking === true,
   },
-  {
-    id: 'floor_pickup',
-    label: '集荷先 階段作業（2階以上）',
-    fee: 1000,
-    condition: (options: EstimateOptions) => 
-      options.floorPickup >= 2 && !options.hasElevatorPickup,
-  },
-  {
-    id: 'floor_delivery',
-    label: 'お届け先 階段作業（2階以上）',
-    fee: 1000,
-    condition: (options: EstimateOptions) => 
-      options.floorDelivery >= 2 && !options.hasElevatorDelivery,
-  },
-  // 将来の拡張例
-  // {
-  //   id: 'piano',
-  //   label: 'ピアノ搬送',
-  //   fee: 15000,
-  //   condition: (options: EstimateOptions) => options.hasPiano === true,
-  // },
-  // {
-  //   id: 'aircon',
-  //   label: 'エアコン取り外し/取り付け',
-  //   fee: 8000,
-  //   condition: (options: EstimateOptions) => options.hasAircon === true,
-  // },
 ];
 
 // ============================================
@@ -79,22 +52,26 @@ export const OPTION_FEES: OptionFeeConfig[] = [
 
 /**
  * 料金設定
- * 
- * baseFeeMode:
- * - 'none': 基本料金なし（オプションと高速料金のみ）
- * - 'fixed': 固定基本料金
- * - 'per_km': 距離に応じた基本料金
  */
-export const PRICING_CONFIG: PricingConfig = {
-  // MVPでは 'none' を使用。後で 'per_km' に変更可能
-  baseFeeMode: 'per_km',
+export const PRICING_CONFIG = {
+  /** 基本料金（30kmまで） */
+  baseFee: 19800,
   
-  // 固定基本料金（baseFeeMode が 'fixed' の場合に使用）
-  fixedBaseFee: 10000,
-  
-  // 距離単価（baseFeeMode が 'per_km' の場合に使用）
-  // 例: 100円/km
-  perKmRate: 100,
+  /** 距離別単価（累進課金） */
+  distanceRates: [
+    { min: 0, max: 30, rate: 0 }, // 基本料金に含まれる
+    { min: 30, max: 50, rate: 200 },
+    { min: 50, max: 100, rate: 170 },
+    { min: 100, max: 150, rate: 140 },
+    { min: 150, max: Infinity, rate: 120 },
+  ],
+
+  /** 階数料金（階段作業） */
+  floorFeeRule: {
+    freeUntilFloor: 2,
+    feePerFloor: 3000,
+    label: '階段作業料金',
+  },
   
   // オプション料金設定
   optionFees: OPTION_FEES,

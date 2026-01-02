@@ -16,38 +16,65 @@ import type {
 import { PRICING_CONFIG, HIGHWAY_FEE_CONFIG, BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from './config';
 
 /**
- * 基本料金を計算
+ * 距離料金を計算（累進課金方式）
  */
-function calculateBaseFee(distanceKm: number): { fee: number; breakdown: FeeBreakdownItem | null } {
-  const { baseFeeMode, fixedBaseFee, perKmRate } = PRICING_CONFIG;
+function calculateDistanceFee(distanceKm: number): { fee: number; breakdown: FeeBreakdownItem } {
+  let totalFee = PRICING_CONFIG.baseFee;
   
-  switch (baseFeeMode) {
-    case 'none':
-      return { fee: 0, breakdown: null };
-    
-    case 'fixed':
-      return {
-        fee: fixedBaseFee,
-        breakdown: {
-          name: '基本料金',
-          amount: fixedBaseFee,
-        },
-      };
-    
-    case 'per_km':
-      const fee = Math.round(distanceKm * perKmRate);
-      return {
-        fee,
-        breakdown: {
-          name: '距離料金',
-          amount: fee,
-          note: `${distanceKm.toFixed(1)}km × ${perKmRate}円/km`,
-        },
-      };
-    
-    default:
-      return { fee: 0, breakdown: null };
+  // 累進課金の計算
+  for (const range of PRICING_CONFIG.distanceRates) {
+    if (distanceKm > range.min) {
+      const applicableDistance = Math.min(distanceKm, range.max) - range.min;
+      if (applicableDistance > 0) {
+        totalFee += applicableDistance * range.rate;
+      }
+    }
   }
+
+  return {
+    fee: totalFee,
+    breakdown: {
+      name: '距離料金',
+      amount: totalFee,
+      note: `${distanceKm.toFixed(1)}km（累進課金適用）`,
+    },
+  };
+}
+
+/**
+ * 階数料金を計算
+ */
+function calculateFloorFees(options: EstimateOptions): { 
+  totalFee: number; 
+  breakdown: FeeBreakdownItem[] 
+} {
+  const breakdown: FeeBreakdownItem[] = [];
+  let totalFee = 0;
+  const { freeUntilFloor, feePerFloor } = PRICING_CONFIG.floorFeeRule;
+
+  // 集荷先
+  if (!options.hasElevatorPickup && options.floorPickup > freeUntilFloor) {
+    const fee = (options.floorPickup - freeUntilFloor) * feePerFloor;
+    breakdown.push({
+      name: '集荷先 階数料金',
+      amount: fee,
+      note: `${options.floorPickup}階（階段作業）`,
+    });
+    totalFee += fee;
+  }
+
+  // お届け先
+  if (!options.hasElevatorDelivery && options.floorDelivery > freeUntilFloor) {
+    const fee = (options.floorDelivery - freeUntilFloor) * feePerFloor;
+    breakdown.push({
+      name: '届け先 階数料金',
+      amount: fee,
+      note: `${options.floorDelivery}階（階段作業）`,
+    });
+    totalFee += fee;
+  }
+
+  return { totalFee, breakdown };
 }
 
 /**
@@ -61,15 +88,12 @@ function calculateOptionFees(options: EstimateOptions): {
   let totalFee = 0;
   
   for (const optionConfig of PRICING_CONFIG.optionFees) {
-    // 条件が設定されている場合は評価
-    if (optionConfig.condition) {
-      if (optionConfig.condition(options)) {
-        breakdown.push({
-          name: optionConfig.label,
-          amount: optionConfig.fee,
-        });
-        totalFee += optionConfig.fee;
-      }
+    if (optionConfig.condition?.(options)) {
+      breakdown.push({
+        name: optionConfig.label,
+        amount: optionConfig.fee,
+      });
+      totalFee += optionConfig.fee;
     }
   }
   
@@ -238,31 +262,33 @@ export function calculateEstimate(
     deliveryDate: new Date().toISOString().split('T')[0],
   };
   
-  // 1. 基本料金
-  const baseFeeResult = calculateBaseFee(distance.distanceKm);
-  if (baseFeeResult.breakdown) {
-    breakdown.push(baseFeeResult.breakdown);
-  }
+  // 1. 距離料金（基本料金含む累進課金）
+  const distanceFeeResult = calculateDistanceFee(distance.distanceKm);
+  breakdown.push(distanceFeeResult.breakdown);
   
-  // 2. オプション料金
+  // 2. 階数料金
+  const floorFeeResult = calculateFloorFees(options);
+  breakdown.push(...floorFeeResult.breakdown);
+  
+  // 3. オプション料金（梱包など）
   const optionFeeResult = calculateOptionFees(options);
   breakdown.push(...optionFeeResult.breakdown);
   
-  // 3. 高速料金
+  // 4. 高速料金
   const highwayFeeResult = processHighwayFee(distance);
   if (highwayFeeResult.breakdown) {
     breakdown.push(highwayFeeResult.breakdown);
   }
   
-  // 4. 積み置き料金
+  // 5. 積み置き料金
   const storageFeeResult = calculateStorageFee(movingDates);
   if (storageFeeResult.breakdown) {
     breakdown.push(storageFeeResult.breakdown);
   }
   
-  // 5. 繁忙期料金（基本料金+オプション料金に対して）
+  // 6. 繁忙期料金（距離料金+階数料金+オプション料金に対して）
   const busySeasonFeeResult = calculateBusySeasonFee(
-    baseFeeResult.fee, 
+    distanceFeeResult.fee + floorFeeResult.totalFee, 
     optionFeeResult.totalFee,
     movingDates
   );
@@ -272,7 +298,8 @@ export function calculateEstimate(
   
   // 合計計算
   const totalFee = 
-    baseFeeResult.fee + 
+    distanceFeeResult.fee + 
+    floorFeeResult.totalFee +
     optionFeeResult.totalFee + 
     highwayFeeResult.fee + 
     storageFeeResult.fee +
@@ -280,8 +307,8 @@ export function calculateEstimate(
   
   return {
     distanceKm: distance.distanceKm,
-    baseFee: baseFeeResult.fee,
-    optionFee: optionFeeResult.totalFee,
+    baseFee: distanceFeeResult.fee,
+    optionFee: optionFeeResult.totalFee + floorFeeResult.totalFee,
     highwayFee: highwayFeeResult.fee,
     storageFee: storageFeeResult.fee,
     busySeasonFee: busySeasonFeeResult.fee,
