@@ -89,50 +89,52 @@ export function EstimateResult() {
       {/* 見積もり結果ヘッダー */}
       <div className="pop-card bg-[oklch(0.92_0.16_95)] p-8 text-center relative overflow-hidden">
         {/* 装飾 */}
-        <div className="absolute top-4 left-4">
-          <PartyPopper className="w-8 h-8 text-black/20" />
+        <div className="absolute top-4 left-4 z-0">
+          <PartyPopper className="w-10 h-10 text-black/15 -rotate-12" />
         </div>
-        <div className="absolute top-4 right-4">
-          <Sparkles className="w-8 h-8 text-black/20" />
+        <div className="absolute top-6 right-6 z-0">
+          <Sparkles className="w-10 h-10 text-black/15 rotate-12" />
         </div>
-        <div className="absolute bottom-4 left-8">
-          <Sparkles className="w-6 h-6 text-black/20" />
+        <div className="absolute top-1/2 -translate-y-1/2 left-2 z-0">
+          <Sparkles className="w-8 h-8 text-black/10" />
         </div>
-        <div className="absolute bottom-4 right-8">
-          <PartyPopper className="w-6 h-6 text-black/20" />
+        <div className="absolute top-1/2 -translate-y-1/2 right-2 z-0">
+          <PartyPopper className="w-8 h-8 text-black/10 rotate-45" />
         </div>
         
-        <p className="text-black/70 font-black mb-2 text-xl">お見積もり金額</p>
-        <p className="text-5xl sm:text-6xl font-black text-black tracking-tight">
-          {formatCurrency(estimateResult.totalFee)}
-        </p>
-        
-        {/* 繁忙期バッジ */}
-        {!!estimateResult.isBusySeason && (
-          <div 
-            className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2"
-            style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
-          >
-            <AlertCircle className="w-4 h-4 text-[oklch(0.5_0.2_20)]" />
-            <span className="text-sm font-bold text-[oklch(0.4_0.15_20)]">繁忙期料金適用中</span>
-          </div>
-        )}
-        
-        <p className="text-black/60 text-sm mt-4 whitespace-pre-line font-bold">
-          この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
-        </p>
+        <div className="relative z-10">
+          <p className="text-black/70 font-black mb-2 text-xl">お見積もり金額</p>
+          <p className="text-5xl sm:text-6xl font-black text-black tracking-tight">
+            {formatCurrency(estimateResult.totalFee)}
+          </p>
+          
+          {/* 繁忙期バッジ */}
+          {!!estimateResult.isBusySeason && (
+            <div 
+              className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2"
+              style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
+            >
+              <AlertCircle className="w-4 h-4 text-[oklch(0.5_0.2_20)]" />
+              <span className="text-sm font-bold text-[oklch(0.4_0.15_20)]">繁忙期料金適用中</span>
+            </div>
+          )}
+          
+          <p className="text-black/60 text-sm mt-4 whitespace-pre-line font-bold">
+            この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
+          </p>
 
-        {/* LINE相談ボタン */}
-        <div className="mt-6">
-          <a
-            href="https://line.me/R/oaMessage/@your_line_official_account_id/?相談をはじめる"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px]"
-          >
-            <MessageCircle className="w-5 h-5" />
-            LINE で相談をはじめる
-          </a>
+          {/* LINE相談ボタン */}
+          <div className="mt-6 relative z-20">
+            <a
+              href="https://line.me/R/oaMessage/@your_line_official_account_id/?相談をはじめる"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px]"
+            >
+              <MessageCircle className="w-5 h-5" />
+              LINE で相談をはじめる
+            </a>
+          </div>
         </div>
       </div>
 
