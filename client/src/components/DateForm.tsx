@@ -1,7 +1,14 @@
 /**
  * 日付入力フォームコンポーネント（Step0）
  *
- * Design Philosophy: ポップ＆カジュアル
+ * 要件：
+ * - リロードしたら常に「今日」から開始（保存データが残っていても復元しない）
+ * - ただし「条件変更 / 戻る」で Step0 に戻った場合は、直前の入力値を復元したい
+ *
+ * 実装方針（安定版）：
+ * - Step0の日付だけは sessionStorage に保存（戻る用）
+ * - 「このタブで最初のレンダー（= リロード直後）」のときだけ sessionStorage を削除して今日にする
+ *   → SPA内の戻る（Step1→Step0）は同じJSが生きているので、削除されず復元される
  */
 
 import { useForm } from 'react-hook-form';
@@ -18,7 +25,18 @@ import { setStep1Data, getStep1Data } from '@/lib/store';
 import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
 import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
 
-const today = new Date().toISOString().split('T')[0];
+/** ✅ ローカル日付で「今日」を作る（UTCズレ回避） */
+const getTodayYMD = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const isValidYMD = (v?: string) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+const today = getTodayYMD();
 
 /**
  * 表示制御フラグ
@@ -28,6 +46,38 @@ const today = new Date().toISOString().split('T')[0];
  */
 const SHOW_STORAGE_FEE_MESSAGE = false;
 
+/** ✅ Step0の戻り用セッション保存キー */
+const STEP0_DATES_SESSION_KEY = 'hakobou_step0_dates';
+
+type SessionDates = { pickupDate: string; deliveryDate: string };
+
+const loadSessionDates = (): SessionDates | null => {
+  try {
+    const raw = sessionStorage.getItem(STEP0_DATES_SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<SessionDates>;
+    if (!isValidYMD(parsed.pickupDate) || !isValidYMD(parsed.deliveryDate)) return null;
+    return { pickupDate: parsed.pickupDate!, deliveryDate: parsed.deliveryDate! };
+  } catch {
+    return null;
+  }
+};
+
+const saveSessionDates = (dates: SessionDates) => {
+  try {
+    sessionStorage.setItem(STEP0_DATES_SESSION_KEY, JSON.stringify(dates));
+  } catch {
+    // ignore
+  }
+};
+
+/**
+ * ✅ ここがポイント：このモジュールが読み込まれてから「初回レンダーか」を覚えるフラグ
+ * - リロードするとJSが再ロードされるので false に戻る
+ * - SPA内の画面遷移（戻る/条件変更）では true のまま
+ */
+let didClearOnThisTabBoot = false;
+
 export function DateForm() {
   const [, navigate] = useLocation();
 
@@ -36,8 +86,21 @@ export function DateForm() {
     window.scrollTo(0, 0);
   }, []);
 
-  // 保存されたデータがあれば復元（dates フィールドのみ）
-  const savedData = getStep1Data();
+  /**
+   * ✅ リロード直後（=このタブで最初のレンダー）のときだけ、戻る用セッションを削除
+   * これを「useFormより前」に同期的に実行することで、初期表示が古い日付にならない
+   */
+  if (typeof window !== 'undefined' && !didClearOnThisTabBoot) {
+    didClearOnThisTabBoot = true;
+    sessionStorage.removeItem(STEP0_DATES_SESSION_KEY);
+  }
+
+  /**
+   * ✅ defaultValues の決定
+   * - リロード直後は上で sessionStorage を消している → 常に今日
+   * - SPA内で戻ってきた場合は sessionStorage が残っている → 復元
+   */
+  const sessionDates = typeof window !== 'undefined' ? loadSessionDates() : null;
 
   const {
     handleSubmit,
@@ -48,8 +111,8 @@ export function DateForm() {
     resolver: zodResolver(dateFormSchema),
     defaultValues: {
       dates: {
-        pickupDate: savedData?.dates?.pickupDate || today,
-        deliveryDate: savedData?.dates?.deliveryDate || today,
+        pickupDate: sessionDates?.pickupDate || today,
+        deliveryDate: sessionDates?.deliveryDate || today,
       },
     },
   });
@@ -57,16 +120,27 @@ export function DateForm() {
   const pickupDate = watch('dates.pickupDate');
   const deliveryDate = watch('dates.deliveryDate');
 
-  // 集荷日変更時の連動ロジック
-  // dirty フィールドをチェックすることで、初期表示時（保存データの復元含む）の自動補正を抑制する
-  const { isDirty } = formState.dirtyFields.dates?.pickupDate ? { isDirty: true } : { isDirty: false };
+  /**
+   * ✅ 入力値を sessionStorage に保存（戻る用）
+   */
+  useEffect(() => {
+    if (!isValidYMD(pickupDate) || !isValidYMD(deliveryDate)) return;
+    saveSessionDates({ pickupDate, deliveryDate });
+  }, [pickupDate, deliveryDate]);
+
+  /**
+   * ✅ 集荷日変更時の連動ロジック（ユーザー変更時のみ）
+   * - お届け日が集荷日より前なら、お届け日を集荷日に自動補正
+   */
+  const isPickupDirty = !!formState.dirtyFields?.dates?.pickupDate;
 
   useEffect(() => {
-    // ユーザーによる変更（isDirty）があり、かつお届け日が集荷日より前の場合のみ補正
-    if (isDirty && deliveryDate < pickupDate) {
-      setValue('dates.deliveryDate', pickupDate);
+    if (!isPickupDirty) return;
+    if (!pickupDate || !deliveryDate) return;
+    if (deliveryDate < pickupDate) {
+      setValue('dates.deliveryDate', pickupDate, { shouldDirty: true });
     }
-  }, [pickupDate, deliveryDate, setValue, isDirty]);
+  }, [pickupDate, deliveryDate, setValue, isPickupDirty]);
 
   // 繁忙期チェック（集荷日ベース）
   const isPickupBusySeason = isBusySeason(pickupDate);
@@ -75,13 +149,14 @@ export function DateForm() {
   const storageDays = calculateStorageDays({ pickupDate, deliveryDate });
 
   const onSubmit = (data: DateFormData) => {
-    // 既存の Step1 データを保持しながら日付を更新
+    // Step1以降へ渡すための保存（これは残してOK）
     const existingData = getStep1Data() || defaultStep1Values;
     const updatedData: Step1FormData = {
       ...existingData,
       dates: data.dates,
     };
     setStep1Data(updatedData);
+
     navigate('/step1');
   };
 
@@ -161,12 +236,6 @@ export function DateForm() {
                 </p>
               </div>
             )}
-
-            {/*
-              通常時の繁忙期案内（常時表示）は仕様により非表示に変更
-              - 仕様：引越し日程が 3/1〜4/10 に重なったときだけ繁忙期コメントを表示する
-              - 復活したい場合は、ここに「!isPickupBusySeason」ブロックを戻す
-            */}
           </div>
         </div>
       </div>
