@@ -22,9 +22,7 @@ import {
   PartyPopper,
   Calendar,
   Clock,
-  MessageCircle,
-  Star,
-  Circle
+  MessageCircle
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -90,60 +88,51 @@ export function EstimateResult() {
     <div className="space-y-6 animate-fade-in">
       {/* 見積もり結果ヘッダー */}
       <div className="pop-card bg-[oklch(0.92_0.16_95)] p-8 text-center relative overflow-hidden">
-        {/* 背景装飾イラスト（背面レイヤー） */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none" style={{ zIndex: 0 }}>
-          {/* 大サイズ */}
-          <PartyPopper className="absolute top-[-5%] left-[-5%] w-24 h-24 text-black/10 -rotate-12" />
-          <Sparkles className="absolute bottom-[-5%] right-[-5%] w-24 h-24 text-black/10 rotate-12" />
-          <Truck className="absolute top-[10%] right-[-2%] w-20 h-20 text-black/5 -rotate-6" />
-          
-          {/* 中サイズ */}
-          <PartyPopper className="absolute bottom-[10%] left-[5%] w-16 h-16 text-black/10 rotate-45" />
-          <Sparkles className="absolute top-[15%] left-[25%] w-14 h-14 text-black/5 -rotate-12" />
-          <Star className="absolute top-[40%] right-[8%] w-12 h-12 text-black/5 rotate-12" />
-          <Circle className="absolute bottom-[25%] right-[20%] w-10 h-10 text-black/5" />
-          
-          {/* 小サイズ */}
-          <div className="absolute top-[10%] left-[45%] w-3 h-3 rounded-full bg-black/10" />
-          <Sparkles className="absolute top-[60%] left-[15%] w-8 h-8 text-black/5" />
-          <Star className="absolute bottom-[40%] left-[40%] w-6 h-6 text-black/5 -rotate-45" />
-          <div className="absolute top-[30%] right-[30%] w-4 h-4 rounded-full bg-black/5" />
-          <div className="absolute bottom-[15%] right-[45%] w-2 h-2 rounded-full bg-black/10" />
+        {/* 装飾 */}
+        <div className="absolute top-4 left-4">
+          <PartyPopper className="w-8 h-8 text-black/20" />
+        </div>
+        <div className="absolute top-4 right-4">
+          <Sparkles className="w-8 h-8 text-black/20" />
+        </div>
+        <div className="absolute bottom-4 left-8">
+          <Sparkles className="w-6 h-6 text-black/20" />
+        </div>
+        <div className="absolute bottom-4 right-8">
+          <PartyPopper className="w-6 h-6 text-black/20" />
         </div>
         
-        <div className="relative" style={{ zIndex: 10 }}>
-          <p className="text-black/70 font-black mb-2 text-xl">お見積もり金額</p>
-          <p className="text-5xl sm:text-6xl font-black text-black tracking-tight">
-            {formatCurrency(estimateResult.totalFee)}
-          </p>
-          
-          {/* 繁忙期バッジ */}
-          {!!estimateResult.isBusySeason && (
-            <div 
-              className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2"
-              style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
-            >
-              <AlertCircle className="w-4 h-4 text-[oklch(0.5_0.2_20)]" />
-              <span className="text-sm font-bold text-[oklch(0.4_0.15_20)]">繁忙期料金適用中</span>
-            </div>
-          )}
-          
-          <p className="text-black/60 text-sm mt-4 whitespace-pre-line font-bold">
-            この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
-          </p>
-
-          {/* LINE相談ボタン */}
-          <div className="mt-6">
-            <a
-              href="https://line.me/R/oaMessage/@your_line_official_account_id/?相談をはじめる"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px]"
-            >
-              <MessageCircle className="w-5 h-5" />
-              LINE で相談をはじめる
-            </a>
+        <p className="text-black/70 font-black mb-2 text-xl">お見積もり金額</p>
+        <p className="text-5xl sm:text-6xl font-black text-black tracking-tight">
+          {formatCurrency(estimateResult.totalFee)}
+        </p>
+        
+        {/* 繁忙期バッジ */}
+        {!!estimateResult.isBusySeason && (
+          <div 
+            className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2"
+            style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
+          >
+            <AlertCircle className="w-4 h-4 text-[oklch(0.5_0.2_20)]" />
+            <span className="text-sm font-bold text-[oklch(0.4_0.15_20)]">繁忙期料金適用中</span>
           </div>
+        )}
+        
+        <p className="text-black/60 text-sm mt-4 whitespace-pre-line font-bold">
+          この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
+        </p>
+
+        {/* LINE相談ボタン */}
+        <div className="mt-6">
+          <a
+            href="https://line.me/R/oaMessage/@your_line_official_account_id/?相談をはじめる"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px]"
+          >
+            <MessageCircle className="w-5 h-5" />
+            LINE で相談をはじめる
+          </a>
         </div>
       </div>
 
