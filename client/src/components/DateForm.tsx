@@ -43,7 +43,7 @@ export function DateForm() {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState,
   } = useForm<DateFormData>({
     resolver: zodResolver(dateFormSchema),
     defaultValues: {
@@ -58,11 +58,15 @@ export function DateForm() {
   const deliveryDate = watch('dates.deliveryDate');
 
   // 集荷日変更時の連動ロジック
+  // dirty フィールドをチェックすることで、初期表示時（保存データの復元含む）の自動補正を抑制する
+  const { isDirty } = formState.dirtyFields.dates?.pickupDate ? { isDirty: true } : { isDirty: false };
+
   useEffect(() => {
-    if (deliveryDate < pickupDate) {
+    // ユーザーによる変更（isDirty）があり、かつお届け日が集荷日より前の場合のみ補正
+    if (isDirty && deliveryDate < pickupDate) {
       setValue('dates.deliveryDate', pickupDate);
     }
-  }, [pickupDate, deliveryDate, setValue]);
+  }, [pickupDate, deliveryDate, setValue, isDirty]);
 
   // 繁忙期チェック（集荷日ベース）
   const isPickupBusySeason = isBusySeason(pickupDate);
@@ -104,12 +108,12 @@ export function DateForm() {
             <DatePickerField
               id="pickup-date"
               value={pickupDate}
-              onChange={(value) => setValue('dates.pickupDate', value)}
-              error={!!errors.dates?.pickupDate}
+              onChange={(value) => setValue('dates.pickupDate', value, { shouldDirty: true })}
+              error={!!formState.errors.dates?.pickupDate}
             />
-            {errors.dates?.pickupDate && (
+            {formState.errors.dates?.pickupDate && (
               <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
-                {errors.dates.pickupDate.message}
+                {formState.errors.dates.pickupDate.message}
               </p>
             )}
           </div>
@@ -122,12 +126,12 @@ export function DateForm() {
             <DatePickerField
               id="delivery-date"
               value={deliveryDate}
-              onChange={(value) => setValue('dates.deliveryDate', value)}
-              error={!!errors.dates?.deliveryDate}
+              onChange={(value) => setValue('dates.deliveryDate', value, { shouldDirty: true })}
+              error={!!formState.errors.dates?.deliveryDate}
             />
-            {errors.dates?.deliveryDate && (
+            {formState.errors.dates?.deliveryDate && (
               <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
-                {errors.dates.deliveryDate.message}
+                {formState.errors.dates.deliveryDate.message}
               </p>
             )}
           </div>
