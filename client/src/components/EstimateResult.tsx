@@ -109,7 +109,10 @@ export function EstimateResult() {
         
         {/* 繁忙期バッジ */}
         {!!estimateResult.isBusySeason && (
-          <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2 border-[oklch(0.7_0.2_20)]">
+          <div 
+            className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2"
+            style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
+          >
             <AlertCircle className="w-4 h-4 text-[oklch(0.5_0.2_20)]" />
             <span className="text-sm font-bold text-[oklch(0.4_0.15_20)]">繁忙期料金適用中</span>
           </div>
@@ -275,7 +278,10 @@ export function EstimateResult() {
 
         {/* 繁忙期メッセージ */}
         {isBusySeason(step1Data.dates.pickupDate) && (
-          <div className="mt-4 p-4 bg-[oklch(0.95_0.15_20)] border-2 border-[oklch(0.7_0.2_20)] rounded-xl">
+          <div 
+            className="mt-4 p-4 bg-[oklch(0.95_0.15_20)] border-2 rounded-xl"
+            style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
+          >
             <p className="text-sm font-bold text-[oklch(0.4_0.15_20)] flex items-start gap-2">
               <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
               <span>

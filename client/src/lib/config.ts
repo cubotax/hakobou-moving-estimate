@@ -93,6 +93,9 @@ export const BUSY_SEASON_CONFIG = {
   
   /** 表示ラベル */
   label: '繁忙期加算（基本料金30%増）',
+
+  /** ラベルの枠線色 */
+  busySeasonLabelBorderColor: '#E58A8A',
 };
 
 // ============================================

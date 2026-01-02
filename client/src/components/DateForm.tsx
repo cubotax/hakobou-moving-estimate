@@ -1,6 +1,6 @@
 /**
  * 日付入力フォームコンポーネント（Step0）
- * 
+ *
  * Design Philosophy: ポップ＆カジュアル
  */
 
@@ -13,12 +13,20 @@ import { ArrowRight, AlertCircle, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { DatePickerField } from './DatePickerField';
-import { dateFormSchema, type DateFormData, step1Schema, type Step1FormData, defaultStep1Values } from '@/lib/schema';
+import { dateFormSchema, type DateFormData, type Step1FormData, defaultStep1Values } from '@/lib/schema';
 import { setStep1Data, getStep1Data } from '@/lib/store';
 import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
 import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
 
 const today = new Date().toISOString().split('T')[0];
+
+/**
+ * 表示制御フラグ
+ * - 今は積み置き料金メッセージを非表示にしたいが、後で復活できるようにフラグで制御する
+ *   true  => 表示
+ *   false => 非表示（現在）
+ */
+const SHOW_STORAGE_FEE_MESSAGE = false;
 
 export function DateForm() {
   const [, navigate] = useLocation();
@@ -49,9 +57,9 @@ export function DateForm() {
   const pickupDate = watch('dates.pickupDate');
   const deliveryDate = watch('dates.deliveryDate');
 
-  // 繁忙期チェック
+  // 繁忙期チェック（集荷日ベース）
   const isPickupBusySeason = isBusySeason(pickupDate);
-  
+
   // 積み置き日数計算
   const storageDays = calculateStorageDays({ pickupDate, deliveryDate });
 
@@ -119,8 +127,8 @@ export function DateForm() {
 
           {/* 注意事項 */}
           <div className="space-y-3 mt-2">
-            {/* 積み置き料金の但し書き */}
-            {storageDays > 0 && (
+            {/* 積み置き料金の但し書き（現在は非表示：フラグで復活可能） */}
+            {SHOW_STORAGE_FEE_MESSAGE && storageDays > 0 && (
               <div className="flex items-start gap-2 p-3 bg-[oklch(0.95_0.05_80)] rounded-xl border-2 border-[oklch(0.8_0.1_80)]">
                 <AlertCircle className="w-5 h-5 text-[oklch(0.6_0.15_80)] flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-[oklch(0.4_0.05_80)]">
@@ -131,7 +139,7 @@ export function DateForm() {
               </div>
             )}
 
-            {/* 繁忙期料金の但し書き */}
+            {/* 繁忙期料金の但し書き（繁忙期のときだけ表示） */}
             {isPickupBusySeason && (
               <div className="flex items-start gap-2 p-3 bg-[oklch(0.95_0.1_20)] rounded-xl border-2 border-[oklch(0.8_0.15_20)]">
                 <AlertCircle className="w-5 h-5 text-[oklch(0.6_0.2_20)] flex-shrink-0 mt-0.5" />
@@ -143,27 +151,18 @@ export function DateForm() {
               </div>
             )}
 
-            {/* 通常時の繁忙期案内 */}
-            {!isPickupBusySeason && (
-              <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-xl border-2 border-gray-200">
-                <AlertCircle className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-500">
-                  <span className="font-bold">繁忙期について：</span>
-                  {BUSY_SEASON_CONFIG.startDate.replace('-', '/')}〜{BUSY_SEASON_CONFIG.endDate.replace('-', '/')}は繁忙期のため、
-                  基本料金が{Math.round(BUSY_SEASON_CONFIG.surchargeRate * 100)}%増しとなります。
-                </p>
-              </div>
-            )}
+            {/*
+              通常時の繁忙期案内（常時表示）は仕様により非表示に変更
+              - 仕様：引越し日程が 3/1〜4/10 に重なったときだけ繁忙期コメントを表示する
+              - 復活したい場合は、ここに「!isPickupBusySeason」ブロックを戻す
+            */}
           </div>
         </div>
       </div>
 
       {/* ナビゲーションボタン */}
       <div className="flex justify-center pt-4">
-        <Button
-          type="submit"
-          className="pop-button max-w-[280px] h-14 text-lg"
-        >
+        <Button type="submit" className="pop-button max-w-[280px] h-14 text-lg">
           次へ進む
           <ArrowRight className="w-6 h-6 ml-2" />
         </Button>
