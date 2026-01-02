@@ -322,7 +322,7 @@ export function AddressForm() {
                 </Label>
                 <Input
                   id="pickup-city"
-                  placeholder="例：渋谷区"
+                  placeholder="例：青森市"
                   {...register('pickupAddress.city', {
                     onChange: handlePickupInputChange,
                     onBlur: () => handleAddressBlur('pickupAddress.city'),
@@ -348,7 +348,7 @@ export function AddressForm() {
                 </Label>
                 <Input
                   id="pickup-town"
-                  placeholder="例：神宮前"
+                  placeholder="例：新町"
                   {...register('pickupAddress.town', {
                     onChange: handlePickupInputChange,
                     onBlur: () => handleAddressBlur('pickupAddress.town'),
@@ -445,7 +445,7 @@ export function AddressForm() {
                 </Label>
                 <Input
                   id="delivery-city"
-                  placeholder="例：大阪市北区"
+                  placeholder="例：仙台市青葉区"
                   {...register('deliveryAddress.city', {
                     onChange: handleDeliveryInputChange,
                     onBlur: () => handleAddressBlur('deliveryAddress.city'),
@@ -471,7 +471,7 @@ export function AddressForm() {
                 </Label>
                 <Input
                   id="delivery-town"
-                  placeholder="例：梅田"
+                  placeholder="例：中央"
                   {...register('deliveryAddress.town', {
                     onChange: handleDeliveryInputChange,
                     onBlur: () => handleAddressBlur('deliveryAddress.town'),
@@ -545,7 +545,7 @@ export function AddressForm() {
                 </Label>
                 <Input
                   id="pickup-postal"
-                  placeholder="例：150-0001"
+                  placeholder="例：030-0801"
                   value={pickupPostalCode}
                   onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
                   onKeyDown={(e) => {
@@ -613,7 +613,7 @@ export function AddressForm() {
                 </Label>
                 <Input
                   id="delivery-postal"
-                  placeholder="例：530-0001"
+                  placeholder="例：980-0021"
                   value={deliveryPostalCode}
                   onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
                   onKeyDown={(e) => {
