@@ -1,59 +1,24 @@
 modules = ["nodejs-20", "web"]
-[agent]
-expertMode = true
 
 [nix]
 channel = "stable-25_05"
 
-[workflows]
-runButton = "Project"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Dev Server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "LINE Backend"
-
-[[workflows.workflow]]
-name = "Dev Server"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm run dev"
-waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
-
-[[workflows.workflow]]
-name = "LINE Backend"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd line-backend && node server.js"
-waitForPort = 3000
-
-[workflows.workflow.metadata]
-outputType = "console"
+run = "cd line-backend && node server.js"
 
 [[ports]]
 localPort = 3000
 externalPort = 80
 
-[[ports]]
-localPort = 5000
-externalPort = 5000
+[agent]
+expertMode = true
 
-[deployment]
-deploymentTarget = "autoscale"
-run = ["sh", "-c", "node line-backend/server.js"]
-build = ["sh", "-c", "cd line-backend && npm install"]
+[workflows]
+
+[[workflows.workflow]]
+name = "Run"
+mode = "sequential"
+author = 43002648
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd line-backend && PORT=3000 node server.js"
