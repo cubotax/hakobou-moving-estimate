@@ -40,22 +40,18 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd line-backend && node server.js"
-waitForPort = 3001
+waitForPort = 3000
 
 [workflows.workflow.metadata]
 outputType = "console"
 
 [[ports]]
 localPort = 3000
-externalPort = 3000
-
-[[ports]]
-localPort = 3001
-externalPort = 3001
+externalPort = 80
 
 [[ports]]
 localPort = 5000
-externalPort = 80
+externalPort = 5000
 
 [deployment]
 deploymentTarget = "autoscale"

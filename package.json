@@ -5,8 +5,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite --host",
+    "dev:api": "node line-backend/server.js",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "node line-backend/server.js",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
     "format": "prettier --write ."
