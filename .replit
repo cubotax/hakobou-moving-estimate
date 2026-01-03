@@ -1,24 +1,39 @@
 modules = ["nodejs-20", "web"]
+[agent]
+expertMode = true
 
 [nix]
 channel = "stable-25_05"
 
-run = "cd line-backend && node server.js"
-
-[[ports]]
-localPort = 3000
-externalPort = 80
-
-[agent]
-expertMode = true
-
 [workflows]
+runButton = "Project"
 
 [[workflows.workflow]]
-name = "Run"
-mode = "sequential"
-author = 43002648
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Dev Server"
+
+[[workflows.workflow]]
+name = "Dev Server"
+author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd line-backend && PORT=3000 node server.js"
+args = "pnpm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["node", "dist/index.js"]
+build = ["pnpm", "run", "build"]
