@@ -202,6 +202,49 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
   };
 }
 
+function buildEstimateDetailText(estimate) {
+  const pickupAddress = [
+    estimate.pickup_prefecture,
+    estimate.pickup_city,
+    estimate.pickup_town
+  ].filter(Boolean).join('') || '未入力';
+  
+  const deliveryAddress = [
+    estimate.delivery_prefecture,
+    estimate.delivery_city,
+    estimate.delivery_town
+  ].filter(Boolean).join('') || '未入力';
+  
+  const pickupDate = estimate.pickup_date || '未定';
+  const deliveryDate = estimate.delivery_date || '未定';
+  const floorType = estimate.floor_type || '未入力';
+  const hasElevator = estimate.has_elevator ? 'あり' : 'なし';
+  const roomSize = estimate.room_size || '未入力';
+  const notes = estimate.notes || 'なし';
+
+  return `【ご入力内容の詳細】
+
+■ 集荷先
+${pickupAddress}
+
+■ お届け先
+${deliveryAddress}
+
+■ 引越し日程
+集荷日：${pickupDate}
+お届け日：${deliveryDate}
+
+■ お部屋の情報
+間取り：${roomSize}
+建物タイプ：${floorType}
+エレベーター：${hasElevator}
+
+■ 備考
+${notes}
+
+ご不明点がございましたら、お気軽にメッセージをお送りください！`;
+}
+
 function buildWelcomeFlexMessage() {
   return {
     type: 'flex',
@@ -401,11 +444,11 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
       
       let messages;
       if (linkedEstimate) {
-        messages = [buildEstimateFlexMessage(linkedEstimate)];
-        
-        syncToLme(lineUserId, linkedEstimate).catch(err => {
-          console.error('L-me sync error:', err);
-        });
+        const detailText = buildEstimateDetailText(linkedEstimate);
+        messages = [
+          buildEstimateFlexMessage(linkedEstimate),
+          { type: 'text', text: detailText }
+        ];
       } else {
         messages = [buildWelcomeFlexMessage()];
       }
