@@ -554,6 +554,7 @@ export function AddressForm() {
                       handlePickupPostalSearch();
                     }
                   }}
+                  inputMode="numeric"
                   className="pop-input"
                 />
               </div>
@@ -622,6 +623,7 @@ export function AddressForm() {
                       handleDeliveryPostalSearch();
                     }
                   }}
+                  inputMode="numeric"
                   className="pop-input"
                 />
               </div>
