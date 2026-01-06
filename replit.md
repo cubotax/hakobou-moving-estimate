@@ -72,3 +72,12 @@ The unified server serves:
 - Unified server: Express serves static files from dist/public + API + webhook on single port
 - Added LIFF page at line-backend/public/liff.html with auto-close after linking
 - EstimateResult.tsx now saves estimate to server and uses LIFF URL for LINE button
+- 2026-01-06: Upgraded LINE notifications to Flex Message format (rich cards)
+- 2026-01-06: Added L-me (エルメ) CRM integration for customer data sync
+
+### L-me Integration Environment Variables
+- `LME_API_KEY` - L-me API authentication key
+- `LME_API_ENDPOINT` - L-me API base URL (default: https://api.lme.jp/v1)
+- `LME_FIELD_ESTIMATE` - Custom field ID for estimate amount
+- `LME_FIELD_ADDRESS` - Custom field ID for address information
+- `APP_BASE_URL` - Base URL for Flex Message action buttons
