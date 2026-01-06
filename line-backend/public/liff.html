@@ -90,10 +90,10 @@
           throw new Error(err.error || 'サーバーエラー');
         }
         
-        showMessage('完了！ウィンドウを閉じます...');
+        showMessage('完了！チャットを開きます...');
         
         setTimeout(() => {
-          liff.closeWindow();
+          window.location.href = 'https://line.me/R/oaMessage/@602epmvz/';
         }, 500);
         
       } catch (error) {

@@ -45,3 +45,8 @@ externalPort = 80
 deploymentTarget = "autoscale"
 run = ["node", "line-backend/server.js"]
 build = ["pnpm", "run", "build"]
+
+[userenv]
+
+[userenv.shared]
+LINE_BOT_BASIC_ID = "602epmvz"
