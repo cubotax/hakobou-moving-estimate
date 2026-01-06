@@ -66,7 +66,9 @@ The unified server serves:
 ## Recent Changes
 - 2026-01-06: Added LINE Backend MVP with SQLite, webhook, and API endpoints
 - Fixed LIFF URL generation to handle prefixed LIFF_ID values
-- Updated port handling to use PORT env var with fallback to 3000
+- Updated port handling to use PORT env var with fallback to 5000
 - Added empty events handling for LINE webhook verification
 - Added public URL and webhook URL logging on server startup
 - Unified server: Express serves static files from dist/public + API + webhook on single port
+- Added LIFF page at line-backend/public/liff.html with auto-close after linking
+- EstimateResult.tsx now saves estimate to server and uses LIFF URL for LINE button
