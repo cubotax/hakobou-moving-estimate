@@ -1,22 +1,50 @@
 # Moving Estimate Application
 
 ## Overview
-A Japanese moving estimate form application (引越し見積もりフォーム) that helps users calculate moving costs in 3 simple steps: address input, conditions selection, and estimate results.
+A Japanese moving estimate form application (引越し見積もりフォーム) that helps users calculate moving costs in 3 simple steps: address input, conditions selection, and estimate results. Includes LINE integration for follow-up messaging.
 
 ## Project Structure
 - `client/` - React frontend with Vite
 - `server/` - Express.js production server
 - `shared/` - Shared types and utilities
+- `line-backend/` - LINE Messaging API backend (Express + SQLite)
 
 ## Tech Stack
 - **Frontend**: React 19, Vite 7, TailwindCSS 4, Radix UI components
 - **Backend**: Express.js (for production static file serving)
-- **Language**: TypeScript
+- **LINE Backend**: Express.js with SQLite (better-sqlite3)
+- **Language**: TypeScript (frontend), JavaScript ESM (LINE backend)
 - **Package Manager**: pnpm
 
 ## Development
 - Run `pnpm run dev` to start the Vite dev server on port 5000
 - The app uses Japanese localization
+
+## LINE Backend
+Located in `line-backend/` directory with the following components:
+- `server.js` - Express server with API and webhook endpoints
+- `db.js` - SQLite database module for estimates and user links
+
+### API Endpoints
+- `GET /health` - Health check (returns `{ ok: true }`)
+- `POST /api/estimates` - Save estimate and get LIFF URL
+- `POST /api/link` - Link LINE user ID to estimate
+- `POST /webhook` - LINE webhook for follow events
+
+### Port Configuration
+- Uses `process.env.PORT` (Replit standard)
+- Falls back to `process.env.LINE_BACKEND_PORT` or `3001`
+
+### Required Secrets
+- `LINE_CHANNEL_SECRET` - For webhook signature verification
+- `LINE_CHANNEL_ACCESS_TOKEN` - For sending LINE messages
+- `LIFF_ID` - For generating LIFF URLs
+
+### LINE Webhook Setup
+1. Deploy the app or use Replit's public URL
+2. In LINE Developers Console, set Webhook URL to: `https://your-repl-domain/webhook`
+3. Enable "Use webhook" in Messaging API settings
+4. Verify the webhook connection
 
 ## Production
 - Run `pnpm run build` to build both frontend and backend
@@ -26,3 +54,8 @@ A Japanese moving estimate form application (引越し見積もりフォーム) 
 - Configured for autoscale deployment
 - Build: `pnpm run build`
 - Run: `node dist/index.js`
+
+## Recent Changes
+- 2026-01-06: Added LINE Backend MVP with SQLite, webhook, and API endpoints
+- Fixed LIFF URL generation to handle prefixed LIFF_ID values
+- Updated port handling to prefer PORT environment variable

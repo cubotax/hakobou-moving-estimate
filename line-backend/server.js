@@ -156,7 +156,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
   }
 });
 
-const PORT = process.env.LINE_BACKEND_PORT || 3001;
+const PORT = process.env.PORT || process.env.LINE_BACKEND_PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`LINE Backend server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
