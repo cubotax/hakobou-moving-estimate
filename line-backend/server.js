@@ -184,8 +184,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(staticPath, 'index.html'));
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
+// Start server (Replit dev domain expects port 5000)
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Unified server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
