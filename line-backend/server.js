@@ -73,9 +73,13 @@ app.post('/api/estimates', (req, res) => {
     
     saveEstimate(estimateData);
     
-    const liffUrl = LIFF_ID 
-      ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
-      : `https://liff.line.me/YOUR_LIFF_ID?estimateId=${estimateId}`;
+    let liffUrl;
+    if (LIFF_ID) {
+      const cleanLiffId = LIFF_ID.replace(/^https?:\/\/liff\.line\.me\//, '');
+      liffUrl = `https://liff.line.me/${cleanLiffId}?estimateId=${estimateId}`;
+    } else {
+      liffUrl = `https://liff.line.me/YOUR_LIFF_ID?estimateId=${estimateId}`;
+    }
     
     res.json({
       estimateId,
