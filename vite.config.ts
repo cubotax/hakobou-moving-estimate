@@ -24,10 +24,23 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 5000,
+    port: 5000, // フロントエンドは5000番で待機
     strictPort: true,
     host: "0.0.0.0",
     allowedHosts: true,
+    // 外部からの通信をバックエンド（3001番）に転送する設定
+    proxy: {
+      '/webhook': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      }
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],
