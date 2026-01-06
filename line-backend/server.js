@@ -191,10 +191,9 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Health check: http://localhost:${PORT}/health`);
   console.log(`Static files: ${staticPath}`);
   
-  const replSlug = process.env.REPL_SLUG;
-  const replOwner = process.env.REPL_OWNER;
-  if (replSlug && replOwner) {
-    console.log(`Public URL: https://${replSlug}-${replOwner}.replit.app`);
-    console.log(`Webhook URL: https://${replSlug}-${replOwner}.replit.app/webhook`);
+  const devDomain = process.env.REPLIT_DEV_DOMAIN;
+  if (devDomain) {
+    console.log(`Public URL: https://${devDomain}`);
+    console.log(`Webhook URL: https://${devDomain}/webhook`);
   }
 });
