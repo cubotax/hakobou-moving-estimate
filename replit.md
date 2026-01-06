@@ -47,10 +47,12 @@ The unified server serves:
 - `LIFF_ID` - For generating LIFF URLs
 
 ### LINE Webhook Setup
-1. Deploy the app or use Replit's public URL
-2. In LINE Developers Console, set Webhook URL to: `https://your-repl-domain/webhook`
-3. Enable "Use webhook" in Messaging API settings
-4. Verify the webhook connection
+1. Replit開発ドメインを使用: `https://[REPLIT_DEV_DOMAIN]/webhook`
+2. LINE Developersコンソール → Messaging API設定 → Webhook URL に設定
+3. 「Webhookの利用」を有効化
+4. 「検証」ボタンで接続確認（200 OKが返れば成功）
+
+**注意**: ポート5000で起動する必要があります（Replit開発ドメインの外部公開ポート）
 
 ## Production
 - Run `pnpm run build` to build both frontend and backend
