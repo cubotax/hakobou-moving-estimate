@@ -17,13 +17,19 @@ A Japanese moving estimate form application (引越し見積もりフォーム) 
 - **Package Manager**: pnpm
 
 ## Development
-- Run `pnpm run dev` to start the Vite dev server on port 5000
+- Run `pnpm run build` to build the frontend
+- Run `cd line-backend && node server.js` to start the unified server
 - The app uses Japanese localization
 
-## LINE Backend
+## LINE Backend (Unified Server)
 Located in `line-backend/` directory with the following components:
-- `server.js` - Express server with API and webhook endpoints
+- `server.js` - Unified Express server (API, webhook, and static file serving)
 - `db.js` - SQLite database module for estimates and user links
+
+The unified server serves:
+- Static files from `dist/public/` (Vite build output)
+- API endpoints at `/api/*`
+- LINE webhook at `/webhook`
 
 ### API Endpoints
 - `GET /health` - Health check (returns `{ ok: true }`)
@@ -61,3 +67,4 @@ Located in `line-backend/` directory with the following components:
 - Updated port handling to use PORT env var with fallback to 3000
 - Added empty events handling for LINE webhook verification
 - Added public URL and webhook URL logging on server startup
+- Unified server: Express serves static files from dist/public + API + webhook on single port
