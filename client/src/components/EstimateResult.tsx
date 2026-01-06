@@ -9,7 +9,7 @@
  */
 
 import { useLocation } from 'wouter';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { 
   MapPin, 
   Truck, 
@@ -49,11 +49,15 @@ function formatDate(dateStr: string): string {
   });
 }
 
+const LIFF_URL_BASE = 'https://liff.line.me/2008810460-IvjGbCbG';
+
 export function EstimateResult() {
   const [, navigate] = useLocation();
   const [step1Data, setStep1Data] = useState<Step1FormData | null>(null);
   const [distanceData, setDistanceData] = useState<DistanceResult | null>(null);
   const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
+  const [estimateId, setEstimateId] = useState<string | null>(null);
+  const estimateSavedRef = useRef(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -69,6 +73,37 @@ export function EstimateResult() {
     setStep1Data(s1);
     setDistanceData(dist);
     setEstimateResult(result);
+
+    if (estimateSavedRef.current) return;
+    estimateSavedRef.current = true;
+
+    const saveEstimate = async () => {
+      try {
+        const res = await fetch('/api/estimates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pickupPrefecture: s1.pickupAddress.prefecture,
+            pickupCity: s1.pickupAddress.city,
+            pickupTown: s1.pickupAddress.town,
+            deliveryPrefecture: s1.deliveryAddress.prefecture,
+            deliveryCity: s1.deliveryAddress.city,
+            deliveryTown: s1.deliveryAddress.town,
+            pickupDate: s1.dates.pickupDate,
+            deliveryDate: s1.dates.deliveryDate,
+            totalFee: result.totalFee
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setEstimateId(data.estimateId);
+        }
+      } catch (err) {
+        console.error('Failed to save estimate:', err);
+      }
+    };
+
+    saveEstimate();
   }, [navigate]);
 
   const handleStartOver = () => {
@@ -150,13 +185,11 @@ export function EstimateResult() {
           {/* LINE相談ボタン */}
           <div className="mt-6">
             <a
-              href="https://line.me/R/oaMessage/@your_line_official_account_id/?相談をはじめる"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px]"
+              href={estimateId ? `${LIFF_URL_BASE}?estimateId=${estimateId}` : '#'}
+              className={`inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px] ${!estimateId ? 'opacity-50 pointer-events-none' : ''}`}
             >
               <MessageCircle className="w-5 h-5" />
-              LINE で相談をはじめる
+              {estimateId ? 'LINEで見積もり相談を始める' : '準備中...'}
             </a>
           </div>
         </div>

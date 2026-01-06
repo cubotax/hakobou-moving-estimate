@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LINE連携</title>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    .container {
+      text-align: center;
+      padding: 20px;
+    }
+    .loading {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e0e0e0;
+      border-top-color: #00B900;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .message {
+      color: #666;
+      font-size: 14px;
+    }
+    .error {
+      color: #ff5252;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="loading"></div>
+    <p id="message" class="message">処理中...</p>
+  </div>
+
+  <script>
+    const LIFF_ID = '2008810460-IvjGbCbG';
+    
+    function showMessage(text, isError) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      if (isError) el.classList.add('error');
+    }
+    
+    async function main() {
+      try {
+        showMessage('LIFFを初期化中...');
+        await liff.init({ liffId: LIFF_ID });
+        
+        if (!liff.isLoggedIn()) {
+          showMessage('LINEログイン中...');
+          liff.login();
+          return;
+        }
+        
+        showMessage('プロフィール取得中...');
+        const profile = await liff.getProfile();
+        const lineUserId = profile.userId;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const estimateId = urlParams.get('estimateId');
+        
+        if (!estimateId) {
+          showMessage('見積もりIDが見つかりません', true);
+          return;
+        }
+        
+        showMessage('見積もりを紐付け中...');
+        const res = await fetch('/api/link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estimateId, lineUserId })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'サーバーエラー');
+        }
+        
+        showMessage('完了！ウィンドウを閉じます...');
+        
+        setTimeout(() => {
+          liff.closeWindow();
+        }, 500);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        showMessage(error.message || 'エラーが発生しました', true);
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', main);
+  </script>
+</body>
+</html>

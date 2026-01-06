@@ -183,6 +183,10 @@ app.post('/api/link', (req, res) => {
   }
 });
 
+// LIFF static files (line-backend/public)
+const liffPublicPath = path.join(__dirname, 'public');
+app.use(express.static(liffPublicPath));
+
 // Static file serving (Vite build output - correct path)
 const staticPath = path.join(__dirname, '..', 'dist', 'public');
 app.use(express.static(staticPath));
