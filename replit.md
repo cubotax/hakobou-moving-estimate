@@ -33,7 +33,7 @@ Located in `line-backend/` directory with the following components:
 
 ### Port Configuration
 - Uses `process.env.PORT` (Replit standard)
-- Falls back to `process.env.LINE_BACKEND_PORT` or `3001`
+- Falls back to port `3000` (Replit default public port)
 
 ### Required Secrets
 - `LINE_CHANNEL_SECRET` - For webhook signature verification
@@ -58,4 +58,6 @@ Located in `line-backend/` directory with the following components:
 ## Recent Changes
 - 2026-01-06: Added LINE Backend MVP with SQLite, webhook, and API endpoints
 - Fixed LIFF URL generation to handle prefixed LIFF_ID values
-- Updated port handling to prefer PORT environment variable
+- Updated port handling to use PORT env var with fallback to 3000
+- Added empty events handling for LINE webhook verification
+- Added public URL and webhook URL logging on server startup
