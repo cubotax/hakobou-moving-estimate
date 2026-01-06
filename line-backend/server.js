@@ -158,6 +158,14 @@ app.post('/api/estimates', (req, res) => {
   }
 });
 
+app.get('/api/liff-config', (req, res) => {
+  const cleanLiffId = LIFF_ID ? LIFF_ID.replace(/^https?:\/\/liff\.line\.me\//, '') : '';
+  res.json({
+    liffId: cleanLiffId,
+    botBasicId: process.env.LINE_BOT_BASIC_ID || ''
+  });
+});
+
 app.post('/api/link', (req, res) => {
   try {
     const { estimateId, lineUserId } = req.body;

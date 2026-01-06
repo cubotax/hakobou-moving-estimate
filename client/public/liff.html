@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LINE連携</title>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    .status {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+    .loading {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .success {
+      color: #00c853;
+    }
+    .error {
+      color: #ff5252;
+    }
+    .btn {
+      display: inline-block;
+      background: #00B900;
+      color: white;
+      padding: 12px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 16px;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loading-section">
+      <div class="icon">🔗</div>
+      <h1>LINE連携中...</h1>
+      <div class="status">
+        <div class="loading"></div>
+        <p id="status-text" style="margin-top: 12px;">接続を確認しています</p>
+      </div>
+    </div>
+    
+    <div id="success-section" class="hidden">
+      <div class="icon">✅</div>
+      <h1>連携完了！</h1>
+      <p class="status success">お見積もり情報がLINEアカウントと紐付けられました。</p>
+      <p class="status">友だち追加すると、お見積もり内容を確認できるメッセージが届きます。</p>
+      <a id="add-friend-btn" class="btn hidden" href="#">友だち追加</a>
+    </div>
+    
+    <div id="error-section" class="hidden">
+      <div class="icon">⚠️</div>
+      <h1>エラーが発生しました</h1>
+      <p id="error-message" class="status error"></p>
+    </div>
+  </div>
+
+  <script>
+    let config = { liffId: '', botBasicId: '' };
+    
+    function showSection(sectionId) {
+      document.getElementById('loading-section').classList.add('hidden');
+      document.getElementById('success-section').classList.add('hidden');
+      document.getElementById('error-section').classList.add('hidden');
+      document.getElementById(sectionId).classList.remove('hidden');
+    }
+    
+    function updateStatus(text) {
+      document.getElementById('status-text').textContent = text;
+    }
+    
+    function showError(message) {
+      document.getElementById('error-message').textContent = message;
+      showSection('error-section');
+    }
+    
+    async function initLiff() {
+      try {
+        updateStatus('設定を取得中...');
+        
+        const configRes = await fetch('/api/liff-config');
+        if (!configRes.ok) {
+          throw new Error('設定の取得に失敗しました');
+        }
+        config = await configRes.json();
+        
+        if (!config.liffId) {
+          throw new Error('LIFF IDが設定されていません');
+        }
+        
+        updateStatus('LIFFを初期化中...');
+        
+        await liff.init({ liffId: config.liffId });
+        console.log('LIFF initialized');
+        
+        if (!liff.isLoggedIn()) {
+          updateStatus('LINEログインに転送中...');
+          liff.login();
+          return;
+        }
+        
+        updateStatus('プロフィールを取得中...');
+        const profile = await liff.getProfile();
+        const lineUserId = profile.userId;
+        console.log('LINE User ID:', lineUserId);
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const estimateId = urlParams.get('estimateId');
+        
+        if (!estimateId) {
+          showError('見積もりIDが見つかりません。');
+          return;
+        }
+        
+        updateStatus('見積もりを紐付け中...');
+        
+        const response = await fetch('/api/link', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            estimateId: estimateId,
+            lineUserId: lineUserId
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'サーバーエラー');
+        }
+        
+        console.log('Link successful');
+        showSection('success-section');
+        
+        const friendship = await liff.getFriendship();
+        if (!friendship.friendFlag && config.botBasicId) {
+          const addFriendBtn = document.getElementById('add-friend-btn');
+          addFriendBtn.href = 'https://line.me/R/ti/p/@' + config.botBasicId;
+          addFriendBtn.classList.remove('hidden');
+        }
+        
+      } catch (error) {
+        console.error('LIFF Error:', error);
+        showError(error.message || 'エラーが発生しました。');
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', initLiff);
+  </script>
+</body>
+</html>
