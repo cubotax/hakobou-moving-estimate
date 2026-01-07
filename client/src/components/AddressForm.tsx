@@ -354,14 +354,19 @@ export function AddressForm() {
                 <Label htmlFor="pickup-prefecture" className="font-bold">
                   都道府県 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <PrefectureSelector
-                  value={pickupPrefecture}
-                  onValueChange={value => {
-                    setValue("pickupAddress.prefecture", value);
-                    handlePickupInputChange();
-                  }}
-                  error={!!errors.pickupAddress?.prefecture}
-                />
+                <div className="relative">
+                  <PrefectureSelector
+                    value={pickupPrefecture}
+                    onValueChange={value => {
+                      setValue("pickupAddress.prefecture", value);
+                      handlePickupInputChange();
+                    }}
+                    error={!!errors.pickupAddress?.prefecture}
+                  />
+                  {pickupPrefecture && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 {errors.pickupAddress?.prefecture && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.pickupAddress.prefecture.message}
@@ -373,21 +378,26 @@ export function AddressForm() {
                 <Label htmlFor="pickup-city" className="font-bold">
                   市区町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="pickup-city"
-                  placeholder="例：青森市"
-                  {...register("pickupAddress.city", {
-                    onChange: handlePickupInputChange,
-                    onBlur: () => handleAddressBlur("pickupAddress.city"),
-                  })}
-                  onKeyDown={e => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleValidatePickupAddress();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="pickup-city"
+                    placeholder="例：青森市"
+                    {...register("pickupAddress.city", {
+                      onChange: handlePickupInputChange,
+                      onBlur: () => handleAddressBlur("pickupAddress.city"),
+                    })}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleValidatePickupAddress();
+                      }
+                    }}
+                    className="pop-input pr-10"
+                  />
+                  {pickupCity && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 {errors.pickupAddress?.city && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.pickupAddress.city.message}
@@ -399,23 +409,28 @@ export function AddressForm() {
                 <Label htmlFor="pickup-town" className="font-bold">
                   町名 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="pickup-town"
-                  placeholder="例：新町"
-                  {...register("pickupAddress.town", {
-                    onChange: handlePickupInputChange,
-                    onBlur: () => handleAddressBlur("pickupAddress.town"),
-                  })}
-                  onKeyDown={e => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleValidatePickupAddress();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="pickup-town"
+                    placeholder="例：新町"
+                    {...register("pickupAddress.town", {
+                      onChange: handlePickupInputChange,
+                      onBlur: () => handleAddressBlur("pickupAddress.town"),
+                    })}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleValidatePickupAddress();
+                      }
+                    }}
+                    className="pop-input pr-10"
+                  />
+                  {pickupTown && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 <p className="text-xs text-gray-500">
-                  ※町名までの入力だけでお見積り可能です。
+                  ※町名まで、番地は不要です。
                 </p>
                 {errors.pickupAddress?.town && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
@@ -436,7 +451,7 @@ export function AddressForm() {
                     !pickupCity ||
                     !pickupTown
                   }
-                  className="border-[3px] rounded-xl font-bold"
+                  className={`border-[3px] rounded-xl font-bold ${pickupPrefecture && pickupCity && pickupTown ? 'bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.18_95)]' : ''}`}
                   style={{ borderColor: "black" }}
                 >
                   {pickupValidating ? (
@@ -487,14 +502,19 @@ export function AddressForm() {
                 <Label htmlFor="delivery-prefecture" className="font-bold">
                   都道府県 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <PrefectureSelector
-                  value={deliveryPrefecture}
-                  onValueChange={value => {
-                    setValue("deliveryAddress.prefecture", value);
-                    handleDeliveryInputChange();
-                  }}
-                  error={!!errors.deliveryAddress?.prefecture}
-                />
+                <div className="relative">
+                  <PrefectureSelector
+                    value={deliveryPrefecture}
+                    onValueChange={value => {
+                      setValue("deliveryAddress.prefecture", value);
+                      handleDeliveryInputChange();
+                    }}
+                    error={!!errors.deliveryAddress?.prefecture}
+                  />
+                  {deliveryPrefecture && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 {errors.deliveryAddress?.prefecture && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.deliveryAddress.prefecture.message}
@@ -506,21 +526,26 @@ export function AddressForm() {
                 <Label htmlFor="delivery-city" className="font-bold">
                   市区町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="delivery-city"
-                  placeholder="例：仙台市青葉区"
-                  {...register("deliveryAddress.city", {
-                    onChange: handleDeliveryInputChange,
-                    onBlur: () => handleAddressBlur("deliveryAddress.city"),
-                  })}
-                  onKeyDown={e => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleValidateDeliveryAddress();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="delivery-city"
+                    placeholder="例：仙台市青葉区"
+                    {...register("deliveryAddress.city", {
+                      onChange: handleDeliveryInputChange,
+                      onBlur: () => handleAddressBlur("deliveryAddress.city"),
+                    })}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleValidateDeliveryAddress();
+                      }
+                    }}
+                    className="pop-input pr-10"
+                  />
+                  {deliveryCity && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 {errors.deliveryAddress?.city && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.deliveryAddress.city.message}
@@ -532,23 +557,28 @@ export function AddressForm() {
                 <Label htmlFor="delivery-town" className="font-bold">
                   町名 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="delivery-town"
-                  placeholder="例：中央"
-                  {...register("deliveryAddress.town", {
-                    onChange: handleDeliveryInputChange,
-                    onBlur: () => handleAddressBlur("deliveryAddress.town"),
-                  })}
-                  onKeyDown={e => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleValidateDeliveryAddress();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="delivery-town"
+                    placeholder="例：中央"
+                    {...register("deliveryAddress.town", {
+                      onChange: handleDeliveryInputChange,
+                      onBlur: () => handleAddressBlur("deliveryAddress.town"),
+                    })}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleValidateDeliveryAddress();
+                      }
+                    }}
+                    className="pop-input pr-10"
+                  />
+                  {deliveryTown && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 <p className="text-xs text-gray-500">
-                  ※町名までの入力だけでお見積り可能です。
+                  ※町名まで、番地は不要です。
                 </p>
                 {errors.deliveryAddress?.town && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
@@ -569,7 +599,7 @@ export function AddressForm() {
                     !deliveryCity ||
                     !deliveryTown
                   }
-                  className="border-[3px] rounded-xl font-bold"
+                  className={`border-[3px] rounded-xl font-bold ${deliveryPrefecture && deliveryCity && deliveryTown ? 'bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.18_95)]' : ''}`}
                   style={{ borderColor: "black" }}
                 >
                   {deliveryValidating ? (
