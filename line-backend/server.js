@@ -423,7 +423,7 @@ async function sendLineMessage(lineUserId, messages) {
 
 // Health check (top priority)
 app.get('/health', (req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, version: '2026-01-07-v2' });
 });
 
 // Webhook endpoint (must use raw body for signature verification)
