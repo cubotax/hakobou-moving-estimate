@@ -61,7 +61,7 @@ function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
 
   if (progressiveFee > 0) {
     breakdown.push({
-      name: '距離超過料金',
+      name: '距離加算料金',
       amount: progressiveFee,
       note: `${distanceKm.toFixed(1)}km（累進課金）`,
     });
