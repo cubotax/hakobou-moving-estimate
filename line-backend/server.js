@@ -19,6 +19,12 @@ const LME_FIELD_ADDRESS = process.env.LME_FIELD_ADDRESS || '';
 
 const APP_BASE_URL = process.env.APP_BASE_URL || 'https://hakobou-moving-estimate--cubotax.replit.app';
 
+function formatDateJP(dateStr) {
+  if (!dateStr) return '未定';
+  const date = new Date(dateStr);
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+}
+
 function buildEstimateFlexMessage(estimate, detailUrl = null) {
   const totalFee = estimate.total_fee 
     ? `¥${Number(estimate.total_fee).toLocaleString()}`
@@ -36,8 +42,8 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
     estimate.delivery_town
   ].filter(Boolean).join('') || '未入力';
   
-  const pickupDate = estimate.pickup_date || '未定';
-  const deliveryDate = estimate.delivery_date || '未定';
+  const pickupDate = formatDateJP(estimate.pickup_date);
+  const deliveryDate = formatDateJP(estimate.delivery_date);
   
   const actionUrl = detailUrl || APP_BASE_URL;
 
@@ -215,8 +221,8 @@ function buildEstimateDetailText(estimate) {
     estimate.delivery_town
   ].filter(Boolean).join('') || '未入力';
   
-  const pickupDate = estimate.pickup_date || '未定';
-  const deliveryDate = estimate.delivery_date || '未定';
+  const pickupDate = formatDateJP(estimate.pickup_date);
+  const deliveryDate = formatDateJP(estimate.delivery_date);
   
   const floorPickup = estimate.floor_pickup || 1;
   const hasElevatorPickup = estimate.has_elevator_pickup ? 'あり' : 'なし';
