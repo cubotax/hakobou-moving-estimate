@@ -506,7 +506,7 @@ app.get('/api/liff-config', (req, res) => {
   });
 });
 
-app.post('/api/link', (req, res) => {
+app.post('/api/link', async (req, res) => {
   try {
     const { estimateId, lineUserId } = req.body;
     
@@ -515,6 +515,17 @@ app.post('/api/link', (req, res) => {
     }
     
     linkUserToEstimate(estimateId, lineUserId);
+    
+    const estimate = getEstimateByLineUserId(lineUserId);
+    if (estimate) {
+      const detailText = buildEstimateDetailText(estimate);
+      const messages = [
+        buildEstimateFlexMessage(estimate),
+        { type: 'text', text: detailText }
+      ];
+      await sendLineMessage(lineUserId, messages);
+      console.log('Sent estimate messages to user:', lineUserId);
+    }
     
     res.json({ success: true });
   } catch (error) {
