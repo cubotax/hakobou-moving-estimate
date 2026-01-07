@@ -217,10 +217,6 @@ function buildEstimateDetailText(estimate) {
   
   const pickupDate = estimate.pickup_date || '未定';
   const deliveryDate = estimate.delivery_date || '未定';
-  const floorType = estimate.floor_type || '未入力';
-  const hasElevator = estimate.has_elevator ? 'あり' : 'なし';
-  const roomSize = estimate.room_size || '未入力';
-  const notes = estimate.notes || 'なし';
 
   return `【ご入力内容の詳細】
 
@@ -233,14 +229,6 @@ ${deliveryAddress}
 ■ 引越し日程
 集荷日：${pickupDate}
 お届け日：${deliveryDate}
-
-■ お部屋の情報
-間取り：${roomSize}
-建物タイプ：${floorType}
-エレベーター：${hasElevator}
-
-■ 備考
-${notes}
 
 ご不明点がございましたら、お気軽にメッセージをお送りください！`;
 }
