@@ -240,6 +240,34 @@ ${floorDelivery}階 / エレベーター：${hasElevatorDelivery}
 梱包サービス：${needsPacking}`;
 }
 
+function buildConsultScheduleButton() {
+  return {
+    type: 'flex',
+    altText: '日程相談を進める',
+    contents: {
+      type: 'bubble',
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'button',
+            style: 'primary',
+            height: 'lg',
+            action: {
+              type: 'postback',
+              label: 'この内容で日程相談を進める',
+              data: 'action=consult_schedule'
+            },
+            color: '#1DB446'
+          }
+        ],
+        paddingAll: '16px'
+      }
+    }
+  };
+}
+
 function buildWelcomeFlexMessage() {
   return {
     type: 'flex',
@@ -442,13 +470,26 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
         const detailText = buildEstimateDetailText(linkedEstimate);
         messages = [
           buildEstimateFlexMessage(linkedEstimate),
-          { type: 'text', text: detailText }
+          { type: 'text', text: detailText },
+          buildConsultScheduleButton()
         ];
       } else {
         messages = [buildWelcomeFlexMessage()];
       }
       
       await sendLineMessage(lineUserId, messages);
+    }
+    
+    if (event.type === 'postback') {
+      const lineUserId = event.source.userId;
+      const postbackData = event.postback?.data || '';
+      console.log('Postback event received:', postbackData, 'from:', lineUserId);
+      
+      if (postbackData === 'action=consult_schedule') {
+        await sendLineMessage(lineUserId, [
+          { type: 'text', text: '【日程を確認して担当者より返信いたします】' }
+        ]);
+      }
     }
   }
 });
@@ -516,7 +557,8 @@ app.post('/api/link', async (req, res) => {
       const detailText = buildEstimateDetailText(estimate);
       const messages = [
         buildEstimateFlexMessage(estimate),
-        { type: 'text', text: detailText }
+        { type: 'text', text: detailText },
+        buildConsultScheduleButton()
       ];
       await sendLineMessage(lineUserId, messages);
       console.log('Sent estimate messages to user:', lineUserId);
