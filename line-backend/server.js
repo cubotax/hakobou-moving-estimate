@@ -217,18 +217,29 @@ function buildEstimateDetailText(estimate) {
   
   const pickupDate = estimate.pickup_date || '未定';
   const deliveryDate = estimate.delivery_date || '未定';
+  
+  const floorPickup = estimate.floor_pickup || 1;
+  const hasElevatorPickup = estimate.has_elevator_pickup ? 'あり' : 'なし';
+  const floorDelivery = estimate.floor_delivery || 1;
+  const hasElevatorDelivery = estimate.has_elevator_delivery ? 'あり' : 'なし';
+  const needsPacking = estimate.needs_packing ? '希望する' : '希望しない';
 
   return `【ご入力内容の詳細】
 
 ■ 集荷先
 ${pickupAddress}
+${floorPickup}階 / エレベーター：${hasElevatorPickup}
 
 ■ お届け先
 ${deliveryAddress}
+${floorDelivery}階 / エレベーター：${hasElevatorDelivery}
 
 ■ 引越し日程
 集荷日：${pickupDate}
 お届け日：${deliveryDate}
+
+■ オプション
+梱包サービス：${needsPacking}
 
 ご不明点がございましたら、お気軽にメッセージをお送りください！`;
 }

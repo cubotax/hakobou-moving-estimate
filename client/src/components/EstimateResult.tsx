@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { 
   getStep1Data, 
+  getStep2Data,
   getDistanceData, 
   getEstimateResult,
   clearAllData 
@@ -79,6 +80,7 @@ export function EstimateResult() {
 
     const saveEstimate = async () => {
       try {
+        const s2 = getStep2Data();
         const res = await fetch('/api/estimates', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -91,7 +93,12 @@ export function EstimateResult() {
             deliveryTown: s1.deliveryAddress.town,
             pickupDate: s1.dates.pickupDate,
             deliveryDate: s1.dates.deliveryDate,
-            totalFee: result.totalFee
+            totalFee: result.totalFee,
+            floorPickup: s2?.floorPickup || 1,
+            hasElevatorPickup: s2?.hasElevatorPickup || false,
+            floorDelivery: s2?.floorDelivery || 1,
+            hasElevatorDelivery: s2?.hasElevatorDelivery || false,
+            needsPacking: s2?.needsPacking || false
           })
         });
         if (res.ok) {

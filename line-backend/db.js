@@ -20,6 +20,11 @@ db.exec(`
     pickup_date TEXT,
     delivery_date TEXT,
     total_fee INTEGER,
+    floor_pickup INTEGER DEFAULT 1,
+    has_elevator_pickup INTEGER DEFAULT 0,
+    floor_delivery INTEGER DEFAULT 1,
+    has_elevator_delivery INTEGER DEFAULT 0,
+    needs_packing INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
   );
 
@@ -37,8 +42,8 @@ db.exec(`
 
 export function saveEstimate(estimate) {
   const stmt = db.prepare(`
-    INSERT INTO estimates (id, pickup_prefecture, pickup_city, pickup_town, delivery_prefecture, delivery_city, delivery_town, pickup_date, delivery_date, total_fee)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO estimates (id, pickup_prefecture, pickup_city, pickup_town, delivery_prefecture, delivery_city, delivery_town, pickup_date, delivery_date, total_fee, floor_pickup, has_elevator_pickup, floor_delivery, has_elevator_delivery, needs_packing)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   stmt.run(
     estimate.id,
@@ -50,7 +55,12 @@ export function saveEstimate(estimate) {
     estimate.deliveryTown || '',
     estimate.pickupDate || '',
     estimate.deliveryDate || '',
-    estimate.totalFee || 0
+    estimate.totalFee || 0,
+    estimate.floorPickup || 1,
+    estimate.hasElevatorPickup ? 1 : 0,
+    estimate.floorDelivery || 1,
+    estimate.hasElevatorDelivery ? 1 : 0,
+    estimate.needsPacking ? 1 : 0
   );
   return estimate;
 }
