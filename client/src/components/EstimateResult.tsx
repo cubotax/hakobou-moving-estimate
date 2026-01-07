@@ -342,6 +342,17 @@ export function EstimateResult() {
           </div>
         </div>
 
+        {/* LINE相談ボタン（合計金額下） */}
+        <div className="mt-6">
+          <a
+            href={estimateId ? `${LIFF_URL_BASE}?estimateId=${estimateId}` : '#'}
+            className={`inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px] ${!estimateId ? 'opacity-50 pointer-events-none' : ''}`}
+          >
+            <MessageCircle className="w-5 h-5" />
+            {estimateId ? 'LINEで見積もり相談を始める' : '準備中...'}
+          </a>
+        </div>
+
         {/* 繁忙期メッセージ */}
         {isBusySeason(step1Data.dates.pickupDate) && (
           <div 
