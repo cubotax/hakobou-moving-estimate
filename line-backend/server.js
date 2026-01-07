@@ -192,14 +192,6 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
               uri: actionUrl
             },
             color: '#1DB446'
-          },
-          {
-            type: 'text',
-            text: 'ご不明点はお気軽にメッセージください！',
-            size: 'xs',
-            color: '#888888',
-            align: 'center',
-            margin: 'md'
           }
         ],
         paddingAll: '16px'
@@ -245,9 +237,7 @@ ${floorDelivery}階 / エレベーター：${hasElevatorDelivery}
 お届け日：${deliveryDate}
 
 ■ オプション
-梱包サービス：${needsPacking}
-
-ご不明点がございましたら、お気軽にメッセージをお送りください！`;
+梱包サービス：${needsPacking}`;
 }
 
 function buildWelcomeFlexMessage() {
