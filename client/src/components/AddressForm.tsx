@@ -35,7 +35,7 @@ type InputMode = 'city' | 'postal';
 export function AddressForm() {
   const [, navigate] = useLocation();
   const [isCalculating, setIsCalculating] = useState(false);
-  const [inputMode, setInputMode] = useState<InputMode>('city');
+  const [inputMode, setInputMode] = useState<InputMode>('postal');
   
   // ページ読み込み時にトップにスクロール
   useEffect(() => {
@@ -269,18 +269,18 @@ export function AddressForm() {
       <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
         <TabsList className="grid w-full grid-cols-2 h-14 p-1 bg-gray-100 rounded-2xl border-[2px] border-black">
           <TabsTrigger 
-            value="city" 
-            className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-          >
-            <MapPinned className="w-5 h-5 mr-2" />
-            住所から入力
-          </TabsTrigger>
-          <TabsTrigger 
             value="postal" 
             className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           >
             <Hash className="w-5 h-5 mr-2" />
             郵便番号から入力
+          </TabsTrigger>
+          <TabsTrigger 
+            value="city" 
+            className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <MapPinned className="w-5 h-5 mr-2" />
+            住所から入力
           </TabsTrigger>
         </TabsList>
 
@@ -361,6 +361,7 @@ export function AddressForm() {
                   }}
                   className="pop-input"
                 />
+                <p className="text-xs text-gray-500">※町名まで、番地は不要です。</p>
                 {errors.pickupAddress?.town && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.pickupAddress.town.message}
@@ -484,6 +485,7 @@ export function AddressForm() {
                   }}
                   className="pop-input"
                 />
+                <p className="text-xs text-gray-500">※町名まで、番地は不要です。</p>
                 {errors.deliveryAddress?.town && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.deliveryAddress.town.message}
