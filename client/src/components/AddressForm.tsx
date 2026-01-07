@@ -25,6 +25,7 @@ import {
   Hash,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -73,6 +74,8 @@ export function AddressForm() {
   const [deliveryPostalAddress, setDeliveryPostalAddress] = useState<
     string | null
   >(null);
+  const [pickupPostalError, setPickupPostalError] = useState<string | null>(null);
+  const [deliveryPostalError, setDeliveryPostalError] = useState<string | null>(null);
 
   // 住所バリデーション状態
   const [pickupValidating, setPickupValidating] = useState(false);
@@ -193,6 +196,8 @@ export function AddressForm() {
     }
 
     setPickupPostalLoading(true);
+    setPickupPostalError(null);
+    setPickupPostalAddress(null);
     try {
       const result = await getAddressByPostalCode(pickupPostalCode);
       if (result.success && result.address) {
@@ -204,10 +209,14 @@ export function AddressForm() {
         setPickupValidationError(null);
         toast.success("住所を取得しました");
       } else {
-        toast.error(result.error || "住所の取得に失敗しました");
+        const errorMsg = result.error || "該当する住所が見つかりませんでした";
+        setPickupPostalError(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error) {
-      toast.error("住所の取得中にエラーが発生しました");
+      const errorMsg = "住所の取得中にエラーが発生しました";
+      setPickupPostalError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setPickupPostalLoading(false);
     }
@@ -221,6 +230,8 @@ export function AddressForm() {
     }
 
     setDeliveryPostalLoading(true);
+    setDeliveryPostalError(null);
+    setDeliveryPostalAddress(null);
     try {
       const result = await getAddressByPostalCode(deliveryPostalCode);
       if (result.success && result.address) {
@@ -232,10 +243,14 @@ export function AddressForm() {
         setDeliveryValidationError(null);
         toast.success("住所を取得しました");
       } else {
-        toast.error(result.error || "住所の取得に失敗しました");
+        const errorMsg = result.error || "該当する住所が見つかりませんでした";
+        setDeliveryPostalError(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error) {
-      toast.error("住所の取得中にエラーが発生しました");
+      const errorMsg = "住所の取得中にエラーが発生しました";
+      setDeliveryPostalError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setDeliveryPostalLoading(false);
     }
@@ -649,6 +664,16 @@ export function AddressForm() {
                   <p className="text-lg font-medium">{pickupPostalAddress}</p>
                 </div>
               )}
+              {!!pickupPostalError && (
+                <div className="p-4 bg-[oklch(0.92_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-[oklch(0.55_0.2_25)]" />
+                    <span className="font-bold text-[oklch(0.4_0.15_25)]">
+                      {pickupPostalError}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -720,6 +745,16 @@ export function AddressForm() {
                     </span>
                   </div>
                   <p className="text-lg font-medium">{deliveryPostalAddress}</p>
+                </div>
+              )}
+              {!!deliveryPostalError && (
+                <div className="p-4 bg-[oklch(0.92_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-[oklch(0.55_0.2_25)]" />
+                    <span className="font-bold text-[oklch(0.4_0.15_25)]">
+                      {deliveryPostalError}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
