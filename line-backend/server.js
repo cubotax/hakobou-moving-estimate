@@ -423,7 +423,15 @@ async function sendLineMessage(lineUserId, messages) {
 
 // Health check (top priority)
 app.get('/health', (req, res) => {
-  res.json({ ok: true, version: '2026-01-07-v8-debug', timestamp: Date.now(), dbConnected: !!process.env.DATABASE_URL });
+  const dbUrl = process.env.DATABASE_URL || '';
+  const dbHost = dbUrl.includes('@') ? dbUrl.split('@')[1]?.split('/')[0]?.split(':')[0] : 'unknown';
+  res.json({ 
+    ok: true, 
+    version: '2026-01-07-v9-dbhost', 
+    timestamp: Date.now(), 
+    dbConnected: !!process.env.DATABASE_URL,
+    dbHost: dbHost
+  });
 });
 
 // Webhook endpoint (must use raw body for signature verification)
