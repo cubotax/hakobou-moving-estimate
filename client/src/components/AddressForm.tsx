@@ -646,22 +646,27 @@ export function AddressForm() {
                 <Label htmlFor="pickup-postal" className="font-bold">
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="pickup-postal"
-                  placeholder="例：0300801"
-                  value={pickupPostalCode}
-                  onChange={e =>
-                    setPickupPostalCode(formatPostalCode(e.target.value))
-                  }
-                  onKeyDown={e => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handlePickupPostalSearch();
+                <div className="relative">
+                  <Input
+                    id="pickup-postal"
+                    placeholder="例：0300801"
+                    value={pickupPostalCode}
+                    onChange={e =>
+                      setPickupPostalCode(formatPostalCode(e.target.value))
                     }
-                  }}
-                  inputMode="numeric"
-                  className="pop-input"
-                />
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handlePickupPostalSearch();
+                      }
+                    }}
+                    inputMode="numeric"
+                    className="pop-input pr-10"
+                  />
+                  {isValidPostalCode(pickupPostalCode) && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
               </div>
 
               {/* 住所を確定ボタン */}
@@ -671,7 +676,7 @@ export function AddressForm() {
                   variant="ghost"
                   onClick={handlePickupPostalSearch}
                   disabled={pickupPostalLoading}
-                  className="border-[3px] rounded-xl font-bold"
+                  className={`border-[3px] rounded-xl font-bold ${isValidPostalCode(pickupPostalCode) ? 'bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.18_95)]' : ''}`}
                   style={{ borderColor: "black" }}
                 >
                   {pickupPostalLoading ? (
@@ -729,22 +734,27 @@ export function AddressForm() {
                 <Label htmlFor="delivery-postal" className="font-bold">
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="delivery-postal"
-                  placeholder="例：9800021"
-                  value={deliveryPostalCode}
-                  onChange={e =>
-                    setDeliveryPostalCode(formatPostalCode(e.target.value))
-                  }
-                  onKeyDown={e => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleDeliveryPostalSearch();
+                <div className="relative">
+                  <Input
+                    id="delivery-postal"
+                    placeholder="例：9800021"
+                    value={deliveryPostalCode}
+                    onChange={e =>
+                      setDeliveryPostalCode(formatPostalCode(e.target.value))
                     }
-                  }}
-                  inputMode="numeric"
-                  className="pop-input"
-                />
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleDeliveryPostalSearch();
+                      }
+                    }}
+                    inputMode="numeric"
+                    className="pop-input pr-10"
+                  />
+                  {isValidPostalCode(deliveryPostalCode) && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
               </div>
 
               {/* 住所を確定ボタン */}
@@ -754,7 +764,7 @@ export function AddressForm() {
                   variant="ghost"
                   onClick={handleDeliveryPostalSearch}
                   disabled={deliveryPostalLoading}
-                  className="border-[3px] rounded-xl font-bold"
+                  className={`border-[3px] rounded-xl font-bold ${isValidPostalCode(deliveryPostalCode) ? 'bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.18_95)]' : ''}`}
                   style={{ borderColor: "black" }}
                 >
                   {deliveryPostalLoading ? (
