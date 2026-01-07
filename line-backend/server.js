@@ -543,8 +543,10 @@ app.get('/api/liff-config', (req, res) => {
 });
 
 app.post('/api/link', async (req, res) => {
+  console.log('=== /api/link called ===', new Date().toISOString());
   try {
     const { estimateId, lineUserId } = req.body;
+    console.log('Received:', { estimateId, lineUserId });
     
     if (!estimateId || !lineUserId) {
       return res.status(400).json({ error: 'estimateId and lineUserId are required' });
@@ -555,11 +557,15 @@ app.post('/api/link', async (req, res) => {
     const estimate = getEstimateByLineUserId(lineUserId);
     if (estimate) {
       const detailText = buildEstimateDetailText(estimate);
+      console.log('=== Detail text being sent ===');
+      console.log(detailText);
+      console.log('=== End detail text ===');
       const messages = [
         buildEstimateFlexMessage(estimate),
         { type: 'text', text: detailText },
         buildConsultScheduleButton()
       ];
+      console.log('Sending', messages.length, 'messages to LINE');
       await sendLineMessage(lineUserId, messages);
       console.log('Sent estimate messages to user:', lineUserId);
     }
