@@ -2,10 +2,10 @@ import pg from 'pg';
 const { Pool } = pg;
 
 console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {
@@ -91,6 +91,7 @@ export async function saveEstimate(estimate) {
     }
   } catch (err) {
     console.error('Failed to save estimate:', err.message);
+    console.error('Full error:', err);
     throw err;
   }
 }
