@@ -187,11 +187,23 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
             style: 'primary',
             height: 'md',
             action: {
+              type: 'postback',
+              label: '仮申込する',
+              data: 'action=preapply',
+              displayText: '仮申込する'
+            },
+            color: '#1DB446'
+          },
+          {
+            type: 'button',
+            style: 'link',
+            height: 'sm',
+            action: {
               type: 'uri',
               label: '詳細を確認',
               uri: actionUrl
             },
-            color: '#1DB446'
+            color: '#888888'
           }
         ],
         paddingAll: '16px'
@@ -421,13 +433,43 @@ async function sendLineMessage(lineUserId, messages) {
   }
 }
 
+async function replyLineMessage(replyToken, messages) {
+  if (!LINE_CHANNEL_ACCESS_TOKEN) {
+    console.warn('LINE_CHANNEL_ACCESS_TOKEN is not set, skipping reply');
+    return;
+  }
+  
+  try {
+    const response = await fetch('https://api.line.me/v2/bot/message/reply', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`
+      },
+      body: JSON.stringify({
+        replyToken: replyToken,
+        messages: messages
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('LINE Reply API error:', response.status, errorText);
+    } else {
+      console.log('Reply sent successfully');
+    }
+  } catch (error) {
+    console.error('Failed to reply LINE message:', error);
+  }
+}
+
 // Health check (top priority)
 app.get('/health', (req, res) => {
   const dbUrl = process.env.DATABASE_URL || '';
   const dbHost = dbUrl.includes('@') ? dbUrl.split('@')[1]?.split('/')[0]?.split(':')[0] : 'unknown';
   res.json({ 
     ok: true, 
-    version: '2026-01-07-v10-pgvars', 
+    version: '2026-01-07-v11-preapply', 
     timestamp: Date.now(), 
     dbConnected: !!process.env.DATABASE_URL,
     dbHost: dbHost,
@@ -492,11 +534,16 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
     
     if (event.type === 'postback') {
       const lineUserId = event.source.userId;
+      const replyToken = event.replyToken;
       const postbackData = event.postback?.data || '';
       console.log('Postback event received:', postbackData, 'from:', lineUserId);
       
-      if (postbackData === 'action=consult_schedule') {
-        await sendLineMessage(lineUserId, [
+      if (postbackData === 'action=preapply') {
+        await replyLineMessage(replyToken, [
+          { type: 'text', text: '仮申込を受け付けました。後日担当者より折り返します。' }
+        ]);
+      } else if (postbackData === 'action=consult_schedule') {
+        await replyLineMessage(replyToken, [
           { type: 'text', text: '【日程を確認して担当者より返信いたします】' }
         ]);
       }

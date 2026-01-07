@@ -74,6 +74,7 @@ The unified server serves:
 - EstimateResult.tsx now saves estimate to server and uses LIFF URL for LINE button
 - 2026-01-06: Upgraded LINE notifications to Flex Message format (rich cards)
 - 2026-01-06: Added L-me (エルメ) CRM integration for customer data sync
+- 2026-01-07: Added "仮申込する" postback button to Flex Message with auto-reply (no DB required)
 
 ### L-me Integration Environment Variables
 - `LME_API_KEY` - L-me API authentication key
