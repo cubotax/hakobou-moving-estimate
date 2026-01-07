@@ -423,7 +423,7 @@ async function sendLineMessage(lineUserId, messages) {
 
 // Health check (top priority)
 app.get('/health', (req, res) => {
-  res.json({ ok: true, version: '2026-01-07-v7-build', timestamp: Date.now(), dbConnected: !!process.env.DATABASE_URL });
+  res.json({ ok: true, version: '2026-01-07-v8-debug', timestamp: Date.now(), dbConnected: !!process.env.DATABASE_URL });
 });
 
 // Webhook endpoint (must use raw body for signature verification)
@@ -535,7 +535,7 @@ app.post('/api/estimates', async (req, res) => {
     });
   } catch (error) {
     console.error('Failed to save estimate:', error);
-    res.status(500).json({ error: 'Failed to save estimate' });
+    res.status(500).json({ error: 'Failed to save estimate', detail: error.message });
   }
 });
 
