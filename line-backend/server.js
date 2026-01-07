@@ -423,7 +423,7 @@ async function sendLineMessage(lineUserId, messages) {
 
 // Health check (top priority)
 app.get('/health', (req, res) => {
-  res.json({ ok: true, version: '2026-01-07-v2' });
+  res.json({ ok: true, version: '2026-01-07-v3-postgres' });
 });
 
 // Webhook endpoint (must use raw body for signature verification)
@@ -463,7 +463,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
       const lineUserId = event.source.userId;
       console.log('Follow event received from:', lineUserId);
       
-      const linkedEstimate = getEstimateByLineUserId(lineUserId);
+      const linkedEstimate = await getEstimateByLineUserId(lineUserId);
       
       let messages;
       if (linkedEstimate) {
@@ -498,7 +498,7 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 app.use(express.json());
 
 // API routes
-app.post('/api/estimates', (req, res) => {
+app.post('/api/estimates', async (req, res) => {
   try {
     const estimateId = randomUUID();
     const estimateData = {
@@ -511,10 +511,15 @@ app.post('/api/estimates', (req, res) => {
       deliveryTown: req.body.deliveryTown,
       pickupDate: req.body.pickupDate,
       deliveryDate: req.body.deliveryDate,
-      totalFee: req.body.totalFee
+      totalFee: req.body.totalFee,
+      floorPickup: req.body.floorPickup,
+      hasElevatorPickup: req.body.hasElevatorPickup,
+      floorDelivery: req.body.floorDelivery,
+      hasElevatorDelivery: req.body.hasElevatorDelivery,
+      needsPacking: req.body.needsPacking
     };
     
-    saveEstimate(estimateData);
+    await saveEstimate(estimateData);
     
     let liffUrl;
     if (LIFF_ID) {
@@ -552,9 +557,9 @@ app.post('/api/link', async (req, res) => {
       return res.status(400).json({ error: 'estimateId and lineUserId are required' });
     }
     
-    linkUserToEstimate(estimateId, lineUserId);
+    await linkUserToEstimate(estimateId, lineUserId);
     
-    const estimate = getEstimateByLineUserId(lineUserId);
+    const estimate = await getEstimateByLineUserId(lineUserId);
     if (estimate) {
       const detailText = buildEstimateDetailText(estimate);
       console.log('=== Detail text being sent ===');
