@@ -427,10 +427,12 @@ app.get('/health', (req, res) => {
   const dbHost = dbUrl.includes('@') ? dbUrl.split('@')[1]?.split('/')[0]?.split(':')[0] : 'unknown';
   res.json({ 
     ok: true, 
-    version: '2026-01-07-v9-dbhost', 
+    version: '2026-01-07-v10-pgvars', 
     timestamp: Date.now(), 
     dbConnected: !!process.env.DATABASE_URL,
-    dbHost: dbHost
+    dbHost: dbHost,
+    pgHost: process.env.PGHOST || 'not set',
+    isDeployment: process.env.REPLIT_DEPLOYMENT === '1'
   });
 });
 
