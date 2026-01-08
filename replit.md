@@ -24,7 +24,7 @@ A Japanese moving estimate form application (引越し見積もりフォーム) 
 ## LINE Backend (Unified Server)
 Located in `line-backend/` directory with the following components:
 - `server.js` - Unified Express server (API, webhook, and static file serving)
-- (No database - estimates are sent directly to LINE)
+- `db.js` - SQLite database module for estimates and user links
 
 The unified server serves:
 - Static files from `dist/public/` (Vite build output)
@@ -74,17 +74,6 @@ The unified server serves:
 - EstimateResult.tsx now saves estimate to server and uses LIFF URL for LINE button
 - 2026-01-06: Upgraded LINE notifications to Flex Message format (rich cards)
 - 2026-01-06: Added L-me (エルメ) CRM integration for customer data sync
-- 2026-01-07: Added "仮申込する" postback button to Flex Message with auto-reply (no DB required)
-- 2026-01-08: Implemented in-memory estimate storage with TTL (30min) to preserve data across LIFF login redirects
-
-## LIFF Data Flow Architecture
-1. User completes estimate form → EstimateResult.tsx calls POST /api/estimates with estimate data
-2. Server stores estimate in in-memory Map with 30-minute TTL, returns estimateId and LIFF URL
-3. User clicks "LINEで見積もり相談を始める" → opens LIFF URL with estimateId parameter
-4. LIFF page initializes, extracts estimateId from query params (or liff.state after login redirect)
-5. After LINE login, LIFF calls POST /api/link with lineUserId + estimateId
-6. Server retrieves estimate from Map, sends Flex Message to LINE user
-7. User redirected to LINE chat with @602epmvz
 
 ### L-me Integration Environment Variables
 - `LME_API_KEY` - L-me API authentication key

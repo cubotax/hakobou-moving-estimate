@@ -9,7 +9,7 @@
  */
 
 import { useLocation } from 'wouter';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { 
   MapPin, 
   Truck, 
@@ -50,55 +50,15 @@ function formatDate(dateStr: string): string {
   });
 }
 
-// 見積もりデータを作成
-function buildEstimateData(s1: Step1FormData, result: EstimateResultType) {
-  const s2 = getStep2Data();
-  return {
-    pickupPrefecture: s1.pickupAddress.prefecture,
-    pickupCity: s1.pickupAddress.city,
-    pickupTown: s1.pickupAddress.town,
-    deliveryPrefecture: s1.deliveryAddress.prefecture,
-    deliveryCity: s1.deliveryAddress.city,
-    deliveryTown: s1.deliveryAddress.town,
-    pickupDate: s1.dates.pickupDate,
-    deliveryDate: s1.dates.deliveryDate,
-    totalFee: result.totalFee,
-    floorPickup: s2?.floorPickup || 1,
-    hasElevatorPickup: s2?.hasElevatorPickup || false,
-    floorDelivery: s2?.floorDelivery || 1,
-    hasElevatorDelivery: s2?.hasElevatorDelivery || false,
-    needsPacking: s2?.needsPacking || false
-  };
-}
-
-// サーバーに見積もりを保存してLIFF URLを取得
-async function saveEstimateAndGetLiffUrl(estimate: ReturnType<typeof buildEstimateData>): Promise<string | null> {
-  try {
-    const res = await fetch('/api/estimates', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estimate })
-    });
-    if (!res.ok) {
-      console.error('Failed to save estimate:', res.status);
-      return null;
-    }
-    const data = await res.json();
-    console.log('Estimate saved:', data);
-    return data.liffUrl;
-  } catch (error) {
-    console.error('Error saving estimate:', error);
-    return null;
-  }
-}
+const LIFF_URL_BASE = 'https://liff.line.me/2008810460-IvjGbCbG';
 
 export function EstimateResult() {
   const [, navigate] = useLocation();
   const [step1Data, setStep1Data] = useState<Step1FormData | null>(null);
   const [distanceData, setDistanceData] = useState<DistanceResult | null>(null);
   const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
-  const [liffUrl, setLiffUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [estimateId, setEstimateId] = useState<string | null>(null);
+  const estimateSavedRef = useRef(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -114,13 +74,43 @@ export function EstimateResult() {
     setStep1Data(s1);
     setDistanceData(dist);
     setEstimateResult(result);
-    
-    // サーバーに見積もりを保存してLIFF URLを取得
-    const estimate = buildEstimateData(s1, result);
-    saveEstimateAndGetLiffUrl(estimate).then(url => {
-      setLiffUrl(url);
-      setIsLoading(false);
-    });
+
+    if (estimateSavedRef.current) return;
+    estimateSavedRef.current = true;
+
+    const saveEstimate = async () => {
+      try {
+        const s2 = getStep2Data();
+        const res = await fetch('/api/estimates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pickupPrefecture: s1.pickupAddress.prefecture,
+            pickupCity: s1.pickupAddress.city,
+            pickupTown: s1.pickupAddress.town,
+            deliveryPrefecture: s1.deliveryAddress.prefecture,
+            deliveryCity: s1.deliveryAddress.city,
+            deliveryTown: s1.deliveryAddress.town,
+            pickupDate: s1.dates.pickupDate,
+            deliveryDate: s1.dates.deliveryDate,
+            totalFee: result.totalFee,
+            floorPickup: s2?.floorPickup || 1,
+            hasElevatorPickup: s2?.hasElevatorPickup || false,
+            floorDelivery: s2?.floorDelivery || 1,
+            hasElevatorDelivery: s2?.hasElevatorDelivery || false,
+            needsPacking: s2?.needsPacking || false
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setEstimateId(data.estimateId);
+        }
+      } catch (err) {
+        console.error('Failed to save estimate:', err);
+      }
+    };
+
+    saveEstimate();
   }, [navigate]);
 
   const handleStartOver = () => {
@@ -202,11 +192,11 @@ export function EstimateResult() {
           {/* LINE相談ボタン */}
           <div className="mt-6">
             <a
-              href={liffUrl || '#'}
-              className={`inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px] ${!liffUrl || isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+              href={estimateId ? `${LIFF_URL_BASE}?estimateId=${estimateId}` : '#'}
+              className={`inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px] ${!estimateId ? 'opacity-50 pointer-events-none' : ''}`}
             >
               <MessageCircle className="w-5 h-5" />
-              {isLoading ? '準備中...' : liffUrl ? 'LINEで見積もり相談を始める' : 'エラーが発生しました'}
+              {estimateId ? 'LINEで見積もり相談を始める' : '準備中...'}
             </a>
           </div>
         </div>
@@ -355,11 +345,11 @@ export function EstimateResult() {
         {/* LINE相談ボタン（合計金額下） */}
         <div className="mt-6">
           <a
-            href={liffUrl || '#'}
-            className={`inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px] ${!liffUrl || isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+            href={estimateId ? `${LIFF_URL_BASE}?estimateId=${estimateId}` : '#'}
+            className={`inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px] ${!estimateId ? 'opacity-50 pointer-events-none' : ''}`}
           >
             <MessageCircle className="w-5 h-5" />
-            {isLoading ? '準備中...' : liffUrl ? 'LINEで見積もり相談を始める' : 'エラーが発生しました'}
+            {estimateId ? 'LINEで見積もり相談を始める' : '準備中...'}
           </a>
         </div>
 
