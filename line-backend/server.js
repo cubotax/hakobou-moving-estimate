@@ -3,10 +3,54 @@ import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
-// DB不要 - 見積もりデータはLINEトークにのみ送信
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+
+// ========== In-Memory Estimate Storage (TTL: 30分) ==========
+const estimateStore = new Map();
+const ESTIMATE_TTL_MS = 30 * 60 * 1000; // 30分
+
+function saveEstimate(estimate) {
+  const estimateId = randomUUID();
+  estimateStore.set(estimateId, {
+    estimate,
+    createdAt: Date.now()
+  });
+  console.log(`[EstimateStore] Saved estimate ${estimateId}, store size: ${estimateStore.size}`);
+  return estimateId;
+}
+
+function getEstimate(estimateId) {
+  const entry = estimateStore.get(estimateId);
+  if (!entry) {
+    console.log(`[EstimateStore] Estimate ${estimateId} not found`);
+    return null;
+  }
+  // TTLチェック
+  if (Date.now() - entry.createdAt > ESTIMATE_TTL_MS) {
+    estimateStore.delete(estimateId);
+    console.log(`[EstimateStore] Estimate ${estimateId} expired`);
+    return null;
+  }
+  console.log(`[EstimateStore] Retrieved estimate ${estimateId}`);
+  return entry.estimate;
+}
+
+// 定期的に期限切れエントリを削除（5分ごと）
+setInterval(() => {
+  const now = Date.now();
+  let deleted = 0;
+  for (const [id, entry] of estimateStore.entries()) {
+    if (now - entry.createdAt > ESTIMATE_TTL_MS) {
+      estimateStore.delete(id);
+      deleted++;
+    }
+  }
+  if (deleted > 0) {
+    console.log(`[EstimateStore] Cleaned up ${deleted} expired entries, remaining: ${estimateStore.size}`);
+  }
+}, 5 * 60 * 1000);
 
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET || '';
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
@@ -467,9 +511,10 @@ async function replyLineMessage(replyToken, messages) {
 app.get('/health', (req, res) => {
   res.json({ 
     ok: true, 
-    version: '2026-01-08-v13-nodb-final', 
+    version: '2026-01-08-v14-inmemory', 
     timestamp: Date.now(),
-    mode: 'db-less',
+    mode: 'in-memory-storage',
+    estimateStoreSize: estimateStore.size,
     isDeployment: process.env.REPLIT_DEPLOYMENT === '1'
   });
 });
@@ -538,23 +583,43 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 // JSON parser for API routes
 app.use(express.json());
 
-// API routes - DB不要版
-// 見積もりデータは sessionStorage 経由でLIFFに渡し、直接LINEに送信
+// API routes - in-memory storage版
+// 見積もりデータをサーバーに一時保存し、estimateIdで参照
 app.post('/api/estimates', (req, res) => {
-  const estimateId = randomUUID();
-  
-  let liffUrl;
-  if (LIFF_ID) {
-    const cleanLiffId = LIFF_ID.replace(/^https?:\/\/liff\.line\.me\//, '');
-    liffUrl = `https://liff.line.me/${cleanLiffId}?estimateId=${estimateId}`;
-  } else {
-    liffUrl = `https://liff.line.me/YOUR_LIFF_ID?estimateId=${estimateId}`;
+  console.log('[/api/estimates] Called');
+  try {
+    const { estimate } = req.body;
+    if (!estimate) {
+      console.log('[/api/estimates] Error: No estimate data');
+      return res.status(400).json({ error: 'estimate is required' });
+    }
+    
+    const estimateId = saveEstimate(estimate);
+    
+    let liffUrl;
+    if (LIFF_ID) {
+      const cleanLiffId = LIFF_ID.replace(/^https?:\/\/liff\.line\.me\//, '');
+      liffUrl = `https://liff.line.me/${cleanLiffId}?estimateId=${estimateId}`;
+    } else {
+      liffUrl = `https://liff.line.me/YOUR_LIFF_ID?estimateId=${estimateId}`;
+    }
+    
+    console.log('[/api/estimates] Success:', { estimateId, liffUrl });
+    res.json({ estimateId, liffUrl });
+  } catch (error) {
+    console.error('[/api/estimates] Error:', error);
+    res.status(500).json({ error: 'Failed to save estimate' });
   }
-  
-  res.json({
-    estimateId,
-    liffUrl
-  });
+});
+
+// デバッグ用: 見積もりデータ取得
+app.get('/api/estimates/:estimateId', (req, res) => {
+  const { estimateId } = req.params;
+  const estimate = getEstimate(estimateId);
+  if (!estimate) {
+    return res.status(404).json({ error: 'Estimate not found or expired' });
+  }
+  res.json({ estimateId, estimate });
 });
 
 app.get('/api/liff-config', (req, res) => {
@@ -565,16 +630,31 @@ app.get('/api/liff-config', (req, res) => {
   });
 });
 
-// DB不要版 - 見積もりデータをリクエストから直接受け取りLINEに送信
+// estimateIdからデータを取得してLINEに送信
 app.post('/api/link', async (req, res) => {
   console.log('=== /api/link called ===', new Date().toISOString());
   try {
-    const { lineUserId, estimate } = req.body;
-    console.log('Received:', { lineUserId, estimate });
+    const { lineUserId, estimateId } = req.body;
+    console.log('[/api/link] Received:', { lineUserId, estimateId });
     
-    if (!lineUserId || !estimate) {
-      return res.status(400).json({ error: 'lineUserId and estimate are required' });
+    if (!lineUserId) {
+      console.log('[/api/link] Error: No lineUserId');
+      return res.status(400).json({ error: 'lineUserId is required' });
     }
+    
+    if (!estimateId) {
+      console.log('[/api/link] Error: No estimateId');
+      return res.status(400).json({ error: 'estimateId is required' });
+    }
+    
+    // estimateIdから見積もりデータを取得
+    const estimate = getEstimate(estimateId);
+    if (!estimate) {
+      console.log('[/api/link] Error: Estimate not found or expired');
+      return res.status(404).json({ error: 'Estimate not found or expired' });
+    }
+    
+    console.log('[/api/link] Retrieved estimate:', estimate);
     
     // 見積もりデータを変換（フロントエンドのフォーマットからサーバーのフォーマットへ）
     const estimateForMessage = {
@@ -595,9 +675,7 @@ app.post('/api/link', async (req, res) => {
     };
     
     const detailText = buildEstimateDetailText(estimateForMessage);
-    console.log('=== Detail text being sent ===');
-    console.log(detailText);
-    console.log('=== End detail text ===');
+    console.log('[/api/link] Detail text:', detailText);
     
     const messages = [
       buildEstimateFlexMessage(estimateForMessage),
@@ -605,13 +683,13 @@ app.post('/api/link', async (req, res) => {
       buildConsultScheduleButton()
     ];
     
-    console.log('Sending', messages.length, 'messages to LINE');
+    console.log('[/api/link] Sending', messages.length, 'messages to LINE user:', lineUserId);
     await sendLineMessage(lineUserId, messages);
-    console.log('Sent estimate messages to user:', lineUserId);
+    console.log('[/api/link] SUCCESS - Messages sent to:', lineUserId);
     
-    res.json({ success: true });
+    res.json({ ok: true });
   } catch (error) {
-    console.error('Failed to send estimate:', error);
+    console.error('[/api/link] FAILED:', error);
     res.status(500).json({ error: 'Failed to send estimate' });
   }
 });
