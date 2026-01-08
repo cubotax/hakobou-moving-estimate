@@ -75,7 +75,16 @@ The unified server serves:
 - 2026-01-06: Upgraded LINE notifications to Flex Message format (rich cards)
 - 2026-01-06: Added L-me (エルメ) CRM integration for customer data sync
 - 2026-01-07: Added "仮申込する" postback button to Flex Message with auto-reply (no DB required)
-- 2026-01-08: Removed all database dependencies - estimates are sent directly via URL parameters to LIFF, then to LINE. No PostgreSQL required.
+- 2026-01-08: Implemented in-memory estimate storage with TTL (30min) to preserve data across LIFF login redirects
+
+## LIFF Data Flow Architecture
+1. User completes estimate form → EstimateResult.tsx calls POST /api/estimates with estimate data
+2. Server stores estimate in in-memory Map with 30-minute TTL, returns estimateId and LIFF URL
+3. User clicks "LINEで見積もり相談を始める" → opens LIFF URL with estimateId parameter
+4. LIFF page initializes, extracts estimateId from query params (or liff.state after login redirect)
+5. After LINE login, LIFF calls POST /api/link with lineUserId + estimateId
+6. Server retrieves estimate from Map, sends Flex Message to LINE user
+7. User redirected to LINE chat with @602epmvz
 
 ### L-me Integration Environment Variables
 - `LME_API_KEY` - L-me API authentication key
