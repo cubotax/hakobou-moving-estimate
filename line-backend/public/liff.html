@@ -48,7 +48,7 @@
 
   <script>
     const LIFF_ID = '2008810460-IvjGbCbG';
-    const STORAGE_KEY = 'liff_estimate_data';
+    const STORAGE_KEY = 'hakobou_estimate_data';
     
     function showMessage(text, isError) {
       const el = document.getElementById('message');
@@ -58,15 +58,14 @@
     
     async function main() {
       try {
-        showMessage('LIFFを初期化中...');
-        
-        // URLからデータを取得してセッションストレージに保存（ログイン前）
+        // ログイン前にURLからデータを保存（localStorageに永続化）
         const urlParams = new URLSearchParams(window.location.search);
         const dataFromUrl = urlParams.get('data');
         if (dataFromUrl) {
-          sessionStorage.setItem(STORAGE_KEY, dataFromUrl);
+          localStorage.setItem(STORAGE_KEY, dataFromUrl);
         }
         
+        showMessage('LIFFを初期化中...');
         await liff.init({ liffId: LIFF_ID });
         
         if (!liff.isLoggedIn()) {
@@ -79,8 +78,8 @@
         const profile = await liff.getProfile();
         const lineUserId = profile.userId;
         
-        // セッションストレージからデータを取得
-        const estimateDataEncoded = sessionStorage.getItem(STORAGE_KEY);
+        // localStorageからデータを取得
+        const estimateDataEncoded = localStorage.getItem(STORAGE_KEY);
         
         if (!estimateDataEncoded) {
           showMessage('見積もりデータが見つかりません', true);
@@ -92,12 +91,12 @@
           const decoded = decodeURIComponent(atob(estimateDataEncoded));
           estimate = JSON.parse(decoded);
         } catch (e) {
+          console.error('Parse error:', e);
           showMessage('見積もりデータの解析に失敗しました', true);
           return;
         }
         
         showMessage('見積もりを送信中...');
-        
         const res = await fetch('/api/link', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -110,17 +109,13 @@
         }
         
         // 成功したらストレージをクリア
-        sessionStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_KEY);
         
         showMessage('完了！チャットを開きます...');
         
         setTimeout(() => {
-          if (liff.isInClient()) {
-            liff.closeWindow();
-          } else {
-            window.location.href = 'https://line.me/R/oaMessage/@602epmvz/';
-          }
-        }, 800);
+          window.location.href = 'https://line.me/R/oaMessage/@602epmvz/';
+        }, 500);
         
       } catch (error) {
         console.error('Error:', error);
