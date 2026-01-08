@@ -104,9 +104,17 @@ export function EstimateResult() {
         if (res.ok) {
           const data = await res.json();
           setEstimateId(data.estimateId);
+        } else {
+          // DB保存失敗時もLINE連携を可能にする（ランダムID使用）
+          const fallbackId = crypto.randomUUID();
+          setEstimateId(fallbackId);
+          console.log('Using fallback estimateId:', fallbackId);
         }
       } catch (err) {
         console.error('Failed to save estimate:', err);
+        // エラー時もLINE連携を可能にする
+        const fallbackId = crypto.randomUUID();
+        setEstimateId(fallbackId);
       }
     };
 
