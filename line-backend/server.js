@@ -3,7 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
-import { saveEstimate, linkUserToEstimate, getEstimateByLineUserId } from './db.js';
+// DB不要 - 見積もりデータはLINEトークにのみ送信
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -469,7 +469,7 @@ app.get('/health', (req, res) => {
   const dbHost = dbUrl.includes('@') ? dbUrl.split('@')[1]?.split('/')[0]?.split(':')[0] : 'unknown';
   res.json({ 
     ok: true, 
-    version: '2026-01-07-v11-preapply', 
+    version: '2026-01-08-v12-nodb', 
     timestamp: Date.now(), 
     dbConnected: !!process.env.DATABASE_URL,
     dbHost: dbHost,
@@ -515,21 +515,9 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
       const lineUserId = event.source.userId;
       console.log('Follow event received from:', lineUserId);
       
-      const linkedEstimate = await getEstimateByLineUserId(lineUserId);
-      
-      let messages;
-      if (linkedEstimate) {
-        const detailText = buildEstimateDetailText(linkedEstimate);
-        messages = [
-          buildEstimateFlexMessage(linkedEstimate),
-          { type: 'text', text: detailText },
-          buildConsultScheduleButton()
-        ];
-      } else {
-        messages = [buildWelcomeFlexMessage()];
-      }
-      
-      await sendLineMessage(lineUserId, messages);
+      // DB不要 - 友だち追加時はウェルカムメッセージのみ送信
+      // 見積もりデータはLIFF連携時に直接送信される
+      await sendLineMessage(lineUserId, [buildWelcomeFlexMessage()]);
     }
     
     if (event.type === 'postback') {
@@ -554,46 +542,23 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 // JSON parser for API routes
 app.use(express.json());
 
-// API routes
-app.post('/api/estimates', async (req, res) => {
-  try {
-    const estimateId = randomUUID();
-    const estimateData = {
-      id: estimateId,
-      pickupPrefecture: req.body.pickupPrefecture,
-      pickupCity: req.body.pickupCity,
-      pickupTown: req.body.pickupTown,
-      deliveryPrefecture: req.body.deliveryPrefecture,
-      deliveryCity: req.body.deliveryCity,
-      deliveryTown: req.body.deliveryTown,
-      pickupDate: req.body.pickupDate,
-      deliveryDate: req.body.deliveryDate,
-      totalFee: req.body.totalFee,
-      floorPickup: req.body.floorPickup,
-      hasElevatorPickup: req.body.hasElevatorPickup,
-      floorDelivery: req.body.floorDelivery,
-      hasElevatorDelivery: req.body.hasElevatorDelivery,
-      needsPacking: req.body.needsPacking
-    };
-    
-    await saveEstimate(estimateData);
-    
-    let liffUrl;
-    if (LIFF_ID) {
-      const cleanLiffId = LIFF_ID.replace(/^https?:\/\/liff\.line\.me\//, '');
-      liffUrl = `https://liff.line.me/${cleanLiffId}?estimateId=${estimateId}`;
-    } else {
-      liffUrl = `https://liff.line.me/YOUR_LIFF_ID?estimateId=${estimateId}`;
-    }
-    
-    res.json({
-      estimateId,
-      liffUrl
-    });
-  } catch (error) {
-    console.error('Failed to save estimate:', error);
-    res.status(500).json({ error: 'Failed to save estimate', detail: error.message });
+// API routes - DB不要版
+// 見積もりデータは sessionStorage 経由でLIFFに渡し、直接LINEに送信
+app.post('/api/estimates', (req, res) => {
+  const estimateId = randomUUID();
+  
+  let liffUrl;
+  if (LIFF_ID) {
+    const cleanLiffId = LIFF_ID.replace(/^https?:\/\/liff\.line\.me\//, '');
+    liffUrl = `https://liff.line.me/${cleanLiffId}?estimateId=${estimateId}`;
+  } else {
+    liffUrl = `https://liff.line.me/YOUR_LIFF_ID?estimateId=${estimateId}`;
   }
+  
+  res.json({
+    estimateId,
+    liffUrl
+  });
 });
 
 app.get('/api/liff-config', (req, res) => {
@@ -604,38 +569,54 @@ app.get('/api/liff-config', (req, res) => {
   });
 });
 
+// DB不要版 - 見積もりデータをリクエストから直接受け取りLINEに送信
 app.post('/api/link', async (req, res) => {
   console.log('=== /api/link called ===', new Date().toISOString());
   try {
-    const { estimateId, lineUserId } = req.body;
-    console.log('Received:', { estimateId, lineUserId });
+    const { lineUserId, estimate } = req.body;
+    console.log('Received:', { lineUserId, estimate });
     
-    if (!estimateId || !lineUserId) {
-      return res.status(400).json({ error: 'estimateId and lineUserId are required' });
+    if (!lineUserId || !estimate) {
+      return res.status(400).json({ error: 'lineUserId and estimate are required' });
     }
     
-    await linkUserToEstimate(estimateId, lineUserId);
+    // 見積もりデータを変換（フロントエンドのフォーマットからサーバーのフォーマットへ）
+    const estimateForMessage = {
+      pickup_prefecture: estimate.pickupPrefecture,
+      pickup_city: estimate.pickupCity,
+      pickup_town: estimate.pickupTown,
+      delivery_prefecture: estimate.deliveryPrefecture,
+      delivery_city: estimate.deliveryCity,
+      delivery_town: estimate.deliveryTown,
+      pickup_date: estimate.pickupDate,
+      delivery_date: estimate.deliveryDate,
+      total_fee: estimate.totalFee,
+      floor_pickup: estimate.floorPickup,
+      has_elevator_pickup: estimate.hasElevatorPickup,
+      floor_delivery: estimate.floorDelivery,
+      has_elevator_delivery: estimate.hasElevatorDelivery,
+      needs_packing: estimate.needsPacking
+    };
     
-    const estimate = await getEstimateByLineUserId(lineUserId);
-    if (estimate) {
-      const detailText = buildEstimateDetailText(estimate);
-      console.log('=== Detail text being sent ===');
-      console.log(detailText);
-      console.log('=== End detail text ===');
-      const messages = [
-        buildEstimateFlexMessage(estimate),
-        { type: 'text', text: detailText },
-        buildConsultScheduleButton()
-      ];
-      console.log('Sending', messages.length, 'messages to LINE');
-      await sendLineMessage(lineUserId, messages);
-      console.log('Sent estimate messages to user:', lineUserId);
-    }
+    const detailText = buildEstimateDetailText(estimateForMessage);
+    console.log('=== Detail text being sent ===');
+    console.log(detailText);
+    console.log('=== End detail text ===');
+    
+    const messages = [
+      buildEstimateFlexMessage(estimateForMessage),
+      { type: 'text', text: detailText },
+      buildConsultScheduleButton()
+    ];
+    
+    console.log('Sending', messages.length, 'messages to LINE');
+    await sendLineMessage(lineUserId, messages);
+    console.log('Sent estimate messages to user:', lineUserId);
     
     res.json({ success: true });
   } catch (error) {
-    console.error('Failed to link user:', error);
-    res.status(500).json({ error: 'Failed to link user' });
+    console.error('Failed to send estimate:', error);
+    res.status(500).json({ error: 'Failed to send estimate' });
   }
 });
 

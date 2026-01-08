@@ -70,19 +70,30 @@
         const profile = await liff.getProfile();
         const lineUserId = profile.userId;
         
+        // URLパラメータから見積もりデータを取得
         const urlParams = new URLSearchParams(window.location.search);
-        const estimateId = urlParams.get('estimateId');
+        const estimateDataEncoded = urlParams.get('data');
         
-        if (!estimateId) {
-          showMessage('見積もりIDが見つかりません', true);
+        if (!estimateDataEncoded) {
+          showMessage('見積もりデータが見つかりません', true);
           return;
         }
         
-        showMessage('見積もりを紐付け中...');
+        let estimate;
+        try {
+          const decoded = decodeURIComponent(atob(estimateDataEncoded));
+          estimate = JSON.parse(decoded);
+        } catch (e) {
+          console.error('Parse error:', e);
+          showMessage('見積もりデータの解析に失敗しました', true);
+          return;
+        }
+        
+        showMessage('見積もりを送信中...');
         const res = await fetch('/api/link', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estimateId, lineUserId })
+          body: JSON.stringify({ lineUserId, estimate })
         });
         
         if (!res.ok) {
