@@ -48,7 +48,6 @@
 
   <script>
     const LIFF_ID = '2008810460-IvjGbCbG';
-    const STORAGE_KEY = 'hakobou_estimate_data';
     
     function showMessage(text, isError) {
       const el = document.getElementById('message');
@@ -56,30 +55,41 @@
       if (isError) el.classList.add('error');
     }
     
+    function getEstimateData() {
+      // 1. URLパラメータから取得
+      const urlParams = new URLSearchParams(window.location.search);
+      const dataFromUrl = urlParams.get('data');
+      if (dataFromUrl) return dataFromUrl;
+      
+      // 2. liff.stateから取得（ログイン後のリダイレクト）
+      try {
+        const state = liff.state;
+        if (state) return state;
+      } catch (e) {}
+      
+      return null;
+    }
+    
     async function main() {
       try {
-        // ログイン前にURLからデータを保存（localStorageに永続化）
-        const urlParams = new URLSearchParams(window.location.search);
-        const dataFromUrl = urlParams.get('data');
-        if (dataFromUrl) {
-          localStorage.setItem(STORAGE_KEY, dataFromUrl);
-        }
-        
         showMessage('LIFFを初期化中...');
         await liff.init({ liffId: LIFF_ID });
         
+        // データを取得（URLまたはstate）
+        let estimateDataEncoded = getEstimateData();
+        
         if (!liff.isLoggedIn()) {
+          // データをstateに渡してログイン
+          const urlParams = new URLSearchParams(window.location.search);
+          const dataForState = urlParams.get('data') || '';
           showMessage('LINEログイン中...');
-          liff.login();
+          liff.login({ redirectUri: window.location.origin + window.location.pathname + '?liff.state=' + encodeURIComponent(dataForState) });
           return;
         }
         
         showMessage('プロフィール取得中...');
         const profile = await liff.getProfile();
         const lineUserId = profile.userId;
-        
-        // localStorageからデータを取得
-        const estimateDataEncoded = localStorage.getItem(STORAGE_KEY);
         
         if (!estimateDataEncoded) {
           showMessage('見積もりデータが見つかりません', true);
@@ -107,9 +117,6 @@
           const err = await res.json();
           throw new Error(err.error || 'サーバーエラー');
         }
-        
-        // 成功したらストレージをクリア
-        localStorage.removeItem(STORAGE_KEY);
         
         showMessage('完了！チャットを開きます...');
         
