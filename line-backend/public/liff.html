@@ -53,29 +53,40 @@
       const el = document.getElementById('message');
       el.textContent = text;
       if (isError) el.classList.add('error');
+      console.log('[LIFF]', text);
+    }
+    
+    function showDebug(info) {
+      console.log('[DEBUG]', JSON.stringify(info, null, 2));
     }
     
     async function main() {
       try {
         showMessage('LIFFを初期化中...');
+        showDebug({ step: 'init', liffId: LIFF_ID, url: window.location.href });
+        
         await liff.init({ liffId: LIFF_ID });
+        showDebug({ step: 'init_done', isLoggedIn: liff.isLoggedIn(), isInClient: liff.isInClient() });
         
         if (!liff.isLoggedIn()) {
           showMessage('LINEログイン中...');
-          liff.login();
+          liff.login({ redirectUri: window.location.href });
           return;
         }
         
         showMessage('プロフィール取得中...');
         const profile = await liff.getProfile();
         const lineUserId = profile.userId;
+        showDebug({ step: 'profile', userId: lineUserId, displayName: profile.displayName });
         
         // URLパラメータから見積もりデータを取得
         const urlParams = new URLSearchParams(window.location.search);
         const estimateDataEncoded = urlParams.get('data');
+        showDebug({ step: 'params', hasData: !!estimateDataEncoded, dataLength: estimateDataEncoded?.length });
         
         if (!estimateDataEncoded) {
           showMessage('見積もりデータが見つかりません', true);
+          showDebug({ step: 'error', reason: 'no_data_param', search: window.location.search });
           return;
         }
         
@@ -83,33 +94,45 @@
         try {
           const decoded = decodeURIComponent(atob(estimateDataEncoded));
           estimate = JSON.parse(decoded);
+          showDebug({ step: 'decode', estimate });
         } catch (e) {
           console.error('Parse error:', e);
           showMessage('見積もりデータの解析に失敗しました', true);
+          showDebug({ step: 'decode_error', error: e.message, raw: estimateDataEncoded });
           return;
         }
         
         showMessage('見積もりを送信中...');
-        const res = await fetch('/api/link', {
+        const apiUrl = '/api/link';
+        showDebug({ step: 'send', apiUrl, lineUserId, estimate });
+        
+        const res = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lineUserId, estimate })
         });
         
+        const resData = await res.json();
+        showDebug({ step: 'response', status: res.status, ok: res.ok, data: resData });
+        
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'サーバーエラー');
+          throw new Error(resData.error || 'サーバーエラー');
         }
         
         showMessage('完了！チャットを開きます...');
         
         setTimeout(() => {
-          window.location.href = 'https://line.me/R/oaMessage/@602epmvz/';
-        }, 500);
+          if (liff.isInClient()) {
+            liff.closeWindow();
+          } else {
+            window.location.href = 'https://line.me/R/oaMessage/@602epmvz/';
+          }
+        }, 800);
         
       } catch (error) {
         console.error('Error:', error);
         showMessage(error.message || 'エラーが発生しました', true);
+        showDebug({ step: 'fatal_error', error: error.message, stack: error.stack });
       }
     }
     
