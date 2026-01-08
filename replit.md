@@ -24,7 +24,7 @@ A Japanese moving estimate form application (引越し見積もりフォーム) 
 ## LINE Backend (Unified Server)
 Located in `line-backend/` directory with the following components:
 - `server.js` - Unified Express server (API, webhook, and static file serving)
-- `db.js` - SQLite database module for estimates and user links
+- (No database - estimates are sent directly to LINE)
 
 The unified server serves:
 - Static files from `dist/public/` (Vite build output)

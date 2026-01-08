@@ -465,15 +465,11 @@ async function replyLineMessage(replyToken, messages) {
 
 // Health check (top priority)
 app.get('/health', (req, res) => {
-  const dbUrl = process.env.DATABASE_URL || '';
-  const dbHost = dbUrl.includes('@') ? dbUrl.split('@')[1]?.split('/')[0]?.split(':')[0] : 'unknown';
   res.json({ 
     ok: true, 
-    version: '2026-01-08-v12-nodb', 
-    timestamp: Date.now(), 
-    dbConnected: !!process.env.DATABASE_URL,
-    dbHost: dbHost,
-    pgHost: process.env.PGHOST || 'not set',
+    version: '2026-01-08-v13-nodb-final', 
+    timestamp: Date.now(),
+    mode: 'db-less',
     isDeployment: process.env.REPLIT_DEPLOYMENT === '1'
   });
 });
