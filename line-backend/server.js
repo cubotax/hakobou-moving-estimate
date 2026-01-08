@@ -632,7 +632,12 @@ app.get('/api/liff-config', (req, res) => {
 
 // estimateIdからデータを取得してLINEに送信
 app.post('/api/link', async (req, res) => {
-  console.log('=== /api/link called ===', new Date().toISOString());
+  console.log('=== /api/link が呼ばれました ===');
+  console.log('body:', req.body);
+  console.log('ua:', req.headers['user-agent']);
+  console.log('origin:', req.headers.origin);
+  console.log('timestamp:', new Date().toISOString());
+  
   try {
     const { lineUserId, estimateId } = req.body;
     console.log('[/api/link] Received:', { lineUserId, estimateId });

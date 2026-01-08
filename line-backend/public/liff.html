@@ -9,6 +9,7 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
@@ -55,6 +56,20 @@
     .retry-button:hover {
       background: #009D00;
     }
+    #debug {
+      font-size: 11px;
+      white-space: pre-wrap;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-top: 20px;
+      max-width: 300px;
+      text-align: left;
+      word-break: break-all;
+      max-height: 200px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
@@ -63,11 +78,18 @@
     <p id="message" class="message">処理中...</p>
     <div id="actions" style="display:none;"></div>
   </div>
+  <div id="debug"></div>
 
   <script>
-    function log(step, data = {}) {
-      console.log(`[LIFF] ${step}:`, data);
+    function debug(msg, obj) {
+      const el = document.getElementById('debug');
+      const line = obj ? msg + ' ' + JSON.stringify(obj) : msg;
+      el.textContent += line + "\n";
+      console.log('[LIFF]', msg, obj || '');
     }
+    
+    window.addEventListener('error', (e) => debug('window.error', { message: e.message }));
+    window.addEventListener('unhandledrejection', (e) => debug('promise.reject', { reason: String(e.reason) }));
     
     function showMessage(text, isError = false) {
       const el = document.getElementById('message');
@@ -91,43 +113,47 @@
       // 1. 通常のクエリパラメータから取得
       let estimateId = urlParams.get('estimateId');
       if (estimateId) {
-        log('getEstimateId', { source: 'query', estimateId });
+        debug('estimateId from query', { estimateId });
         return estimateId;
       }
       
       // 2. liff.stateから取得（ログイン後リダイレクト時）
       const liffState = urlParams.get('liff.state');
       if (liffState) {
-        log('getEstimateId', { source: 'liff.state', raw: liffState });
+        debug('liff.state found', { raw: liffState });
         try {
           const decoded = decodeURIComponent(liffState);
+          debug('liff.state decoded', { decoded });
           const match = decoded.match(/estimateId=([^&]+)/);
           if (match) {
             estimateId = match[1];
-            log('getEstimateId', { source: 'liff.state.parsed', estimateId });
+            debug('estimateId from liff.state', { estimateId });
             return estimateId;
           }
         } catch (e) {
-          log('getEstimateId', { error: 'parse_failed' });
+          debug('liff.state parse error', { error: e.message });
         }
       }
       
+      debug('estimateId not found');
       return null;
     }
     
     async function main() {
+      debug('start');
+      debug('url', { href: window.location.href });
+      
       try {
-        log('main', { step: 'start', url: window.location.href });
-        
         // LIFF設定を取得
         showMessage('設定を読み込み中...');
+        debug('fetch /api/liff-config');
         const configRes = await fetch('/api/liff-config');
         if (!configRes.ok) {
           throw new Error('LIFF設定の取得に失敗しました');
         }
         const config = await configRes.json();
         const liffId = config.liffId;
-        log('main', { step: 'config', liffId });
+        debug('liff-config ok', { liffId });
         
         if (!liffId) {
           throw new Error('LIFF IDが設定されていません');
@@ -135,12 +161,13 @@
         
         // LIFF初期化
         showMessage('LIFFを初期化中...');
+        debug('liff.init start', { liffId });
         await liff.init({ liffId });
-        log('main', { step: 'init_done', isLoggedIn: liff.isLoggedIn() });
+        debug('liff.init ok');
         
         // estimateIdを取得
         const estimateId = getEstimateId();
-        log('main', { step: 'estimateId', estimateId });
+        debug('estimateId result', { estimateId });
         
         if (!estimateId) {
           showMessage('見積もりIDが見つかりません。フォームからやり直してください。', true);
@@ -149,29 +176,35 @@
         }
         
         // ログイン確認
+        debug('isLoggedIn', { value: liff.isLoggedIn() });
         if (!liff.isLoggedIn()) {
           showMessage('LINEログイン中...');
-          log('main', { step: 'login_redirect' });
+          debug('not logged in -> liff.login');
           liff.login();
           return;
         }
         
+        debug('logged in');
+        
         // プロフィール取得
         showMessage('プロフィール取得中...');
+        debug('getProfile start');
         const profile = await liff.getProfile();
         const lineUserId = profile.userId;
-        log('main', { step: 'profile', lineUserId });
+        debug('profile ok', { userId: lineUserId, displayName: profile.displayName });
         
         // APIに送信
         showMessage('見積もりを送信中...');
+        debug('POST /api/link start', { lineUserId, estimateId });
+        
         const res = await fetch('/api/link', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lineUserId, estimateId })
         });
         
-        const resData = await res.json();
-        log('main', { step: 'api_response', status: res.status, data: resData });
+        const resText = await res.text();
+        debug('POST /api/link done', { status: res.status, text: resText });
         
         if (!res.ok) {
           if (res.status === 404) {
@@ -179,16 +212,18 @@
             showRetryButton('見積もりフォームへ戻る', '/');
             return;
           }
-          throw new Error(resData.error || 'サーバーエラーが発生しました');
+          throw new Error(resText || 'サーバーエラーが発生しました');
         }
         
+        debug('success!');
         showMessage('完了！チャットを開きます...');
         setTimeout(() => {
+          debug('redirect to LINE chat');
           window.location.href = 'https://line.me/R/oaMessage/@602epmvz/';
-        }, 500);
+        }, 1000);
         
       } catch (error) {
-        console.error('LIFF Error:', error);
+        debug('error', { message: error.message, stack: error.stack });
         showMessage(error.message || 'エラーが発生しました', true);
         showRetryButton('見積もりフォームへ戻る', '/');
       }
