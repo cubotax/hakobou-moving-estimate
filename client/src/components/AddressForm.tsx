@@ -207,7 +207,6 @@ export function AddressForm() {
         setPickupPostalAddress(result.address.fullAddress);
         setPickupValidated(true);
         setPickupValidationError(null);
-        toast.success("住所を取得しました");
       } else {
         const errorMsg = result.error || "該当する住所が見つかりませんでした";
         setPickupPostalError(errorMsg);
@@ -241,7 +240,6 @@ export function AddressForm() {
         setDeliveryPostalAddress(result.address.fullAddress);
         setDeliveryValidated(true);
         setDeliveryValidationError(null);
-        toast.success("住所を取得しました");
       } else {
         const errorMsg = result.error || "該当する住所が見つかりませんでした";
         setDeliveryPostalError(errorMsg);
