@@ -1,14 +1,14 @@
-"use client";
-
-import { DateForm } from '@/components/DateForm';
-import { StepIndicator, ESTIMATE_STEPS } from '@/components/StepIndicator';
-
 /**
- * Step0: 引越し日程ページ（トップページ）
+ * Step0: 引越し日程ページ
  * 
  * Design Philosophy: ポップ＆カジュアル
  */
-export default function Page() {
+
+import { DateForm } from '@/components/DateForm';
+import { StepIndicator, ESTIMATE_STEPS } from '@/components/StepIndicator';
+import { Truck } from 'lucide-react';
+
+export default function Step0() {
   return (
     <div className="min-h-screen bg-white">
       <div className="container py-8 sm:py-12">
@@ -40,7 +40,7 @@ export default function Page() {
         <div className="max-w-2xl mx-auto">
           <DateForm />
         </div>
-
+        
         {/* フッター装飾 */}
         <div className="text-center mt-12 text-gray-400">
           <span className="text-sm">見積もりは無料です</span>
