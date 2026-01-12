@@ -38,8 +38,8 @@
   },
   "include": [
     "next-env.d.ts",
+    "src/app/**/*",
     "shared/**/*",
-    "src/**/*",
     ".next/types/**/*.ts"
   ],
   "exclude": [
@@ -51,6 +51,7 @@
     "server",
     "line-backend",
     "frontend",
-    "client"
+    "client",
+    "src/App.tsx"
   ]
 }
