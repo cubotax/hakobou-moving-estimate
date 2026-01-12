@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
         <html lang="ja">
-            <body>
+            <body className="min-h-screen bg-gradient-to-br from-sky-200 via-blue-300 to-sky-200">
                 <TooltipProvider>
                     <Toaster />
                     {children}

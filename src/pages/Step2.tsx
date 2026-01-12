@@ -10,7 +10,7 @@ import { Settings, Sparkles } from 'lucide-react';
 
 export default function Step2() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <div className="container py-8 sm:py-12">
         {/* ヘッダー */}
         <header className="text-center mb-8">

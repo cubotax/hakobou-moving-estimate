@@ -10,7 +10,7 @@ import { Calculator, PartyPopper } from 'lucide-react';
 
 export default function Result() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <div className="container py-8 sm:py-12">
         {/* ヘッダー */}
         <header className="text-center mb-8">
