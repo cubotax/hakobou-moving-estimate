@@ -22,20 +22,22 @@ import {
   PartyPopper,
   Calendar,
   Clock,
-  MessageCircle
+  MessageCircle,
+  ClipboardList
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
   getStep1Data,
+  getStep2Data,
   getDistanceData,
   getEstimateResult,
   clearAllData
 } from '@/lib/store';
 import { formatCurrency, formatDistance, isBusySeason } from '@/lib/pricing';
 import { UI_DISPLAY_CONFIG, BUSY_SEASON_CONFIG } from '@/lib/config';
-import type { Step1FormData } from '@/lib/schema';
+import type { Step1FormData, Step2FormData } from '@/lib/schema';
 import type { DistanceResult, EstimateResult as EstimateResultType } from '@/lib/types';
 
 // 日付をフォーマット（YYYY-MM-DD → YYYY年MM月DD日）
@@ -52,21 +54,24 @@ function formatDate(dateStr: string): string {
 export function EstimateResult() {
   const [, navigate] = useLocation();
   const [step1Data, setStep1Data] = useState<Step1FormData | null>(null);
+  const [step2Data, setStep2Data] = useState<Step2FormData | null>(null);
   const [distanceData, setDistanceData] = useState<DistanceResult | null>(null);
   const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     const s1 = getStep1Data();
+    const s2 = getStep2Data();
     const dist = getDistanceData();
     const result = getEstimateResult();
 
-    if (!s1 || !dist || !result) {
+    if (!s1 || !s2 || !dist || !result) {
       navigate('/');
       return;
     }
 
     setStep1Data(s1);
+    setStep2Data(s2);
     setDistanceData(dist);
     setEstimateResult(result);
   }, [navigate]);
@@ -80,7 +85,7 @@ export function EstimateResult() {
     navigate('/step2');
   };
 
-  if (!step1Data || !distanceData || !estimateResult) {
+  if (!step1Data || !step2Data || !distanceData || !estimateResult) {
     return null;
   }
 
@@ -178,6 +183,27 @@ export function EstimateResult() {
         </h2>
       </div>
 
+      {/* プラン情報 */}
+      <div className="pop-card p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.6_0.15_240)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <ClipboardList className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-xl font-black">選択したプラン</h3>
+        </div>
+
+        <div className="p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+          <p className="font-black text-xl text-black">
+            {step2Data.plan === 'full' ? 'お任せプラン' : 'ヘルパープラン'}
+          </p>
+          <p className="text-sm text-gray-600 mt-1 font-medium">
+            {step2Data.plan === 'full'
+              ? '作業員が2名で伺い、搬入搬出作業をすべてお任せできるプラン'
+              : '作業員が1人で伺い、搬入搬出作業をお客様にも手伝っていただくプラン'}
+          </p>
+        </div>
+      </div>
+
       {/* 日程情報 */}
       <div className="pop-card p-6">
         <div className="flex items-center gap-3 mb-6">
@@ -185,7 +211,6 @@ export function EstimateResult() {
             <Calendar className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-black">引越し日程</h3>
-          <span className="badge-green-no-border ml-auto">DATE</span>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
@@ -370,6 +395,6 @@ export function EstimateResult() {
           最初からやり直す
         </Button>
       </div>
-    </div>
+    </div >
   );
 }

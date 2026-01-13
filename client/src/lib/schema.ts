@@ -87,6 +87,7 @@ export const step2Schema = z.object({
     .min(FORM_CONFIG.minFloor, `${FORM_CONFIG.minFloor}階以下を入力してください`)
     .max(FORM_CONFIG.maxFloor, `${FORM_CONFIG.maxFloor}階以下を入力してください`),
   needsPacking: z.boolean(),
+  plan: z.enum(['helper', 'full']),
 });
 
 export type Step2FormData = z.infer<typeof step2Schema>;
@@ -121,4 +122,5 @@ export const defaultStep2Values: Step2FormData = {
   hasElevatorDelivery: false,
   floorDelivery: FORM_CONFIG.defaultFloor,
   needsPacking: false,
+  plan: 'helper',
 };

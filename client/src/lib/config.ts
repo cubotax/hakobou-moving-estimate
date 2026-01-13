@@ -40,8 +40,8 @@ export type Prefecture = typeof PREFECTURES[number];
 export const OPTION_FEES: OptionFeeConfig[] = [
   {
     id: 'packing',
-    label: '簡易梱包サービス',
-    fee: 10000,
+    label: '梱包サービス',
+    fee: 5000,
     condition: (options: EstimateOptions) => options.needsPacking === true,
   },
 ];
@@ -56,7 +56,7 @@ export const OPTION_FEES: OptionFeeConfig[] = [
 export const PRICING_CONFIG = {
   /** 基本料金（30kmまで） */
   baseFee: 19800,
-  
+
   /** 距離別単価（累進課金） */
   distanceRates: [
     { min: 0, max: 30, rate: 0 }, // 基本料金に含まれる
@@ -72,7 +72,7 @@ export const PRICING_CONFIG = {
     feePerFloor: 3000,
     label: '階段作業料金',
   },
-  
+
   // オプション料金設定
   optionFees: OPTION_FEES,
 };
@@ -84,13 +84,13 @@ export const PRICING_CONFIG = {
 export const BUSY_SEASON_CONFIG = {
   /** 繁忙期開始（月-日） */
   startDate: '03-01',
-  
+
   /** 繁忙期終了（月-日） */
   endDate: '04-10',
-  
+
   /** 割増率（0.3 = 30%増し） */
   surchargeRate: 0.3,
-  
+
   /** 表示ラベル */
   label: '繁忙期加算（基本料金30%増）',
 
@@ -105,7 +105,7 @@ export const BUSY_SEASON_CONFIG = {
 export const STORAGE_FEE_CONFIG = {
   /** 1日あたりの積み置き料金（円） */
   perDayFee: 3000,
-  
+
   /** 表示ラベル */
   label: '積み置き料金',
 };
@@ -117,10 +117,10 @@ export const STORAGE_FEE_CONFIG = {
 export const HIGHWAY_FEE_CONFIG = {
   /** 県外移動時のみ高速料金を取得するか */
   onlyInterPrefecture: true,
-  
+
   /** 取得不可時の表示テキスト */
   unavailableText: '取得不可（別途）',
-  
+
   /** 取得不可時に0円として計算するか、別途扱いにするか */
   treatUnavailableAsZero: true,
 };
@@ -132,10 +132,10 @@ export const HIGHWAY_FEE_CONFIG = {
 export const FORM_CONFIG = {
   /** 階数の最小値 */
   minFloor: 1,
-  
+
   /** 階数の最大値 */
   maxFloor: 50,
-  
+
   /** デフォルト階数 */
   defaultFloor: 1,
 };
@@ -156,10 +156,10 @@ export const UI_DISPLAY_CONFIG = {
 export const DISTANCE_PROVIDER_CONFIG = {
   /** 使用するプロバイダ */
   provider: 'google' as const,
-  
+
   /** リトライ回数 */
   maxRetries: 3,
-  
+
   /** タイムアウト（ミリ秒） */
   timeout: 10000,
 };

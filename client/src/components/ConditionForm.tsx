@@ -11,14 +11,15 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
 import { useEffect } from 'react';
-import { 
-  Building2, 
-  Package, 
-  ArrowRight, 
+import {
+  Building2,
+  Package,
+  ArrowRight,
   ArrowLeft,
   MapPin,
   Truck,
-  Sparkles
+  Sparkles,
+  ClipboardList
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -31,13 +32,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { step2Schema, type Step2FormData, defaultStep2Values } from '@/lib/schema';
-import { 
-  setStep2Data, 
-  getStep2Data, 
+import {
+  setStep2Data,
+  getStep2Data,
   getDistanceData,
   getStep1Data,
-  setEstimateResult 
+  setEstimateResult
 } from '@/lib/store';
 import { calculateEstimate } from '@/lib/pricing';
 import type { EstimateOptions, MovingDates } from '@/lib/types';
@@ -86,7 +88,7 @@ export function ConditionForm() {
     // 見積もりを計算
     const distanceData = getDistanceData();
     const step1Data = getStep1Data();
-    
+
     if (distanceData) {
       const options: EstimateOptions = {
         hasElevatorPickup: data.hasElevatorPickup,
@@ -95,13 +97,13 @@ export function ConditionForm() {
         floorDelivery: data.floorDelivery,
         needsPacking: data.needsPacking,
       };
-      
+
       // 日付データを取得
       const dates: MovingDates | undefined = step1Data?.dates ? {
         pickupDate: step1Data.dates.pickupDate,
         deliveryDate: step1Data.dates.deliveryDate,
       } : undefined;
-      
+
       const result = calculateEstimate(distanceData, options, dates);
       setEstimateResult(result);
     }
@@ -116,6 +118,63 @@ export function ConditionForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
+      {/* プランの選択 */}
+      <div className="pop-card p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.6_0.15_240)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <ClipboardList className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-xl font-black">プランの選択</h3>
+          <span className="ml-auto px-3 py-1 rounded-full text-sm font-black text-white bg-blue-500 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">PLAN</span>
+        </div>
+
+        <Controller
+          name="plan"
+          control={control}
+          render={({ field }) => (
+            <RadioGroup
+              onValueChange={field.onChange}
+              defaultValue={field.value}
+              className="grid gap-4"
+            >
+              <label
+                htmlFor="plan-helper"
+                className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${field.value === 'helper'
+                  ? 'border-[oklch(0.6_0.15_240)] bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
+              >
+                <RadioGroupItem value="helper" id="plan-helper" className="mt-1" />
+                <div className="flex-1">
+                  <span className="font-bold text-lg block">ヘルパープラン</span>
+                  <span className="font-bold text-[oklch(0.6_0.15_240)] block mb-1">追加料金 0円</span>
+                  <p className="text-sm text-gray-600">
+                    作業員が1人で伺い、搬入搬出作業をお客様にも手伝っていただくプラン
+                  </p>
+                </div>
+              </label>
+
+              <label
+                htmlFor="plan-full"
+                className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${field.value === 'full'
+                  ? 'border-[oklch(0.6_0.15_240)] bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
+              >
+                <RadioGroupItem value="full" id="plan-full" className="mt-1" />
+                <div className="flex-1">
+                  <span className="font-bold text-lg block">お任せプラン</span>
+                  <span className="font-bold text-[oklch(0.6_0.15_240)] block mb-1">基本料金 8,000円〜</span>
+                  <p className="text-sm text-gray-600">
+                    作業員が2名で伺い、搬入搬出作業をすべてお任せできるプラン
+                  </p>
+                </div>
+              </label>
+            </RadioGroup>
+          )}
+        />
+      </div>
+
       {/* 集荷先の条件 */}
       <div className="pop-card p-6">
         <div className="flex items-center gap-3 mb-6">
@@ -125,7 +184,7 @@ export function ConditionForm() {
           <h3 className="text-xl font-black">集荷先の条件</h3>
           <span className="badge-pink-no-border ml-auto">FROM</span>
         </div>
-        
+
         <div className="grid gap-6 sm:grid-cols-2">
           {/* 階数 */}
           <div className="space-y-2">
@@ -142,18 +201,17 @@ export function ConditionForm() {
                     value={String(field.value)}
                     onValueChange={(value) => field.onChange(Number(value))}
                   >
-                    <SelectTrigger 
+                    <SelectTrigger
                       id="floor-pickup"
-                      className={`w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white ${
-                        errors.floorPickup ? 'border-[oklch(0.75_0.2_0)]' : ''
-                      }`}
+                      className={`w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white ${errors.floorPickup ? 'border-[oklch(0.75_0.2_0)]' : ''
+                        }`}
                     >
                       <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent className="border-[2px] border-black rounded-xl">
                       {FLOOR_OPTIONS.map((floor) => (
-                        <SelectItem 
-                          key={floor} 
+                        <SelectItem
+                          key={floor}
                           value={String(floor)}
                           className="text-lg font-medium"
                         >
@@ -193,8 +251,8 @@ export function ConditionForm() {
                     onCheckedChange={field.onChange}
                     className="w-6 h-6 border-[2px] border-black rounded-md data-[state=checked]:bg-[oklch(0.75_0.2_145)] data-[state=checked]:border-[oklch(0.75_0.2_145)]"
                   />
-                  <Label 
-                    htmlFor="elevator-pickup" 
+                  <Label
+                    htmlFor="elevator-pickup"
                     className="text-base font-medium cursor-pointer"
                   >
                     エレベーターあり
@@ -215,7 +273,7 @@ export function ConditionForm() {
           <h3 className="text-xl font-black">お届け先の条件</h3>
           <span className="badge-green-no-border ml-auto">TO</span>
         </div>
-        
+
         <div className="grid gap-6 sm:grid-cols-2">
           {/* 階数 */}
           <div className="space-y-2">
@@ -232,18 +290,17 @@ export function ConditionForm() {
                     value={String(field.value)}
                     onValueChange={(value) => field.onChange(Number(value))}
                   >
-                    <SelectTrigger 
+                    <SelectTrigger
                       id="floor-delivery"
-                      className={`w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white ${
-                        errors.floorDelivery ? 'border-[oklch(0.75_0.2_0)]' : ''
-                      }`}
+                      className={`w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white ${errors.floorDelivery ? 'border-[oklch(0.75_0.2_0)]' : ''
+                        }`}
                     >
                       <SelectValue placeholder="選択" />
                     </SelectTrigger>
                     <SelectContent className="border-[2px] border-black rounded-xl">
                       {FLOOR_OPTIONS.map((floor) => (
-                        <SelectItem 
-                          key={floor} 
+                        <SelectItem
+                          key={floor}
                           value={String(floor)}
                           className="text-lg font-medium"
                         >
@@ -283,8 +340,8 @@ export function ConditionForm() {
                     onCheckedChange={field.onChange}
                     className="w-6 h-6 border-[2px] border-black rounded-md data-[state=checked]:bg-[oklch(0.75_0.2_145)] data-[state=checked]:border-[oklch(0.75_0.2_145)]"
                   />
-                  <Label 
-                    htmlFor="elevator-delivery" 
+                  <Label
+                    htmlFor="elevator-delivery"
                     className="text-base font-medium cursor-pointer"
                   >
                     エレベーターあり
@@ -305,31 +362,50 @@ export function ConditionForm() {
           <h3 className="text-xl font-black">その他のオプション</h3>
           <span className="badge-orange ml-auto">OPTION</span>
         </div>
-        
+
         <Controller
           name="needsPacking"
           control={control}
           render={({ field }) => (
-            <div className="flex items-start space-x-4 p-4 rounded-xl bg-gray-50 border-2 border-dashed border-gray-300 hover:border-[oklch(0.92_0.16_95)] transition-colors">
-              <Checkbox
-                id="needs-packing"
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                className="w-6 h-6 mt-0.5 border-[2px] border-black rounded-md data-[state=checked]:bg-[oklch(0.92_0.16_95)] data-[state=checked]:border-black"
-              />
-              <div>
-                <Label 
-                  htmlFor="needs-packing" 
-                  className="text-base font-bold cursor-pointer flex items-center gap-2"
-                >
-                  <Sparkles className="w-5 h-5 text-[oklch(0.8_0.18_60)]" />
-                  梱包サービスを利用する
-                </Label>
-                <p className="text-sm text-gray-600 mt-1">
-                  荷物の梱包作業をスタッフが行います
-                </p>
-              </div>
-            </div>
+            <RadioGroup
+              onValueChange={(value) => field.onChange(value === 'true')}
+              defaultValue={field.value ? 'true' : 'false'}
+              className="grid gap-4"
+            >
+              <label
+                htmlFor="packing-off"
+                className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${!field.value
+                  ? 'border-[oklch(0.8_0.18_60)] bg-orange-50'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
+              >
+                <RadioGroupItem value="false" id="packing-off" className="mt-1" />
+                <div className="flex-1">
+                  <span className="font-bold text-lg block">梱包サービスを利用しない</span>
+                  <span className="font-bold text-[oklch(0.8_0.18_60)] block mb-1">追加料金 0円</span>
+                </div>
+              </label>
+
+              <label
+                htmlFor="packing-on"
+                className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${field.value
+                  ? 'border-[oklch(0.8_0.18_60)] bg-orange-50'
+                  : 'border-gray-200 hover:border-gray-300'
+                  }`}
+              >
+                <RadioGroupItem value="true" id="packing-on" className="mt-1" />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-[oklch(0.8_0.18_60)]" />
+                    <span className="font-bold text-lg">梱包サービスを利用する</span>
+                  </div>
+                  <span className="font-bold text-[oklch(0.8_0.18_60)] block mb-1">トラック1台分につき5,000円</span>
+                  <p className="text-sm text-gray-600">
+                    荷物の梱包作業をスタッフが行います
+                  </p>
+                </div>
+              </label>
+            </RadioGroup>
           )}
         />
       </div>

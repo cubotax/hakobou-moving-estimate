@@ -25,7 +25,7 @@ function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
 } {
   const isBusy = isBusySeason(dates.pickupDate);
   const baseFee = PRICING_CONFIG.baseFee;
-  const busySeasonSurcharge = isBusy ? Math.round(baseFee * BUSY_SEASON_CONFIG.surchargeRate) : 0;
+  const busySeasonSurcharge = isBusy ? Math.floor((baseFee * BUSY_SEASON_CONFIG.surchargeRate) / 100) * 100 : 0;
 
   let distanceTotal = baseFee;
   const breakdown: FeeBreakdownItem[] = [];
@@ -58,6 +58,9 @@ function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
       }
     }
   }
+
+  // 100円未満切り捨て
+  progressiveFee = Math.floor(progressiveFee / 100) * 100;
 
   if (progressiveFee > 0) {
     breakdown.push({
@@ -151,11 +154,14 @@ function processHighwayFee(distance: DistanceResult): {
 
   // 高速料金が取得できた場合
   if (highwayFee !== null && highwayFee > 0) {
+    // 100円未満切り捨て
+    const roundedHighwayFee = Math.floor(highwayFee / 100) * 100;
+
     return {
-      fee: highwayFee,
+      fee: roundedHighwayFee,
       breakdown: {
         name: '高速道路料金',
-        amount: highwayFee,
+        amount: roundedHighwayFee,
         note: 'ETC料金（概算）',
       },
     };
