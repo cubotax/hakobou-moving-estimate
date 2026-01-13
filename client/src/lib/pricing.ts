@@ -6,10 +6,10 @@
  * - 設定ファイルによる料金ルール管理
  */
 
-import type { 
-  EstimateOptions, 
-  DistanceResult, 
-  EstimateResult, 
+import type {
+  EstimateOptions,
+  DistanceResult,
+  EstimateResult,
   FeeBreakdownItem,
   MovingDates
 } from './types';
@@ -18,15 +18,15 @@ import { PRICING_CONFIG, HIGHWAY_FEE_CONFIG, BUSY_SEASON_CONFIG, STORAGE_FEE_CON
 /**
  * 距離料金を計算（累進課金方式）
  */
-function calculateDistanceFee(distanceKm: number, dates: MovingDates): { 
-  fee: number; 
+function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
+  fee: number;
   breakdown: FeeBreakdownItem[];
   baseFee: number;
 } {
   const isBusy = isBusySeason(dates.pickupDate);
   const baseFee = PRICING_CONFIG.baseFee;
   const busySeasonSurcharge = isBusy ? Math.round(baseFee * BUSY_SEASON_CONFIG.surchargeRate) : 0;
-  
+
   let distanceTotal = baseFee;
   const breakdown: FeeBreakdownItem[] = [];
 
@@ -46,7 +46,7 @@ function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
     });
     distanceTotal += busySeasonSurcharge;
   }
-  
+
   // 累進課金の計算（31km以降）
   let progressiveFee = 0;
   for (const range of PRICING_CONFIG.distanceRates) {
@@ -61,7 +61,7 @@ function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
 
   if (progressiveFee > 0) {
     breakdown.push({
-      name: '距離超過料金',
+      name: '距離加算料金',
       amount: progressiveFee,
       note: `${distanceKm.toFixed(1)}km（累進課金）`,
     });
@@ -78,9 +78,9 @@ function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
 /**
  * 階数料金を計算
  */
-function calculateFloorFees(options: EstimateOptions): { 
-  totalFee: number; 
-  breakdown: FeeBreakdownItem[] 
+function calculateFloorFees(options: EstimateOptions): {
+  totalFee: number;
+  breakdown: FeeBreakdownItem[]
 } {
   const breakdown: FeeBreakdownItem[] = [];
   let totalFee = 0;
@@ -114,13 +114,13 @@ function calculateFloorFees(options: EstimateOptions): {
 /**
  * オプション料金を計算
  */
-function calculateOptionFees(options: EstimateOptions): { 
-  totalFee: number; 
-  breakdown: FeeBreakdownItem[] 
+function calculateOptionFees(options: EstimateOptions): {
+  totalFee: number;
+  breakdown: FeeBreakdownItem[]
 } {
   const breakdown: FeeBreakdownItem[] = [];
   let totalFee = 0;
-  
+
   for (const optionConfig of PRICING_CONFIG.optionFees) {
     if (optionConfig.condition?.(options)) {
       breakdown.push({
@@ -130,7 +130,7 @@ function calculateOptionFees(options: EstimateOptions): {
       totalFee += optionConfig.fee;
     }
   }
-  
+
   return { totalFee, breakdown };
 }
 
@@ -143,12 +143,12 @@ function processHighwayFee(distance: DistanceResult): {
   note?: string;
 } {
   const { isInterPrefecture, highwayFee } = distance;
-  
+
   // 県内移動の場合は高速料金なし
   if (!isInterPrefecture && HIGHWAY_FEE_CONFIG.onlyInterPrefecture) {
     return { fee: 0, breakdown: null };
   }
-  
+
   // 高速料金が取得できた場合
   if (highwayFee !== null && highwayFee > 0) {
     return {
@@ -160,7 +160,7 @@ function processHighwayFee(distance: DistanceResult): {
       },
     };
   }
-  
+
   // 高速料金が取得できなかった場合
   if (HIGHWAY_FEE_CONFIG.treatUnavailableAsZero) {
     return {
@@ -173,7 +173,7 @@ function processHighwayFee(distance: DistanceResult): {
       note: HIGHWAY_FEE_CONFIG.unavailableText,
     };
   }
-  
+
   return {
     fee: 0,
     breakdown: null,
@@ -186,20 +186,20 @@ function processHighwayFee(distance: DistanceResult): {
  */
 export function isBusySeason(date: string | Date): boolean {
   if (!date) return false;
-  
+
   const targetDate = typeof date === 'string' ? new Date(date) : date;
   const year = targetDate.getFullYear();
   const month = targetDate.getMonth();
   const day = targetDate.getDate();
-  
+
   // 時刻を 00:00:00 にリセットした比較用の日付オブジェクトを作成
   const moveDate = new Date(year, month, day, 0, 0, 0, 0);
-  
+
   // 3/1 00:00:00
   const start = new Date(year, 2, 1, 0, 0, 0, 0);
   // 4/10 23:59:59 (日付比較なので 4/10 00:00:00 でも可だが、仕様に合わせる)
   const end = new Date(year, 3, 10, 0, 0, 0, 0);
-  
+
   return moveDate >= start && moveDate <= end;
 }
 
@@ -208,14 +208,14 @@ export function isBusySeason(date: string | Date): boolean {
  */
 export function calculateStorageDays(dates: MovingDates): number {
   if (!dates.pickupDate || !dates.deliveryDate) return 0;
-  
+
   const pickup = new Date(dates.pickupDate);
   const delivery = new Date(dates.deliveryDate);
-  
+
   // 日数差を計算（同日は0日）
   const diffTime = delivery.getTime() - pickup.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
+
   // 同日配送は積み置きなし
   return Math.max(0, diffDays);
 }
@@ -224,19 +224,19 @@ export function calculateStorageDays(dates: MovingDates): number {
 /**
  * 積み置き料金を計算
  */
-function calculateStorageFee(dates: MovingDates): { 
-  fee: number; 
-  breakdown: FeeBreakdownItem | null; 
-  days: number 
+function calculateStorageFee(dates: MovingDates): {
+  fee: number;
+  breakdown: FeeBreakdownItem | null;
+  days: number
 } {
   const days = calculateStorageDays(dates);
-  
+
   if (days <= 0) {
     return { fee: 0, breakdown: null, days: 0 };
   }
-  
+
   const fee = days * STORAGE_FEE_CONFIG.perDayFee;
-  
+
   return {
     fee,
     breakdown: {
@@ -262,45 +262,45 @@ export function calculateEstimate(
   dates?: MovingDates
 ): EstimateResult {
   const breakdown: FeeBreakdownItem[] = [];
-  
+
   // デフォルトの日付（今日）
   const movingDates: MovingDates = dates || {
     pickupDate: new Date().toISOString().split('T')[0],
     deliveryDate: new Date().toISOString().split('T')[0],
   };
-  
+
   // 1. 距離料金（基本料金含む累進課金 ＋ 繁忙期加算）
   const distanceFeeResult = calculateDistanceFee(distance.distanceKm, movingDates);
   breakdown.push(...distanceFeeResult.breakdown);
-  
+
   // 2. 階数料金
   const floorFeeResult = calculateFloorFees(options);
   breakdown.push(...floorFeeResult.breakdown);
-  
+
   // 3. オプション料金（梱包など）
   const optionFeeResult = calculateOptionFees(options);
   breakdown.push(...optionFeeResult.breakdown);
-  
+
   // 4. 高速料金
   const highwayFeeResult = processHighwayFee(distance);
   if (highwayFeeResult.breakdown) {
     breakdown.push(highwayFeeResult.breakdown);
   }
-  
+
   // 5. 積み置き料金
   const storageFeeResult = calculateStorageFee(movingDates);
   if (storageFeeResult.breakdown) {
     breakdown.push(storageFeeResult.breakdown);
   }
-  
+
   // 合計計算
-  const totalFee = 
-    distanceFeeResult.fee + 
+  const totalFee =
+    distanceFeeResult.fee +
     floorFeeResult.totalFee +
-    optionFeeResult.totalFee + 
-    highwayFeeResult.fee + 
+    optionFeeResult.totalFee +
+    highwayFeeResult.fee +
     storageFeeResult.fee;
-  
+
   return {
     distanceKm: distance.distanceKm,
     baseFee: distanceFeeResult.baseFee,

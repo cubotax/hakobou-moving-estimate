@@ -21,10 +21,32 @@ db.exec(`
     delivery_date TEXT,
     total_fee INTEGER,
     distance_km REAL,
+    floor_pickup INTEGER,
+    has_elevator_pickup INTEGER,
+    floor_delivery INTEGER,
+    has_elevator_delivery INTEGER,
+    needs_packing INTEGER,
     created_at TEXT DEFAULT (datetime('now', 'localtime')),
     line_user_id TEXT
   )
 `);
+
+// 既存テーブルに新カラムがない場合は追加
+try {
+  db.exec(`ALTER TABLE estimates ADD COLUMN floor_pickup INTEGER DEFAULT 1`);
+} catch (e) { /* カラム既存 */ }
+try {
+  db.exec(`ALTER TABLE estimates ADD COLUMN has_elevator_pickup INTEGER DEFAULT 0`);
+} catch (e) { /* カラム既存 */ }
+try {
+  db.exec(`ALTER TABLE estimates ADD COLUMN floor_delivery INTEGER DEFAULT 1`);
+} catch (e) { /* カラム既存 */ }
+try {
+  db.exec(`ALTER TABLE estimates ADD COLUMN has_elevator_delivery INTEGER DEFAULT 0`);
+} catch (e) { /* カラム既存 */ }
+try {
+  db.exec(`ALTER TABLE estimates ADD COLUMN needs_packing INTEGER DEFAULT 0`);
+} catch (e) { /* カラム既存 */ }
 
 export function insertEstimate(estimate) {
   const stmt = db.prepare(`
@@ -33,10 +55,13 @@ export function insertEstimate(estimate) {
       pickup_prefecture, pickup_city, pickup_town,
       delivery_prefecture, delivery_city, delivery_town,
       pickup_date, delivery_date,
-      total_fee, distance_km
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      total_fee, distance_km,
+      floor_pickup, has_elevator_pickup,
+      floor_delivery, has_elevator_delivery,
+      needs_packing
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  
+
   stmt.run(
     estimate.id,
     estimate.pickupAddress?.prefecture || '',
@@ -48,11 +73,17 @@ export function insertEstimate(estimate) {
     estimate.dates?.pickupDate || '',
     estimate.dates?.deliveryDate || '',
     estimate.totalFee || 0,
-    estimate.distanceKm || 0
+    estimate.distanceKm || 0,
+    estimate.conditions?.floorPickup || 1,
+    estimate.conditions?.hasElevatorPickup ? 1 : 0,
+    estimate.conditions?.floorDelivery || 1,
+    estimate.conditions?.hasElevatorDelivery ? 1 : 0,
+    estimate.conditions?.needsPacking ? 1 : 0
   );
-  
+
   return estimate.id;
 }
+
 
 export function linkEstimate(estimateId, lineUserId) {
   const stmt = db.prepare(`

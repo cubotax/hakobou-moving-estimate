@@ -186,20 +186,39 @@ function buildEstimateGreeting(estimate) {
   const feeNum = Number(estimate.total_fee);
   const totalFee = Number.isFinite(feeNum) ? feeNum.toLocaleString() : String(estimate.total_fee || "0");
 
+  // 日付フォーマット
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("ja-JP", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // エレベーター表示
+  const elevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
+  const elevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
+
+  // 梱包サービス表示
+  const packingService = estimate.needs_packing ? "希望する" : "希望しない";
+
   return [
     {
       type: "text",
       text:
-        `友だち追加ありがとうございます！\n\n` +
-        `お見積もり内容を確認しました。\n\n` +
-        `【集荷先】\n${pickupAddress}\n\n` +
-        `【お届け先】\n${deliveryAddress}\n\n` +
-        `【お見積もり金額】\n¥${totalFee}\n\n` +
-        `この内容をもとに、続きのご相談を進められます。\n` +
-        `ご希望があれば「日程」「荷物量」「エリア」なども教えてください。`,
+        `【ご入力内容の詳細】\n\n` +
+        `■ 集荷先\n${pickupAddress}\n${estimate.floor_pickup || 1}階 / エレベーター：${elevatorPickup}\n\n` +
+        `■ お届け先\n${deliveryAddress}\n${estimate.floor_delivery || 1}階 / エレベーター：${elevatorDelivery}\n\n` +
+        `■ 引越し日程\n集荷日：${formatDate(estimate.pickup_date)}\nお届け日：${formatDate(estimate.delivery_date)}\n\n` +
+        `■ オプション\n梱包サービス：${packingService}\n\n` +
+        `■ お見積もり金額\n¥${totalFee}\n\n` +
+        `ご不明点がございましたら、お気軽にメッセージをお送りください！`,
     },
   ];
 }
+
 
 // ========= ERROR HANDLER =========
 app.use((err, req, res, next) => {

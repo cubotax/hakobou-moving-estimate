@@ -10,10 +10,10 @@
 
 import { useLocation } from 'wouter';
 import { useEffect, useState } from 'react';
-import { 
-  MapPin, 
-  Truck, 
-  Route, 
+import {
+  MapPin,
+  Truck,
+  Route,
   Receipt,
   ArrowLeft,
   RotateCcw,
@@ -27,11 +27,11 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { 
-  getStep1Data, 
-  getDistanceData, 
+import {
+  getStep1Data,
+  getDistanceData,
   getEstimateResult,
-  clearAllData 
+  clearAllData
 } from '@/lib/store';
 import { formatCurrency, formatDistance, isBusySeason } from '@/lib/pricing';
 import { UI_DISPLAY_CONFIG, BUSY_SEASON_CONFIG } from '@/lib/config';
@@ -92,49 +92,49 @@ export function EstimateResult() {
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-[0.18] sm:opacity-20">
           {/* ペア1: 四隅上部 (Y:5%, X:10% → モバイル時はさらに外側へ) */}
           <PartyPopper className="absolute top-[5%] left-[5%] sm:left-[10%] w-14 h-14 -rotate-12" />
-          <PartyPopper 
-            className="absolute top-[5%] right-[5%] sm:right-[10%] w-14 h-14 rotate-12" 
-            style={{ transform: 'scaleX(-1)' }} 
+          <PartyPopper
+            className="absolute top-[5%] right-[5%] sm:right-[10%] w-14 h-14 rotate-12"
+            style={{ transform: 'scaleX(-1)' }}
           />
-          
+
           {/* ペア2: 四隅下部 (Y:10%, X:13% → モバイル時は外側へ) */}
           <Sparkles className="absolute bottom-[10%] left-[5%] sm:left-[13%] w-12 h-12 -rotate-12" />
-          <Sparkles 
-            className="absolute bottom-[10%] right-[5%] sm:right-[13%] w-12 h-12 rotate-12" 
-            style={{ transform: 'scaleX(-1)' }} 
+          <Sparkles
+            className="absolute bottom-[10%] right-[5%] sm:right-[13%] w-12 h-12 rotate-12"
+            style={{ transform: 'scaleX(-1)' }}
           />
 
           {/* ペア3: 中央上部寄り左右 (Y:20%, X:17% → モバイル時は外側へ) */}
           <Sparkles className="absolute top-[20%] left-[8%] sm:left-[17%] w-6 h-6 rotate-6" />
-          <Sparkles 
-            className="absolute top-[20%] right-[8%] sm:right-[17%] w-6 h-6 -rotate-6" 
-            style={{ transform: 'scaleX(-1)' }} 
+          <Sparkles
+            className="absolute top-[20%] right-[8%] sm:right-[17%] w-6 h-6 -rotate-6"
+            style={{ transform: 'scaleX(-1)' }}
           />
 
           {/* ペア4: ボタン上部左右 (Y:65%, X:20% → モバイル時は外側へ) */}
           <Sparkles className="absolute top-[65%] left-[10%] sm:left-[20%] w-5 h-5 rotate-12" />
-          <Sparkles 
-            className="absolute top-[65%] right-[10%] sm:right-[20%] w-5 h-5 -rotate-12" 
-            style={{ transform: 'scaleX(-1)' }} 
+          <Sparkles
+            className="absolute top-[65%] right-[10%] sm:right-[20%] w-5 h-5 -rotate-12"
+            style={{ transform: 'scaleX(-1)' }}
           />
-          
+
           {/* ペア5: 左右端中央 (Y:45%, X:8% → モバイル時は外側へ) */}
           <PartyPopper className="absolute top-[45%] left-[2%] sm:left-[8%] w-8 h-8 -rotate-90" />
-          <PartyPopper 
-            className="absolute top-[45%] right-[2%] sm:right-[8%] w-8 h-8 rotate-90" 
-            style={{ transform: 'scaleX(-1)' }} 
+          <PartyPopper
+            className="absolute top-[45%] right-[2%] sm:right-[8%] w-8 h-8 rotate-90"
+            style={{ transform: 'scaleX(-1)' }}
           />
         </div>
-        
+
         <div className="relative z-10">
           <p className="text-black/70 font-black mb-2 text-xl">お見積もり金額</p>
           <p className="text-5xl sm:text-6xl font-black text-black tracking-tight">
             {formatCurrency(estimateResult.totalFee)}
           </p>
-          
+
           {/* 繁忙期バッジ */}
           {!!estimateResult.isBusySeason && (
-            <div 
+            <div
               className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2"
               style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
             >
@@ -142,7 +142,7 @@ export function EstimateResult() {
               <span className="text-sm font-bold text-[oklch(0.4_0.15_20)]">繁忙期料金適用中</span>
             </div>
           )}
-          
+
           <p className="text-black/60 text-sm mt-4 whitespace-pre-line font-bold">
             この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
           </p>
@@ -171,7 +171,7 @@ export function EstimateResult() {
         <div className="absolute top-4 right-8 opacity-30">
           <Sparkles className="w-6 h-6 text-[oklch(0.92_0.16_95)]" />
         </div>
-        
+
         <h2 className="text-3xl font-black text-black inline-block relative">
           ご入力内容
           <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[oklch(0.92_0.16_95)] rounded-full" />
@@ -187,7 +187,7 @@ export function EstimateResult() {
           <h3 className="text-xl font-black">引越し日程</h3>
           <span className="badge-green-no-border ml-auto">DATE</span>
         </div>
-        
+
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
             <p className="text-sm text-gray-500 font-medium mb-1">集荷日</p>
@@ -198,7 +198,7 @@ export function EstimateResult() {
             <p className="font-bold text-lg">{formatDate(step1Data.dates.deliveryDate)}</p>
           </div>
         </div>
-        
+
         {/* 積み置き日数の表示 */}
         {!!estimateResult.storageDays && estimateResult.storageDays > 0 && (
           <div className="flex items-center gap-2 mt-4 p-3 bg-[oklch(0.95_0.05_80)] rounded-xl border-2 border-[oklch(0.8_0.1_80)]">
@@ -218,7 +218,7 @@ export function EstimateResult() {
           </div>
           <h3 className="text-xl font-black">ルート情報</h3>
         </div>
-        
+
         <div className="flex items-start gap-4">
           <div className="flex flex-col items-center">
             <div className="w-10 h-10 rounded-full bg-[oklch(0.75_0.2_0)] flex items-center justify-center">
@@ -244,16 +244,16 @@ export function EstimateResult() {
             </div>
           </div>
         </div>
-        
+
         <Separator className="my-6 border-t-2 border-dashed border-gray-300" />
-        
+
         <div className="flex justify-between items-center">
           <span className="text-gray-600 font-medium">走行距離</span>
           <span className="text-2xl font-black">
             {formatDistance(estimateResult.distanceKm)}
           </span>
         </div>
-        
+
         {!!estimateResult.isInterPrefecture && (
           <div className="flex items-center gap-2 text-sm bg-gray-100 rounded-xl p-3 mt-4 border-2 border-dashed border-gray-300">
             <AlertCircle className="w-5 h-5 text-gray-500" />
@@ -270,7 +270,7 @@ export function EstimateResult() {
           </div>
           <h3 className="text-xl font-black">料金内訳</h3>
         </div>
-        
+
         <div className="space-y-4">
           {estimateResult.breakdown.map((item, index) => (
             <div key={index} className="flex justify-between items-start py-2 border-b-2 border-dashed border-gray-200 last:border-0">
@@ -285,14 +285,14 @@ export function EstimateResult() {
               </span>
             </div>
           ))}
-          
+
           {estimateResult.breakdown.length === 0 && (
             <p className="text-gray-500 text-center py-4">
               追加料金はありません
             </p>
           )}
         </div>
-        
+
         <div className="mt-6 p-4 bg-[oklch(0.92_0.16_95)] rounded-xl border-[3px] border-black">
           <div className="flex justify-between items-center">
             <span className="text-lg font-black">合計</span>
@@ -302,9 +302,22 @@ export function EstimateResult() {
           </div>
         </div>
 
+        {/* LINE相談ボタン */}
+        <div className="mt-6">
+          <a
+            href="https://line.me/R/oaMessage/@your_line_official_account_id/?相談をはじめる"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-x-[2px] hover:translate-y-[2px]"
+          >
+            <MessageCircle className="w-5 h-5" />
+            LINE で相談をはじめる
+          </a>
+        </div>
+
         {/* 繁忙期メッセージ */}
         {isBusySeason(step1Data.dates.pickupDate) && (
-          <div 
+          <div
             className="mt-4 p-4 bg-[oklch(0.95_0.15_20)] border-2 rounded-xl"
             style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
           >

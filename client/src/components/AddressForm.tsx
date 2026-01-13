@@ -13,7 +13,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
-import { MapPin, Truck, ArrowRight, ArrowLeft, Loader2, ArrowDown, Search, MapPinned, Hash, CheckCircle2, AlertCircle } from 'lucide-react';
+import { MapPin, Truck, ArrowRight, ArrowLeft, Loader2, ArrowDown, Search, MapPinned, Hash, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -28,20 +28,20 @@ import { getDistanceProvider } from '@/lib/distance';
 import { getAddressByPostalCode, isValidPostalCode, validateAddress } from '@/lib/postal';
 import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
 import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
-import { toHalfWidth, formatPostalCode } from '@/lib/utils';
+import { toHalfWidth, formatPostalCode, cn } from '@/lib/utils';
 
 type InputMode = 'city' | 'postal';
 
 export function AddressForm() {
   const [, navigate] = useLocation();
   const [isCalculating, setIsCalculating] = useState(false);
-  const [inputMode, setInputMode] = useState<InputMode>('city');
-  
+  const [inputMode, setInputMode] = useState<InputMode>('postal');
+
   // ページ読み込み時にトップにスクロール
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  
+
   // 郵便番号入力用の状態
   const [pickupPostalCode, setPickupPostalCode] = useState('');
   const [deliveryPostalCode, setDeliveryPostalCode] = useState('');
@@ -57,6 +57,10 @@ export function AddressForm() {
   const [deliveryValidated, setDeliveryValidated] = useState(false);
   const [pickupValidationError, setPickupValidationError] = useState<string | null>(null);
   const [deliveryValidationError, setDeliveryValidationError] = useState<string | null>(null);
+
+  // 郵便番号エラー状態
+  const [pickupPostalError, setPickupPostalError] = useState<string | null>(null);
+  const [deliveryPostalError, setDeliveryPostalError] = useState<string | null>(null);
 
   // 保存されたデータがあれば復元
   const savedData = getStep1Data();
@@ -161,6 +165,8 @@ export function AddressForm() {
     }
 
     setPickupPostalLoading(true);
+    setPickupPostalError(null);
+    setPickupPostalAddress(null);
     try {
       const result = await getAddressByPostalCode(pickupPostalCode);
       if (result.success && result.address) {
@@ -170,12 +176,12 @@ export function AddressForm() {
         setPickupPostalAddress(result.address.fullAddress);
         setPickupValidated(true);
         setPickupValidationError(null);
-        toast.success('住所を取得しました');
+        setPickupPostalError(null);
       } else {
-        toast.error(result.error || '住所の取得に失敗しました');
+        setPickupPostalError(result.error || '該当する住所が見つかりませんでした');
       }
     } catch (error) {
-      toast.error('住所の取得中にエラーが発生しました');
+      setPickupPostalError('住所の取得中にエラーが発生しました');
     } finally {
       setPickupPostalLoading(false);
     }
@@ -189,6 +195,8 @@ export function AddressForm() {
     }
 
     setDeliveryPostalLoading(true);
+    setDeliveryPostalError(null);
+    setDeliveryPostalAddress(null);
     try {
       const result = await getAddressByPostalCode(deliveryPostalCode);
       if (result.success && result.address) {
@@ -198,12 +206,12 @@ export function AddressForm() {
         setDeliveryPostalAddress(result.address.fullAddress);
         setDeliveryValidated(true);
         setDeliveryValidationError(null);
-        toast.success('住所を取得しました');
+        setDeliveryPostalError(null);
       } else {
-        toast.error(result.error || '住所の取得に失敗しました');
+        setDeliveryPostalError(result.error || '該当する住所が見つかりませんでした');
       }
     } catch (error) {
-      toast.error('住所の取得中にエラーが発生しました');
+      setDeliveryPostalError('住所の取得中にエラーが発生しました');
     } finally {
       setDeliveryPostalLoading(false);
     }
@@ -234,7 +242,7 @@ export function AddressForm() {
     }
 
     setIsCalculating(true);
-    
+
     try {
       // 距離を計算
       const provider = getDistanceProvider();
@@ -268,21 +276,22 @@ export function AddressForm() {
       {/* 入力方法の切り替えタブ */}
       <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
         <TabsList className="grid w-full grid-cols-2 h-14 p-1 bg-gray-100 rounded-2xl border-[2px] border-black">
-          <TabsTrigger 
-            value="city" 
-            className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-          >
-            <MapPinned className="w-5 h-5 mr-2" />
-            住所から入力
-          </TabsTrigger>
-          <TabsTrigger 
-            value="postal" 
+          <TabsTrigger
+            value="postal"
             className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           >
             <Hash className="w-5 h-5 mr-2" />
             郵便番号から入力
           </TabsTrigger>
+          <TabsTrigger
+            value="city"
+            className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <MapPinned className="w-5 h-5 mr-2" />
+            住所から入力
+          </TabsTrigger>
         </TabsList>
+
 
         {/* 住所入力モード */}
         <TabsContent value="city" className="mt-6 space-y-6">
@@ -295,7 +304,7 @@ export function AddressForm() {
               <h3 className="text-xl font-black">集荷先</h3>
               <span className="badge-pink-no-border ml-auto">FROM</span>
             </div>
-            
+
             <div className="grid gap-4 max-w-md mx-auto">
               <div className="space-y-2">
                 <Label htmlFor="pickup-prefecture" className="font-bold">
@@ -320,21 +329,26 @@ export function AddressForm() {
                 <Label htmlFor="pickup-city" className="font-bold">
                   市区町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="pickup-city"
-                  placeholder="例：青森市"
-                  {...register('pickupAddress.city', {
-                    onChange: handlePickupInputChange,
-                    onBlur: () => handleAddressBlur('pickupAddress.city'),
-                  })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleValidatePickupAddress();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="pickup-city"
+                    placeholder="例：青森市"
+                    {...register('pickupAddress.city', {
+                      onChange: handlePickupInputChange,
+                      onBlur: () => handleAddressBlur('pickupAddress.city'),
+                    })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleValidatePickupAddress();
+                      }
+                    }}
+                    className="pop-input pr-16"
+                  />
+                  {!!pickupCity && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 {errors.pickupAddress?.city && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.pickupAddress.city.message}
@@ -346,26 +360,32 @@ export function AddressForm() {
                 <Label htmlFor="pickup-town" className="font-bold">
                   町名 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="pickup-town"
-                  placeholder="例：新町"
-                  {...register('pickupAddress.town', {
-                    onChange: handlePickupInputChange,
-                    onBlur: () => handleAddressBlur('pickupAddress.town'),
-                  })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleValidatePickupAddress();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="pickup-town"
+                    placeholder="例：新町"
+                    {...register('pickupAddress.town', {
+                      onChange: handlePickupInputChange,
+                      onBlur: () => handleAddressBlur('pickupAddress.town'),
+                    })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleValidatePickupAddress();
+                      }
+                    }}
+                    className="pop-input pr-16"
+                  />
+                  {!!pickupTown && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 {errors.pickupAddress?.town && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.pickupAddress.town.message}
                   </p>
                 )}
+                <p className="text-xs text-gray-500">※町名までの入力で番地は不要です。</p>
               </div>
 
               {/* 住所を確定ボタン */}
@@ -375,7 +395,10 @@ export function AddressForm() {
                   variant="ghost"
                   onClick={handleValidatePickupAddress}
                   disabled={pickupValidating || !pickupPrefecture || !pickupCity || !pickupTown}
-                  className="border-[3px] rounded-xl font-bold"
+                  className={cn(
+                    "border-[3px] rounded-xl font-bold",
+                    pickupPrefecture && pickupCity && pickupTown && "bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.14_95)]"
+                  )}
                   style={{ borderColor: 'black' }}
                 >
                   {pickupValidating ? (
@@ -418,7 +441,7 @@ export function AddressForm() {
               <h3 className="text-xl font-black">お届け先</h3>
               <span className="badge-green-no-border ml-auto">TO</span>
             </div>
-            
+
             <div className="grid gap-4 max-w-md mx-auto">
               <div className="space-y-2">
                 <Label htmlFor="delivery-prefecture" className="font-bold">
@@ -443,21 +466,26 @@ export function AddressForm() {
                 <Label htmlFor="delivery-city" className="font-bold">
                   市区町村 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="delivery-city"
-                  placeholder="例：仙台市青葉区"
-                  {...register('deliveryAddress.city', {
-                    onChange: handleDeliveryInputChange,
-                    onBlur: () => handleAddressBlur('deliveryAddress.city'),
-                  })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleValidateDeliveryAddress();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="delivery-city"
+                    placeholder="例：仙台市青葉区"
+                    {...register('deliveryAddress.city', {
+                      onChange: handleDeliveryInputChange,
+                      onBlur: () => handleAddressBlur('deliveryAddress.city'),
+                    })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleValidateDeliveryAddress();
+                      }
+                    }}
+                    className="pop-input pr-16"
+                  />
+                  {!!deliveryCity && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 {errors.deliveryAddress?.city && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.deliveryAddress.city.message}
@@ -469,26 +497,32 @@ export function AddressForm() {
                 <Label htmlFor="delivery-town" className="font-bold">
                   町名 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="delivery-town"
-                  placeholder="例：中央"
-                  {...register('deliveryAddress.town', {
-                    onChange: handleDeliveryInputChange,
-                    onBlur: () => handleAddressBlur('deliveryAddress.town'),
-                  })}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleValidateDeliveryAddress();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="delivery-town"
+                    placeholder="例：中央"
+                    {...register('deliveryAddress.town', {
+                      onChange: handleDeliveryInputChange,
+                      onBlur: () => handleAddressBlur('deliveryAddress.town'),
+                    })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleValidateDeliveryAddress();
+                      }
+                    }}
+                    className="pop-input pr-16"
+                  />
+                  {!!deliveryTown && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
                 {errors.deliveryAddress?.town && (
                   <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">
                     {errors.deliveryAddress.town.message}
                   </p>
                 )}
+                <p className="text-xs text-gray-500">※町名までの入力で番地は不要です。</p>
               </div>
 
               {/* 住所確定ボタン */}
@@ -498,7 +532,10 @@ export function AddressForm() {
                   variant="ghost"
                   onClick={handleValidateDeliveryAddress}
                   disabled={deliveryValidating || !deliveryPrefecture || !deliveryCity || !deliveryTown}
-                  className="border-[3px] rounded-xl font-bold"
+                  className={cn(
+                    "border-[3px] rounded-xl font-bold",
+                    deliveryPrefecture && deliveryCity && deliveryTown && "bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.14_95)]"
+                  )}
                   style={{ borderColor: 'black' }}
                 >
                   {deliveryValidating ? (
@@ -509,6 +546,7 @@ export function AddressForm() {
                   住所を確定
                 </Button>
               </div>
+
 
               {/* バリデーション結果 */}
               {!!deliveryValidated && (
@@ -537,25 +575,32 @@ export function AddressForm() {
               <h3 className="text-xl font-black">集荷先</h3>
               <span className="badge-pink-no-border ml-auto">FROM</span>
             </div>
-            
+
             <div className="grid gap-4 max-w-md mx-auto">
               <div className="space-y-2">
                 <Label htmlFor="pickup-postal" className="font-bold">
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="pickup-postal"
-                  placeholder="例：030-0801"
-                  value={pickupPostalCode}
-                  onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handlePickupPostalSearch();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="pickup-postal"
+                    placeholder="例：0300801"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={pickupPostalCode}
+                    onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handlePickupPostalSearch();
+                      }
+                    }}
+                    className="pop-input pr-16"
+                  />
+                  {isValidPostalCode(pickupPostalCode) && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
               </div>
 
               {/* 住所を確定ボタン */}
@@ -565,7 +610,10 @@ export function AddressForm() {
                   variant="ghost"
                   onClick={handlePickupPostalSearch}
                   disabled={pickupPostalLoading}
-                  className="border-[3px] rounded-xl font-bold"
+                  className={cn(
+                    "border-[3px] rounded-xl font-bold",
+                    isValidPostalCode(pickupPostalCode) && "bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.14_95)]"
+                  )}
                   style={{ borderColor: 'black' }}
                 >
                   {pickupPostalLoading ? (
@@ -586,7 +634,17 @@ export function AddressForm() {
                   <p className="text-lg font-medium">{pickupPostalAddress}</p>
                 </div>
               )}
+              {!!pickupPostalError && (
+                <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
+                    <span className="font-bold text-[oklch(0.4_0.15_25)]">エラー</span>
+                  </div>
+                  <p className="text-base font-medium text-[oklch(0.35_0.1_25)]">{pickupPostalError}</p>
+                </div>
+              )}
             </div>
+
           </div>
 
           {/* 矢印 */}
@@ -605,25 +663,32 @@ export function AddressForm() {
               <h3 className="text-xl font-black">お届け先</h3>
               <span className="badge-green-no-border ml-auto">TO</span>
             </div>
-            
+
             <div className="grid gap-4 max-w-md mx-auto">
               <div className="space-y-2">
                 <Label htmlFor="delivery-postal" className="font-bold">
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
-                <Input
-                  id="delivery-postal"
-                  placeholder="例：980-0021"
-                  value={deliveryPostalCode}
-                  onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleDeliveryPostalSearch();
-                    }
-                  }}
-                  className="pop-input"
-                />
+                <div className="relative">
+                  <Input
+                    id="delivery-postal"
+                    placeholder="例：9800021"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={deliveryPostalCode}
+                    onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleDeliveryPostalSearch();
+                      }
+                    }}
+                    className="pop-input pr-16"
+                  />
+                  {isValidPostalCode(deliveryPostalCode) && (
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                  )}
+                </div>
               </div>
 
               {/* 住所を確定ボタン */}
@@ -633,7 +698,10 @@ export function AddressForm() {
                   variant="ghost"
                   onClick={handleDeliveryPostalSearch}
                   disabled={deliveryPostalLoading}
-                  className="border-[3px] rounded-xl font-bold"
+                  className={cn(
+                    "border-[3px] rounded-xl font-bold",
+                    isValidPostalCode(deliveryPostalCode) && "bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.14_95)]"
+                  )}
                   style={{ borderColor: 'black' }}
                 >
                   {deliveryPostalLoading ? (
@@ -654,8 +722,18 @@ export function AddressForm() {
                   <p className="text-lg font-medium">{deliveryPostalAddress}</p>
                 </div>
               )}
+              {!!deliveryPostalError && (
+                <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
+                    <span className="font-bold text-[oklch(0.4_0.15_25)]">エラー</span>
+                  </div>
+                  <p className="text-base font-medium text-[oklch(0.35_0.1_25)]">{deliveryPostalError}</p>
+                </div>
+              )}
             </div>
           </div>
+
         </TabsContent>
       </Tabs>
 
@@ -682,7 +760,7 @@ export function AddressForm() {
             </>
           ) : (
             <>
-              <span className="font-bold">条件入力へ</span>
+              <span className="font-bold">プラン選択へ</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}

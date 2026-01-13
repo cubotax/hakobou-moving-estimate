@@ -55,7 +55,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                     <span>{step.id}</span>
                   )}
                 </div>
-                
+
                 {/* ステップタイトル */}
                 <div className="mt-3 text-center">
                   <p
@@ -69,7 +69,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                     {step.title}
                   </p>
                   {!!step.description && (
-                    <p 
+                    <p
                       className={cn(
                         'text-xs sm:text-sm mt-1 hidden sm:block',
                         (isCurrent || isCompleted) ? 'text-gray-600' : 'text-gray-400'
@@ -115,7 +115,7 @@ export const ESTIMATE_STEPS: Step[] = [
   },
   {
     id: 3,
-    title: '条件\n入力',
+    title: 'プランと\n条件選択',
     description: 'オプション選択',
   },
   {
