@@ -207,7 +207,7 @@ export function EstimateResult() {
       {/* 日程情報 */}
       <div className="pop-card p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_200)] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_200)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             <Calendar className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-black">引越し日程</h3>
@@ -238,7 +238,7 @@ export function EstimateResult() {
       {/* ルート情報 */}
       <div className="pop-card p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_250)] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_250)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             <Route className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-black">ルート情報</h3>

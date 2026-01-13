@@ -125,7 +125,7 @@ export function ConditionForm() {
             <ClipboardList className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-black">プランの選択</h3>
-          <span className="ml-auto px-3 py-1 rounded-full text-sm font-black text-white bg-blue-500 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">PLAN</span>
+          <span className="ml-auto px-3 py-1 rounded-full text-sm font-black text-white bg-blue-500">PLAN</span>
         </div>
 
         <Controller
@@ -144,7 +144,7 @@ export function ConditionForm() {
                   : 'border-gray-200 hover:border-gray-300'
                   }`}
               >
-                <RadioGroupItem value="helper" id="plan-helper" className="mt-1" />
+                <RadioGroupItem value="helper" id="plan-helper" className="mt-1 text-[oklch(0.6_0.15_240)] border-[oklch(0.6_0.15_240)]" />
                 <div className="flex-1">
                   <span className="font-bold text-lg block">ヘルパープラン</span>
                   <span className="font-bold text-[oklch(0.6_0.15_240)] block mb-1">追加料金 0円</span>
@@ -161,7 +161,7 @@ export function ConditionForm() {
                   : 'border-gray-200 hover:border-gray-300'
                   }`}
               >
-                <RadioGroupItem value="full" id="plan-full" className="mt-1" />
+                <RadioGroupItem value="full" id="plan-full" className="mt-1 text-[oklch(0.6_0.15_240)] border-[oklch(0.6_0.15_240)]" />
                 <div className="flex-1">
                   <span className="font-bold text-lg block">お任せプラン</span>
                   <span className="font-bold text-[oklch(0.6_0.15_240)] block mb-1">基本料金 8,000円〜</span>
@@ -359,8 +359,8 @@ export function ConditionForm() {
           <div className="w-12 h-12 rounded-full bg-[oklch(0.8_0.18_60)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             <Package className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-xl font-black">その他のオプション</h3>
-          <span className="badge-orange ml-auto">OPTION</span>
+          <h3 className="text-xl font-black">梱包オプション</h3>
+          <span className="badge-orange-no-border ml-auto">OPTION</span>
         </div>
 
         <Controller
@@ -379,10 +379,16 @@ export function ConditionForm() {
                   : 'border-gray-200 hover:border-gray-300'
                   }`}
               >
-                <RadioGroupItem value="false" id="packing-off" className="mt-1" />
+                <RadioGroupItem value="false" id="packing-off" className="mt-1 text-[oklch(0.8_0.18_60)] border-[oklch(0.8_0.18_60)]" />
                 <div className="flex-1">
-                  <span className="font-bold text-lg block">梱包サービスを利用しない</span>
+                  <div className="flex items-center gap-2">
+                    <Package className="w-5 h-5 text-[oklch(0.8_0.18_60)]" />
+                    <span className="font-bold text-lg block">梱包サービスを利用しない</span>
+                  </div>
                   <span className="font-bold text-[oklch(0.8_0.18_60)] block mb-1">追加料金 0円</span>
+                  <p className="text-sm text-gray-600">
+                    お客様がお荷物の梱包を行います
+                  </p>
                 </div>
               </label>
 
@@ -393,7 +399,7 @@ export function ConditionForm() {
                   : 'border-gray-200 hover:border-gray-300'
                   }`}
               >
-                <RadioGroupItem value="true" id="packing-on" className="mt-1" />
+                <RadioGroupItem value="true" id="packing-on" className="mt-1 text-[oklch(0.8_0.18_60)] border-[oklch(0.8_0.18_60)]" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-[oklch(0.8_0.18_60)]" />
@@ -401,7 +407,7 @@ export function ConditionForm() {
                   </div>
                   <span className="font-bold text-[oklch(0.8_0.18_60)] block mb-1">トラック1台分につき5,000円</span>
                   <p className="text-sm text-gray-600">
-                    荷物の梱包作業をスタッフが行います
+                    作業員がお荷物の梱包を行います
                   </p>
                 </div>
               </label>
