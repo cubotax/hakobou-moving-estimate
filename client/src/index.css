@@ -186,22 +186,42 @@
 
   /* ポップなカードスタイル */
   .pop-card {
-    @apply bg-white rounded-2xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0_0_0_1)];
+    /* @apply bg-white rounded-2xl border-[3px] border-black; */
+    background: #fff;
+    border-radius: 1rem;
+    /* rounded-2xl */
+    border: 3px solid #000;
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
     transition: all 0.2s ease;
   }
 
   .pop-card:hover {
-    @apply shadow-[6px_6px_0px_0px_rgba(0_0_0_1)];
+    box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
     transform: translate(-2px, -2px);
   }
 
   /* ポップなボタンスタイル */
   .pop-button {
-    @apply bg-[oklch(0.92_0.16_95)] text-black font-bold rounded-xl border-[3px] border-black;
-    @apply shadow-[4px_4px_0px_0px_rgba(0, 0, 0, 1)];
-    @apply hover:shadow-[2px_2px_0px_0px_rgba(0, 0, 0, 1)] hover:translate-x-[2px] hover:translate-y-[2px];
-    @apply active:shadow-none active:translate-x-[4px] active:translate-y-[4px];
+    /* ここは shadow/translate が原因なので通常CSSに */
+    background: oklch(0.92 0.16 95);
+    color: #000;
+    font-weight: 700;
+    border-radius: 0.75rem;
+    /* rounded-xl */
+    border: 3px solid #000;
+
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
     transition: all 0.15s ease;
+  }
+
+  .pop-button:hover {
+    box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+    transform: translate(2px, 2px);
+  }
+
+  .pop-button:active {
+    box-shadow: none;
+    transform: translate(4px, 4px);
   }
 
   /* カラフルなバッジ */
@@ -274,29 +294,52 @@
 
   /* ネイティブ日付ピッカー用スタイル */
   .native-date-input {
-    @apply w-full h-14 px-4 text-lg font-medium;
-    @apply bg-white border-[3px] border-black rounded-xl;
-    @apply shadow-[3px_3px_0px_0px_rgba(0_0_0_1)];
-    @apply focus:outline-none focus:ring-2 focus:ring-[oklch(0.92_0.16_95)] focus:ring-offset-2;
-    @apply transition-all duration-150;
+    /* ここも shadow の任意値が原因なので通常CSSに */
+    width: 100%;
+    height: 3.5rem;
+    /* h-14 */
+    padding: 0 1rem;
+    /* px-4 */
+    font-size: 1.125rem;
+    /* text-lg */
+    font-weight: 500;
+
+    background: #fff;
+    border: 3px solid #000;
+    border-radius: 0.75rem;
+    /* rounded-xl */
+    box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+
+    transition: all 150ms;
+    outline: none;
+
     /* iOS/Androidでネイティブピッカーを表示 */
     -webkit-appearance: none;
     appearance: none;
   }
 
+  /* Tailwind の focus:ring 系を普通のCSSに */
+  .native-date-input:focus {
+    /* ring-2 + ring色 + offset-2 相当 */
+    box-shadow:
+      0 0 0 2px oklch(0.92 0.16 95),
+      0 0 0 4px #fff,
+      3px 3px 0px 0px rgba(0, 0, 0, 1);
+  }
+
   .native-date-input:hover {
-    @apply shadow-[4px_4px_0px_0px_rgba(0_0_0_1)];
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
     transform: translate(-1px, -1px);
   }
 
   .native-date-input:active {
-    @apply shadow-[1px_1px_0px_0px_rgba(0_0_0_1)];
+    box-shadow: 1px 1px 0px 0px rgba(0, 0, 0, 1);
     transform: translate(2px, 2px);
   }
 
   /* カレンダーアイコンのスタイル */
   .native-date-input::-webkit-calendar-picker-indicator {
-    @apply cursor-pointer;
+    cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'/%3E%3Cline x1='16' x2='16' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='2' y2='6'/%3E%3Cline x1='3' x2='21' y1='10' y2='10'/%3E%3C/svg%3E");
     background-size: 24px 24px;
     width: 24px;
