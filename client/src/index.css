@@ -186,20 +186,20 @@
 
   /* ポップなカードスタイル */
   .pop-card {
-    @apply bg-white rounded-2xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0, 0, 0, 1)];
+    @apply bg-white rounded-2xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0_0_0_1)];
     transition: all 0.2s ease;
   }
 
   .pop-card:hover {
-    @apply shadow-[6px_6px_0px_0px_rgba(0, 0, 0, 1)];
+    @apply shadow-[6px_6px_0px_0px_rgba(0_0_0_1)];
     transform: translate(-2px, -2px);
   }
 
   /* ポップなボタンスタイル */
   .pop-button {
     @apply bg-[oklch(0.92_0.16_95)] text-black font-bold rounded-xl border-[3px] border-black;
-    @apply shadow-[4px_4px_0px_0px_rgba(0, 0, 0, 1)];
-    @apply hover:shadow-[2px_2px_0px_0px_rgba(0, 0, 0, 1)] hover:translate-x-[2px] hover:translate-y-[2px];
+    @apply shadow-[4px_4px_0px_0px_rgba(0_0_0_1)];
+    @apply hover:shadow-[2px_2px_0px_0px_rgba(0_0_0_1)] hover:translate-x-[2px] hover:translate-y-[2px];
     @apply active:shadow-none active:translate-x-[4px] active:translate-y-[4px];
     transition: all 0.15s ease;
   }
@@ -272,7 +272,7 @@
   .native-date-input {
     @apply w-full h-14 px-4 text-lg font-medium;
     @apply bg-white border-[3px] border-black rounded-xl;
-    @apply shadow-[3px_3px_0px_0px_rgba(0, 0, 0, 1)];
+    @apply shadow-[3px_3px_0px_0px_rgba(0_0_0_1)];
     @apply focus:outline-none focus:ring-2 focus:ring-[oklch(0.92_0.16_95)] focus:ring-offset-2;
     @apply transition-all duration-150;
     /* iOS/Androidでネイティブピッカーを表示 */
@@ -281,12 +281,12 @@
   }
 
   .native-date-input:hover {
-    @apply shadow-[4px_4px_0px_0px_rgba(0, 0, 0, 1)];
+    @apply shadow-[4px_4px_0px_0px_rgba(0_0_0_1)];
     transform: translate(-1px, -1px);
   }
 
   .native-date-input:active {
-    @apply shadow-[1px_1px_0px_0px_rgba(0, 0, 0, 1)];
+    @apply shadow-[1px_1px_0px_0px_rgba(0_0_0_1)];
     transform: translate(2px, 2px);
   }
 
