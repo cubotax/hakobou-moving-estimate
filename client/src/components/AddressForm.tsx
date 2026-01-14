@@ -331,17 +331,17 @@ export function AddressForm() {
 
       {/* 入力方法の切り替えタブ */}
       <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 h-14 p-1 bg-gray-100 rounded-2xl border-[2px] border-black">
+        <TabsList className="grid w-full grid-cols-2 h-16 p-2 bg-gray-100 rounded-2xl border-[3px] border-black">
           <TabsTrigger
             value="postal"
-            className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+            className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
           >
             <Hash className="w-5 h-5 mr-2" />
             郵便番号から入力
           </TabsTrigger>
           <TabsTrigger
             value="city"
-            className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+            className="rounded-xl h-full text-base font-bold data-[state=active]:bg-[oklch(0.92_0.16_95)] data-[state=active]:text-black data-[state=active]:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
           >
             <MapPinned className="w-5 h-5 mr-2" />
             住所から入力
@@ -824,7 +824,7 @@ export function AddressForm() {
           type="button"
           disabled={isCalculating}
           onClick={handlePreSubmit}
-          className="pop-button flex-1 max-w-[280px] h-14 text-lg"
+          className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]"
         >
           {isCalculating ? (
             <>

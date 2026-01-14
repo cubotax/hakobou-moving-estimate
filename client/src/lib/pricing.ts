@@ -23,7 +23,8 @@ function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
   breakdown: FeeBreakdownItem[];
   baseFee: number;
 } {
-  const isBusy = isBusySeason(dates.pickupDate);
+  // 集荷日またはお届け日のどちらかが繁忙期なら繁忙期料金を適用
+  const isBusy = isBusySeason(dates.pickupDate) || isBusySeason(dates.deliveryDate);
   const baseFee = PRICING_CONFIG.baseFee;
   const busySeasonSurcharge = isBusy ? Math.floor((baseFee * BUSY_SEASON_CONFIG.surchargeRate) / 100) * 100 : 0;
 
@@ -313,12 +314,13 @@ export function calculateEstimate(
     optionFee: optionFeeResult.totalFee + floorFeeResult.totalFee,
     highwayFee: highwayFeeResult.fee,
     storageFee: storageFeeResult.fee,
-    busySeasonFee: isBusySeason(movingDates.pickupDate) ? Math.round(PRICING_CONFIG.baseFee * BUSY_SEASON_CONFIG.surchargeRate) : 0,
+    // 集荷日またはお届け日のどちらかが繁忙期なら繁忙期料金を適用
+    busySeasonFee: (isBusySeason(movingDates.pickupDate) || isBusySeason(movingDates.deliveryDate)) ? Math.round(PRICING_CONFIG.baseFee * BUSY_SEASON_CONFIG.surchargeRate) : 0,
     totalFee,
     breakdown,
     highwayFeeNote: highwayFeeResult.note,
     isInterPrefecture: distance.isInterPrefecture,
-    isBusySeason: isBusySeason(movingDates.pickupDate),
+    isBusySeason: isBusySeason(movingDates.pickupDate) || isBusySeason(movingDates.deliveryDate),
     storageDays: storageFeeResult.days,
   };
 }

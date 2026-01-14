@@ -142,8 +142,10 @@ export function DateForm() {
     }
   }, [pickupDate, deliveryDate, setValue, isPickupDirty]);
 
-  // 繁忙期チェック（集荷日ベース）
+  // 繁忙期チェック（集荷日またはお届け日のどちらかが繁忙期なら警告表示）
   const isPickupBusySeason = isBusySeason(pickupDate);
+  const isDeliveryBusySeason = isBusySeason(deliveryDate);
+  const isAnyBusySeason = isPickupBusySeason || isDeliveryBusySeason;
 
   // 積み置き日数計算
   const storageDays = calculateStorageDays({ pickupDate, deliveryDate });
@@ -226,7 +228,7 @@ export function DateForm() {
             )}
 
             {/* 繁忙期料金の但し書き（繁忙期のときだけ表示） */}
-            {isPickupBusySeason && (
+            {isAnyBusySeason && (
               <div className="flex items-start gap-2 p-3 bg-[oklch(0.95_0.1_20)] rounded-xl border-2 border-[oklch(0.8_0.15_20)]">
                 <AlertCircle className="w-5 h-5 text-[oklch(0.6_0.2_20)] flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-[oklch(0.4_0.1_20)]">
@@ -242,7 +244,7 @@ export function DateForm() {
 
       {/* ナビゲーションボタン */}
       <div className="flex justify-center pt-4">
-        <Button type="submit" className="pop-button max-w-[280px] h-14 text-lg">
+        <Button type="submit" className="pop-button max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]">
           次へ進む
           <ArrowRight className="w-6 h-6 ml-2" />
         </Button>

@@ -198,8 +198,8 @@
   /* ポップなボタンスタイル */
   .pop-button {
     @apply bg-[oklch(0.92_0.16_95)] text-black font-bold rounded-xl border-[3px] border-black;
-    @apply shadow-[4px_4px_0px_0px_rgba(0_0_0_1)];
-    @apply hover:shadow-[2px_2px_0px_0px_rgba(0_0_0_1)] hover:translate-x-[2px] hover:translate-y-[2px];
+    @apply shadow-[4px_4px_0px_0px_rgba(0, 0, 0, 1)];
+    @apply hover:shadow-[2px_2px_0px_0px_rgba(0, 0, 0, 1)] hover:translate-x-[2px] hover:translate-y-[2px];
     @apply active:shadow-none active:translate-x-[4px] active:translate-y-[4px];
     transition: all 0.15s ease;
   }

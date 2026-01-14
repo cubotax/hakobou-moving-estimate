@@ -68,16 +68,6 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                   >
                     {step.title}
                   </p>
-                  {!!step.description && (
-                    <p
-                      className={cn(
-                        'text-xs sm:text-sm mt-1 hidden sm:block',
-                        (isCurrent || isCompleted) ? 'text-gray-600' : 'text-gray-400'
-                      )}
-                    >
-                      {step.description}
-                    </p>
-                  )}
                 </div>
               </div>
 
