@@ -62,6 +62,10 @@ export function AddressForm() {
   const [pickupPostalError, setPickupPostalError] = useState<string | null>(null);
   const [deliveryPostalError, setDeliveryPostalError] = useState<string | null>(null);
 
+  // 送信時の住所未確定エラー状態
+  const [pickupNotConfirmedError, setPickupNotConfirmedError] = useState(false);
+  const [deliveryNotConfirmedError, setDeliveryNotConfirmedError] = useState(false);
+
   // 保存されたデータがあれば復元
   const savedData = getStep1Data();
 
@@ -167,6 +171,7 @@ export function AddressForm() {
     setPickupPostalLoading(true);
     setPickupPostalError(null);
     setPickupPostalAddress(null);
+    setPickupNotConfirmedError(false);
     try {
       const result = await getAddressByPostalCode(pickupPostalCode);
       if (result.success && result.address) {
@@ -197,6 +202,7 @@ export function AddressForm() {
     setDeliveryPostalLoading(true);
     setDeliveryPostalError(null);
     setDeliveryPostalAddress(null);
+    setDeliveryNotConfirmedError(false);
     try {
       const result = await getAddressByPostalCode(deliveryPostalCode);
       if (result.success && result.address) {
@@ -229,14 +235,38 @@ export function AddressForm() {
   };
 
   const onSubmit = async (data: Step1FormData) => {
+    // エラー状態をリセット
+    setPickupNotConfirmedError(false);
+    setDeliveryNotConfirmedError(false);
+
     // 市町村入力モードの場合、バリデーションを確認
     if (inputMode === 'city') {
+      let hasError = false;
       if (!pickupValidated) {
-        toast.error('集荷先の住所を確認してください');
-        return;
+        setPickupNotConfirmedError(true);
+        hasError = true;
       }
       if (!deliveryValidated) {
-        toast.error('お届け先の住所を確認してください');
+        setDeliveryNotConfirmedError(true);
+        hasError = true;
+      }
+      if (hasError) {
+        return;
+      }
+    }
+
+    // 郵便番号入力モードの場合、住所確定済みか確認
+    if (inputMode === 'postal') {
+      let hasError = false;
+      if (!pickupValidated) {
+        setPickupNotConfirmedError(true);
+        hasError = true;
+      }
+      if (!deliveryValidated) {
+        setDeliveryNotConfirmedError(true);
+        hasError = true;
+      }
+      if (hasError) {
         return;
       }
     }
@@ -263,6 +293,32 @@ export function AddressForm() {
     } finally {
       setIsCalculating(false);
     }
+  };
+
+  // フォーム送信前のバリデーションチェック
+  const handlePreSubmit = () => {
+    // エラー状態をリセット
+    setPickupNotConfirmedError(false);
+    setDeliveryNotConfirmedError(false);
+
+    // 住所確定済みチェック
+    let hasError = false;
+    if (!pickupValidated) {
+      setPickupNotConfirmedError(true);
+      hasError = true;
+    }
+    if (!deliveryValidated) {
+      setDeliveryNotConfirmedError(true);
+      hasError = true;
+    }
+
+    // エラーがあれば送信しない
+    if (hasError) {
+      return;
+    }
+
+    // フォームを送信
+    handleSubmit(onSubmit)();
   };
 
 
@@ -643,6 +699,14 @@ export function AddressForm() {
                   <p className="text-base font-medium text-[oklch(0.35_0.1_25)]">{pickupPostalError}</p>
                 </div>
               )}
+              {pickupNotConfirmedError && !pickupPostalAddress && (
+                <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
+                    <span className="font-bold text-[oklch(0.4_0.15_25)]">住所を確定してください</span>
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
@@ -731,6 +795,14 @@ export function AddressForm() {
                   <p className="text-base font-medium text-[oklch(0.35_0.1_25)]">{deliveryPostalError}</p>
                 </div>
               )}
+              {deliveryNotConfirmedError && !deliveryPostalAddress && (
+                <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
+                    <span className="font-bold text-[oklch(0.4_0.15_25)]">住所を確定してください</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -749,8 +821,9 @@ export function AddressForm() {
           戻る
         </Button>
         <Button
-          type="submit"
+          type="button"
           disabled={isCalculating}
+          onClick={handlePreSubmit}
           className="pop-button flex-1 max-w-[280px] h-14 text-lg"
         >
           {isCalculating ? (

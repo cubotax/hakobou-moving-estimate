@@ -48,7 +48,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  
+
   /* Custom colors for pop design */
   --color-pop-yellow: oklch(0.95 0.15 95);
   --color-pop-pink: oklch(0.75 0.2 0);
@@ -68,7 +68,7 @@
   --chart-4: oklch(0.8 0.18 60);
   --chart-5: oklch(0.7 0.15 250);
   --radius: 1rem;
-  
+
   /* 白ベースの背景 */
   --background: oklch(1 0 0);
   --foreground: oklch(0.1 0 0);
@@ -84,7 +84,7 @@
   --accent-foreground: oklch(0.15 0 0);
   --destructive: oklch(0.65 0.25 25);
   --destructive-foreground: oklch(0.98 0 0);
-  
+
   /* 黒い太枠ボーダー */
   --border: oklch(0.15 0 0);
   --input: oklch(0.15 0 0);
@@ -136,10 +136,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic Pro', 'BIZ UDGothic', sans-serif;
   }
+
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -181,27 +183,27 @@
       max-width: 1280px;
     }
   }
-  
+
   /* ポップなカードスタイル */
   .pop-card {
-    @apply bg-white rounded-2xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)];
+    @apply bg-white rounded-2xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0, 0, 0, 1)];
     transition: all 0.2s ease;
   }
-  
+
   .pop-card:hover {
-    @apply shadow-[6px_6px_0px_0px_rgba(0,0,0,1)];
+    @apply shadow-[6px_6px_0px_0px_rgba(0, 0, 0, 1)];
     transform: translate(-2px, -2px);
   }
-  
+
   /* ポップなボタンスタイル */
   .pop-button {
     @apply bg-[oklch(0.92_0.16_95)] text-black font-bold rounded-xl border-[3px] border-black;
-    @apply shadow-[4px_4px_0px_0px_rgba(0,0,0,1)];
-    @apply hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px];
+    @apply shadow-[4px_4px_0px_0px_rgba(0, 0, 0, 1)];
+    @apply hover:shadow-[2px_2px_0px_0px_rgba(0, 0, 0, 1)] hover:translate-x-[2px] hover:translate-y-[2px];
     @apply active:shadow-none active:translate-x-[4px] active:translate-y-[4px];
     transition: all 0.15s ease;
   }
-  
+
   /* カラフルなバッジ */
   .badge-pink {
     @apply bg-[oklch(0.75_0.2_0)] text-white font-bold px-3 py-1 rounded-full text-sm;
@@ -210,7 +212,7 @@
   .badge-pink-no-border {
     @apply bg-[oklch(0.75_0.2_0)] text-white font-bold px-3 py-1 rounded-full text-sm;
   }
-  
+
   .badge-green {
     @apply bg-[oklch(0.75_0.2_145)] text-white font-bold px-3 py-1 rounded-full text-sm;
   }
@@ -222,21 +224,21 @@
   .badge-blue {
     @apply bg-[oklch(0.75_0.2_250)] text-white font-bold px-3 py-1 rounded-full text-sm;
   }
-  
+
   .badge-yellow {
     @apply bg-[oklch(0.92_0.16_95)] text-black font-bold px-3 py-1 rounded-full text-sm;
   }
-  
+
   .badge-orange {
     @apply bg-[oklch(0.8_0.18_60)] text-white font-bold px-3 py-1 rounded-full text-sm;
   }
-  
+
   /* 手書き風アンダーライン */
   .hand-underline {
     position: relative;
     display: inline-block;
   }
-  
+
   .hand-underline::after {
     content: '';
     position: absolute;
@@ -247,47 +249,47 @@
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10'%3E%3Cpath d='M0 8 Q25 2 50 8 T100 8' stroke='%23000' stroke-width='3' fill='none'/%3E%3C/svg%3E") no-repeat;
     background-size: 100% 100%;
   }
-  
+
   /* ステップインジケーター */
   .step-number {
     @apply w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg;
     @apply border-[3px] border-black;
   }
-  
+
   .step-number.active {
     @apply bg-[oklch(0.92_0.16_95)] text-black;
   }
-  
+
   .step-number.completed {
     @apply bg-[oklch(0.75_0.2_145)] text-white;
   }
-  
+
   .step-number.pending {
     @apply bg-white text-gray-400;
   }
-  
+
   /* ネイティブ日付ピッカー用スタイル */
   .native-date-input {
     @apply w-full h-14 px-4 text-lg font-medium;
     @apply bg-white border-[3px] border-black rounded-xl;
-    @apply shadow-[3px_3px_0px_0px_rgba(0,0,0,1)];
+    @apply shadow-[3px_3px_0px_0px_rgba(0, 0, 0, 1)];
     @apply focus:outline-none focus:ring-2 focus:ring-[oklch(0.92_0.16_95)] focus:ring-offset-2;
     @apply transition-all duration-150;
     /* iOS/Androidでネイティブピッカーを表示 */
     -webkit-appearance: none;
     appearance: none;
   }
-  
+
   .native-date-input:hover {
-    @apply shadow-[4px_4px_0px_0px_rgba(0,0,0,1)];
+    @apply shadow-[4px_4px_0px_0px_rgba(0, 0, 0, 1)];
     transform: translate(-1px, -1px);
   }
-  
+
   .native-date-input:active {
-    @apply shadow-[1px_1px_0px_0px_rgba(0,0,0,1)];
+    @apply shadow-[1px_1px_0px_0px_rgba(0, 0, 0, 1)];
     transform: translate(2px, 2px);
   }
-  
+
   /* カレンダーアイコンのスタイル */
   .native-date-input::-webkit-calendar-picker-indicator {
     @apply cursor-pointer;
@@ -298,7 +300,7 @@
     opacity: 0.7;
     transition: opacity 0.2s;
   }
-  
+
   .native-date-input::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
   }
@@ -306,9 +308,12 @@
 
 /* アニメーション */
 @keyframes bounce-subtle {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-5px);
   }
@@ -319,9 +324,12 @@
 }
 
 @keyframes wiggle {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: rotate(-3deg);
   }
+
   50% {
     transform: rotate(3deg);
   }
