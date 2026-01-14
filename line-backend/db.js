@@ -5,7 +5,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.join(__dirname, 'data.db');
+// 【重要】Fly.ioの本番環境では /data/data.db を使い、ローカルでは今まで通り line-backend/data.db を使う設定
+const dbPath = process.env.NODE_ENV === 'production'
+  ? '/data/data.db'
+  : path.join(__dirname, 'data.db');
+
 const db = new Database(dbPath);
 
 db.exec(`

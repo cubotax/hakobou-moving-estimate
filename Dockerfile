@@ -27,6 +27,11 @@ RUN apt-get update -qq && \
 # Install node modules
 COPY package.json pnpm-lock.yaml ./
 COPY patches ./patches/
+
+# 【ここを修正】pnpm v10で better-sqlite3 のビルドを許可する設定を追加
+RUN pnpm config set allowed-build-scripts better-sqlite3
+
+# その後でインストールを実行
 RUN pnpm install --frozen-lockfile --prod=false
 
 # Copy application code
