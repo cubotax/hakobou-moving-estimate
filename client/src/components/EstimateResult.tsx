@@ -59,7 +59,6 @@ export function EstimateResult() {
   const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
     const s1 = getStep1Data();
     const s2 = getStep2Data();
     const dist = getDistanceData();
@@ -74,6 +73,11 @@ export function EstimateResult() {
     setStep2Data(s2);
     setDistanceData(dist);
     setEstimateResult(result);
+
+    // データ設定後にスクロールを実行
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 0);
   }, [navigate]);
 
   const handleStartOver = () => {
