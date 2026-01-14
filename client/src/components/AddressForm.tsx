@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
 import { MapPin, Truck, ArrowRight, ArrowLeft, Loader2, ArrowDown, Search, MapPinned, Hash, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+// toast removed
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -98,7 +98,6 @@ export function AddressForm() {
   // 集荷先住所のバリデーション
   const handleValidatePickupAddress = async () => {
     if (!pickupPrefecture || !pickupCity || !pickupTown) {
-      toast.error('都道府県、市区町村、町名をすべて入力してください');
       return;
     }
 
@@ -115,14 +114,11 @@ export function AddressForm() {
 
       if (result.isValid) {
         setPickupValidated(true);
-        toast.success('住所が確認できました');
       } else {
         setPickupValidationError(result.errorMessage || '住所が見つかりませんでした');
-        toast.error(result.errorMessage || '住所が見つかりませんでした');
       }
     } catch (error) {
       setPickupValidationError('住所の確認中にエラーが発生しました');
-      toast.error('住所の確認中にエラーが発生しました');
     } finally {
       setPickupValidating(false);
     }
@@ -131,7 +127,6 @@ export function AddressForm() {
   // お届け先住所のバリデーション
   const handleValidateDeliveryAddress = async () => {
     if (!deliveryPrefecture || !deliveryCity || !deliveryTown) {
-      toast.error('都道府県、市区町村、町名をすべて入力してください');
       return;
     }
 
@@ -148,14 +143,11 @@ export function AddressForm() {
 
       if (result.isValid) {
         setDeliveryValidated(true);
-        toast.success('住所が確認できました');
       } else {
         setDeliveryValidationError(result.errorMessage || '住所が見つかりませんでした');
-        toast.error(result.errorMessage || '住所が見つかりませんでした');
       }
     } catch (error) {
       setDeliveryValidationError('住所の確認中にエラーが発生しました');
-      toast.error('住所の確認中にエラーが発生しました');
     } finally {
       setDeliveryValidating(false);
     }
@@ -164,7 +156,6 @@ export function AddressForm() {
   // 郵便番号から住所を検索（集荷先）
   const handlePickupPostalSearch = async () => {
     if (!isValidPostalCode(pickupPostalCode)) {
-      toast.error('郵便番号は7桁の数字で入力してください');
       return;
     }
 
@@ -195,7 +186,6 @@ export function AddressForm() {
   // 郵便番号から住所を検索（お届け先）
   const handleDeliveryPostalSearch = async () => {
     if (!isValidPostalCode(deliveryPostalCode)) {
-      toast.error('郵便番号は7桁の数字で入力してください');
       return;
     }
 
@@ -289,7 +279,6 @@ export function AddressForm() {
       navigate('/step2');
     } catch (error) {
       console.error('Distance calculation failed:', error);
-      toast.error('距離の計算に失敗しました。住所を確認してください。');
     } finally {
       setIsCalculating(false);
     }
