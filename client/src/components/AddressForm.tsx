@@ -635,12 +635,12 @@ export function AddressForm() {
                     value={pickupPostalCode}
                     onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                      if (e.key === 'Enter') {
                         e.preventDefault();
                         handlePickupPostalSearch();
                       }
                     }}
-                    className="pop-input pr-16 text-xl"
+                    className="pop-input pr-16 text-xl md:text-xl h-12 font-bold tracking-widest"
                   />
                   {isValidPostalCode(pickupPostalCode) && (
                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
@@ -731,12 +731,12 @@ export function AddressForm() {
                     value={deliveryPostalCode}
                     onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                      if (e.key === 'Enter') {
                         e.preventDefault();
                         handleDeliveryPostalSearch();
                       }
                     }}
-                    className="pop-input pr-16 text-xl"
+                    className="pop-input pr-16 text-xl md:text-xl h-12 font-bold tracking-widest"
                   />
                   {isValidPostalCode(deliveryPostalCode) && (
                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
