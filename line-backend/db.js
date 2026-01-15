@@ -1,112 +1,91 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// 環境変数から取得（Fly.ioのシークレットに設定）
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
 
-// 【重要】Fly.ioの本番環境では /data/data.db を使い、ローカルでは今まで通り line-backend/data.db を使う設定
-const dbPath = process.env.NODE_ENV === 'production'
-  ? '/data/data.db'
-  : path.join(__dirname, 'data.db');
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.warn('Warning: Supabase credentials not configured');
+}
 
-const db = new Database(dbPath);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS estimates (
-    id TEXT PRIMARY KEY,
-    pickup_prefecture TEXT,
-    pickup_city TEXT,
-    pickup_town TEXT,
-    delivery_prefecture TEXT,
-    delivery_city TEXT,
-    delivery_town TEXT,
-    pickup_date TEXT,
-    delivery_date TEXT,
-    total_fee INTEGER,
-    distance_km REAL,
-    floor_pickup INTEGER,
-    has_elevator_pickup INTEGER,
-    floor_delivery INTEGER,
-    has_elevator_delivery INTEGER,
-    needs_packing INTEGER,
-    created_at TEXT DEFAULT (datetime('now', 'localtime')),
-    line_user_id TEXT
-  )
-`);
+export async function insertEstimate(estimate) {
+  const { data, error } = await supabase
+    .from('estimates')
+    .insert({
+      id: estimate.id,
+      pickup_prefecture: estimate.pickupAddress?.prefecture || '',
+      pickup_city: estimate.pickupAddress?.city || '',
+      pickup_town: estimate.pickupAddress?.town || '',
+      delivery_prefecture: estimate.deliveryAddress?.prefecture || '',
+      delivery_city: estimate.deliveryAddress?.city || '',
+      delivery_town: estimate.deliveryAddress?.town || '',
+      pickup_date: estimate.dates?.pickupDate || '',
+      delivery_date: estimate.dates?.deliveryDate || '',
+      total_fee: estimate.totalFee || 0,
+      distance_km: estimate.distanceKm || 0,
+      floor_pickup: estimate.conditions?.floorPickup || 1,
+      has_elevator_pickup: estimate.conditions?.hasElevatorPickup || false,
+      floor_delivery: estimate.conditions?.floorDelivery || 1,
+      has_elevator_delivery: estimate.conditions?.hasElevatorDelivery || false,
+      needs_packing: estimate.conditions?.needsPacking || false,
+      plan: estimate.plan || '',
+    })
+    .select()
+    .single();
 
-// 既存テーブルに新カラムがない場合は追加
-try {
-  db.exec(`ALTER TABLE estimates ADD COLUMN floor_pickup INTEGER DEFAULT 1`);
-} catch (e) { /* カラム既存 */ }
-try {
-  db.exec(`ALTER TABLE estimates ADD COLUMN has_elevator_pickup INTEGER DEFAULT 0`);
-} catch (e) { /* カラム既存 */ }
-try {
-  db.exec(`ALTER TABLE estimates ADD COLUMN floor_delivery INTEGER DEFAULT 1`);
-} catch (e) { /* カラム既存 */ }
-try {
-  db.exec(`ALTER TABLE estimates ADD COLUMN has_elevator_delivery INTEGER DEFAULT 0`);
-} catch (e) { /* カラム既存 */ }
-try {
-  db.exec(`ALTER TABLE estimates ADD COLUMN needs_packing INTEGER DEFAULT 0`);
-} catch (e) { /* カラム既存 */ }
-
-export function insertEstimate(estimate) {
-  const stmt = db.prepare(`
-    INSERT INTO estimates (
-      id, 
-      pickup_prefecture, pickup_city, pickup_town,
-      delivery_prefecture, delivery_city, delivery_town,
-      pickup_date, delivery_date,
-      total_fee, distance_km,
-      floor_pickup, has_elevator_pickup,
-      floor_delivery, has_elevator_delivery,
-      needs_packing
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  stmt.run(
-    estimate.id,
-    estimate.pickupAddress?.prefecture || '',
-    estimate.pickupAddress?.city || '',
-    estimate.pickupAddress?.town || '',
-    estimate.deliveryAddress?.prefecture || '',
-    estimate.deliveryAddress?.city || '',
-    estimate.deliveryAddress?.town || '',
-    estimate.dates?.pickupDate || '',
-    estimate.dates?.deliveryDate || '',
-    estimate.totalFee || 0,
-    estimate.distanceKm || 0,
-    estimate.conditions?.floorPickup || 1,
-    estimate.conditions?.hasElevatorPickup ? 1 : 0,
-    estimate.conditions?.floorDelivery || 1,
-    estimate.conditions?.hasElevatorDelivery ? 1 : 0,
-    estimate.conditions?.needsPacking ? 1 : 0
-  );
+  if (error) {
+    console.error('Error inserting estimate:', error);
+    throw error;
+  }
 
   return estimate.id;
 }
 
+export async function linkEstimate(estimateId, lineUserId) {
+  const { data, error } = await supabase
+    .from('estimates')
+    .update({ line_user_id: lineUserId })
+    .eq('id', estimateId)
+    .select();
 
-export function linkEstimate(estimateId, lineUserId) {
-  const stmt = db.prepare(`
-    UPDATE estimates SET line_user_id = ? WHERE id = ?
-  `);
-  const result = stmt.run(lineUserId, estimateId);
-  return result.changes > 0;
+  if (error) {
+    console.error('Error linking estimate:', error);
+    throw error;
+  }
+
+  return data && data.length > 0;
 }
 
-export function getEstimateByLineUserId(lineUserId) {
-  const stmt = db.prepare(`
-    SELECT * FROM estimates WHERE line_user_id = ? ORDER BY created_at DESC LIMIT 1
-  `);
-  return stmt.get(lineUserId);
+export async function getEstimateByLineUserId(lineUserId) {
+  const { data, error } = await supabase
+    .from('estimates')
+    .select('*')
+    .eq('line_user_id', lineUserId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error getting estimate by line user id:', error);
+  }
+
+  return data || null;
 }
 
-export function getEstimateById(estimateId) {
-  const stmt = db.prepare(`SELECT * FROM estimates WHERE id = ?`);
-  return stmt.get(estimateId);
+export async function getEstimateById(estimateId) {
+  const { data, error } = await supabase
+    .from('estimates')
+    .select('*')
+    .eq('id', estimateId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error getting estimate by id:', error);
+  }
+
+  return data || null;
 }
 
-export default db;
+export default supabase;

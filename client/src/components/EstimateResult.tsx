@@ -337,7 +337,7 @@ export function EstimateResult() {
             href="https://line.me/R/oaMessage/@your_line_official_account_id/?相談をはじめる"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
+            className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
           >
             <MessageCircle className="w-5 h-5" />
             LINE で相談をはじめる
@@ -385,7 +385,7 @@ export function EstimateResult() {
           type="button"
           variant="outline"
           onClick={handleGoBack}
-          className="h-14 flex-1 border-[3px] border-black rounded-xl font-bold text-base shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all bg-white"
+          className="h-14 flex-1 border-[3px] border-black rounded-xl font-bold text-base shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all bg-white"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           条件を変更
@@ -393,7 +393,7 @@ export function EstimateResult() {
         <Button
           type="button"
           onClick={handleStartOver}
-          className="pop-button h-14 flex-1 text-base font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]"
+          className="pop-button h-14 flex-1 text-base font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]"
         >
           <RotateCcw className="w-5 h-5 mr-2" />
           最初からやり直す

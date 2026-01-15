@@ -17,10 +17,6 @@ import {
 
 const app = express();
 
-/**
- * Replit では PORT は必ず process.env.PORT を使う
- * （固定 3000 にすると外部アクセスできないことがある）
- */
 const PORT = Number(process.env.PORT || 3000);
 
 // ========= ENV =========
@@ -52,19 +48,19 @@ app.get("/health", (req, res) => {
 });
 
 // ========= API (JSON) =========
-// API群だけ JSON を有効化（webhook は middleware が読むのでここでは付けない）
 app.use("/api", express.json());
 
-app.post("/api/estimates", (req, res) => {
+// 見積もり作成（async対応）
+app.post("/api/estimates", async (req, res) => {
   try {
     const estimateId = nanoid(12);
     const estimateData = { id: estimateId, ...req.body };
 
-    insertEstimate(estimateData);
+    await insertEstimate(estimateData);
 
     const liffUrl = LIFF_ID
       ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
-      : `https://line.me/R/ti/p/@your_line_id?estimateId=${estimateId}`;
+      : `https://line.me/R/ti/p/@602epmvz?estimateId=${estimateId}`;
 
     res.json({ success: true, estimateId, liffUrl });
   } catch (error) {
@@ -75,7 +71,8 @@ app.post("/api/estimates", (req, res) => {
   }
 });
 
-app.post("/api/link", (req, res) => {
+// 見積もりとLINEユーザーの紐づけ（async対応）
+app.post("/api/link", async (req, res) => {
   try {
     const { estimateId, lineUserId } = req.body || {};
 
@@ -86,7 +83,7 @@ app.post("/api/link", (req, res) => {
       });
     }
 
-    const updated = linkEstimate(estimateId, lineUserId);
+    const updated = await linkEstimate(estimateId, lineUserId);
 
     if (!updated) {
       return res.status(404).json({ success: false, error: "Estimate not found" });
@@ -101,9 +98,10 @@ app.post("/api/link", (req, res) => {
   }
 });
 
-app.get("/api/estimates/:id", (req, res) => {
+// 見積もり取得（async対応）
+app.get("/api/estimates/:id", async (req, res) => {
   try {
-    const estimate = getEstimateById(req.params.id);
+    const estimate = await getEstimateById(req.params.id);
 
     if (!estimate) {
       return res.status(404).json({ success: false, error: "Estimate not found" });
@@ -120,7 +118,6 @@ app.get("/api/estimates/:id", (req, res) => {
 
 // ========= WEBHOOK =========
 if (isLineConfigured) {
-  // LINE middleware が raw body を読むので、ここで express.json() を先に付けない
   app.post("/webhook", middleware(lineConfig), async (req, res) => {
     try {
       const events = req.body?.events || [];
@@ -132,7 +129,6 @@ if (isLineConfigured) {
     }
   });
 } else {
-  // 設定なしでも疎通確認できるように 200 返す
   app.post("/webhook", express.json(), (req, res) => {
     console.log("Webhook received (LINE not configured):", req.body);
     res.status(200).json({ success: true, message: "LINE not configured" });
@@ -149,6 +145,7 @@ async function handleEvent(event) {
   return null;
 }
 
+// フォローイベント処理（async対応）
 async function handleFollowEvent(event) {
   const lineUserId = event?.source?.userId;
 
@@ -157,11 +154,10 @@ async function handleFollowEvent(event) {
     return null;
   }
 
-  const estimate = lineUserId ? getEstimateByLineUserId(lineUserId) : null;
+  const estimate = lineUserId ? await getEstimateByLineUserId(lineUserId) : null;
 
   const messages = estimate ? buildEstimateGreeting(estimate) : buildNormalGreeting();
 
-  // follow は replyToken があるので replyMessage でOK
   return client.replyMessage({
     replyToken: event.replyToken,
     messages,
@@ -186,7 +182,6 @@ function buildEstimateGreeting(estimate) {
   const feeNum = Number(estimate.total_fee);
   const totalFee = Number.isFinite(feeNum) ? feeNum.toLocaleString() : String(estimate.total_fee || "0");
 
-  // 日付フォーマット
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -197,11 +192,8 @@ function buildEstimateGreeting(estimate) {
     });
   };
 
-  // エレベーター表示
   const elevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
   const elevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
-
-  // 梱包サービス表示
   const packingService = estimate.needs_packing ? "希望する" : "希望しない";
 
   return [
@@ -218,7 +210,6 @@ function buildEstimateGreeting(estimate) {
     },
   ];
 }
-
 
 // ========= ERROR HANDLER =========
 app.use((err, req, res, next) => {
