@@ -391,7 +391,7 @@ export function EstimateResult() {
         <Button
           type="button"
           onClick={handleStartOver}
-          className="pop-button h-14 flex-1 text-base font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]"
+          className="pop-button h-14 flex-1 text-base font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
         >
           <RotateCcw className="w-5 h-5 mr-2" />
           最初からやり直す

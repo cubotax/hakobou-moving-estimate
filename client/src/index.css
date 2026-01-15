@@ -192,12 +192,6 @@
     /* rounded-2xl */
     border: 3px solid #000;
     box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
-    transition: all 0.2s ease;
-  }
-
-  .pop-card:hover {
-    box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
-    transform: translate(-2px, -2px);
   }
 
   /* ポップなボタンスタイル */

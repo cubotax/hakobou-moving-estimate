@@ -244,7 +244,7 @@ export function DateForm() {
 
       {/* ナビゲーションボタン */}
       <div className="flex justify-center pt-4">
-        <Button type="submit" className="pop-button max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]">
+        <Button type="submit" className="pop-button max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none">
           次へ進む
           <ArrowRight className="w-6 h-6 ml-2" />
         </Button>

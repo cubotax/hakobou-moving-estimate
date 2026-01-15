@@ -283,9 +283,10 @@ export function AddressForm() {
       setIsCalculating(false);
     }
   };
+  // フォーム送信時のバリデーションチェック
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
 
-  // フォーム送信前のバリデーションチェック
-  const handlePreSubmit = () => {
     // エラー状態をリセット
     setPickupNotConfirmedError(false);
     setDeliveryNotConfirmedError(false);
@@ -312,7 +313,7 @@ export function AddressForm() {
 
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
+    <form onSubmit={handleFormSubmit} className="space-y-6 animate-fade-in">
       {/* 説明文 */}
       <p className="text-center text-gray-600 font-bold text-sm">
         住所・郵便番号のどちらからでも入力できます！
@@ -810,10 +811,9 @@ export function AddressForm() {
           戻る
         </Button>
         <Button
-          type="button"
+          type="submit"
           disabled={isCalculating}
-          onClick={handlePreSubmit}
-          className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]"
+          className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
         >
           {isCalculating ? (
             <>
