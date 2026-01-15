@@ -43,6 +43,8 @@ import {
 } from '@/lib/store';
 import { calculateEstimate } from '@/lib/pricing';
 import type { EstimateOptions, MovingDates } from '@/lib/types';
+import { toast } from 'sonner';
+import { API_CONFIG } from '@/lib/config';
 
 // 階数の選択肢（1階〜20階）
 const FLOOR_OPTIONS = Array.from({ length: 20 }, (_, i) => i + 1);
@@ -109,7 +111,7 @@ export function ConditionForm() {
 
       // バックエンドAPIに見積もりデータを送信
       try {
-        const response = await fetch('https://hakobou-mitsumori.fly.dev/api/estimates', {
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/estimates`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -136,16 +138,27 @@ export function ConditionForm() {
         if (responseData.success) {
           // estimateIdとliffUrlをローカルストレージに保存
           localStorage.setItem('estimateId', responseData.estimateId);
-          localStorage.setItem('liffUrl', responseData.liffUrl);
+          if (responseData.liffUrl) {
+            localStorage.setItem('liffUrl', responseData.liffUrl);
+          }
+          // 結果ページへ
+          navigate('/result');
+        } else {
+          console.error('API Error:', responseData.error);
+          toast.error('見積もりデータの保存に失敗しました', {
+            description: 'LINE連携が正しく動作しない可能性があります。',
+          });
+          // エラーでも遷移はする（ユーザー体験のため）
+          navigate('/result');
         }
       } catch (error) {
         console.error('Failed to save estimate:', error);
-        // エラーでも結果ページには遷移させる
+        toast.error('通信エラーが発生しました', {
+          description: '見積もり結果は表示されますが、LINE連携が利用できない場合があります。',
+        });
+        navigate('/result');
       }
     }
-
-    // 結果ページへ
-    navigate('/result');
   };
 
   const goBack = () => {

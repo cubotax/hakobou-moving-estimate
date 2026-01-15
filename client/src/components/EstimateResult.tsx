@@ -398,6 +398,13 @@ export function EstimateResult() {
           最初からやり直す
         </Button>
       </div>
-    </div>
+
+      {/* デバッグ用情報（開発中のみ表示） */}
+      <div className="text-[10px] text-gray-300 text-center mt-8 pb-4 break-all">
+        ID: {estimateId || 'None'}
+        <br />
+        URL: {liffUrl}
+      </div>
+    </div >
   );
 }
