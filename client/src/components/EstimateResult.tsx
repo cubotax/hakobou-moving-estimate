@@ -51,13 +51,15 @@ function formatDate(dateStr: string): string {
   });
 }
 
+// LIFF ID
+const LIFF_ID = '2008810480-nGBqOkj';
+
 export function EstimateResult() {
   const [, navigate] = useLocation();
   const [step1Data, setStep1Data] = useState<Step1FormData | null>(null);
   const [step2Data, setStep2Data] = useState<Step2FormData | null>(null);
   const [distanceData, setDistanceData] = useState<DistanceResult | null>(null);
   const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
-  const [liffUrl, setLiffUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const s1 = getStep1Data();
@@ -75,12 +77,6 @@ export function EstimateResult() {
     setDistanceData(dist);
     setEstimateResult(result);
 
-    // LIFFのURLを取得
-    const savedLiffUrl = localStorage.getItem('liffUrl');
-    if (savedLiffUrl) {
-      setLiffUrl(savedLiffUrl);
-    }
-
     // データ設定後にスクロールを実行
     setTimeout(() => {
       window.scrollTo(0, 0);
@@ -90,7 +86,6 @@ export function EstimateResult() {
   const handleStartOver = () => {
     clearAllData();
     localStorage.removeItem('estimateId');
-    localStorage.removeItem('liffUrl');
     navigate('/');
   };
 
@@ -101,6 +96,12 @@ export function EstimateResult() {
   if (!step1Data || !step2Data || !distanceData || !estimateResult) {
     return null;
   }
+
+  // LIFF URLの生成
+  const estimateId = localStorage.getItem('estimateId');
+  const liffUrl = estimateId
+    ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
+    : "https://line.me/R/ti/p/@602epmvz";
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -159,7 +160,7 @@ export function EstimateResult() {
           {/* LINE相談ボタン */}
           <div className="mt-6">
             <a
-              href={liffUrl || "https://line.me/R/ti/p/@602epmvz"}
+              href={liffUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
@@ -332,7 +333,7 @@ export function EstimateResult() {
         {/* LINE相談ボタン */}
         <div className="mt-6">
           <a
-            href={liffUrl || "https://line.me/R/ti/p/@602epmvz"}
+            href={liffUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
