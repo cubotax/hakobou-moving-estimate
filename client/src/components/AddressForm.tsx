@@ -640,7 +640,7 @@ export function AddressForm() {
                         handlePickupPostalSearch();
                       }
                     }}
-                    className="pop-input pr-16 text-xl md:text-xl h-12 font-bold tracking-widest"
+                    className="pop-input pr-16 text-xl"
                   />
                   {isValidPostalCode(pickupPostalCode) && (
                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
@@ -736,7 +736,7 @@ export function AddressForm() {
                         handleDeliveryPostalSearch();
                       }
                     }}
-                    className="pop-input pr-16 text-xl md:text-xl h-12 font-bold tracking-widest"
+                    className="pop-input pr-16 text-xl"
                   />
                   {isValidPostalCode(deliveryPostalCode) && (
                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
