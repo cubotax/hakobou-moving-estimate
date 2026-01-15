@@ -635,7 +635,7 @@ export function AddressForm() {
                     value={pickupPostalCode}
                     onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
                         e.preventDefault();
                         handlePickupPostalSearch();
                       }
@@ -731,7 +731,7 @@ export function AddressForm() {
                     value={deliveryPostalCode}
                     onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
                         e.preventDefault();
                         handleDeliveryPostalSearch();
                       }
