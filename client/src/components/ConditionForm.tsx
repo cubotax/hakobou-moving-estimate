@@ -465,7 +465,7 @@ export function ConditionForm() {
         </Button>
         <Button
           type="submit"
-          className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]"
+          className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none"
         >
           見積もりを確認
           <ArrowRight className="w-6 h-6 ml-2" />

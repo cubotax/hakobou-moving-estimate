@@ -221,7 +221,6 @@
 
   .pop-button:active {
     box-shadow: none;
-    transform: translate(4px, 4px);
   }
 
   /* カラフルなバッジ */
@@ -235,7 +234,8 @@
   }
 
   .badge-green {
-    @apply bg-[oklch(0.75_0.2_145)] text-white font-bold px-3 py-1 rounded-full text-sm;
+    @apply bg-[oklch(0.75_0.2_145)] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
+    box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
   }
 
   .badge-green-no-border {
@@ -253,7 +253,8 @@
   }
 
   .badge-orange {
-    @apply bg-[oklch(0.8_0.18_60)] text-white font-bold px-3 py-1 rounded-full text-sm;
+    @apply bg-[oklch(0.8_0.18_60)] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
+    box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
   }
 
   .badge-orange-no-border {
