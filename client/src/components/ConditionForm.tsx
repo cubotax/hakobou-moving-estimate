@@ -19,7 +19,8 @@ import {
   MapPin,
   Truck,
   Sparkles,
-  ClipboardList
+  ClipboardList,
+  Loader2
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -72,7 +73,7 @@ export function ConditionForm() {
     handleSubmit,
     control,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<Step2FormData>({
     resolver: zodResolver(step2Schema),
     defaultValues: savedData || defaultStep2Values,
@@ -478,10 +479,20 @@ export function ConditionForm() {
         </Button>
         <Button
           type="submit"
-          className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+          disabled={isSubmitting}
+          className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          見積もりを確認
-          <ArrowRight className="w-6 h-6 ml-2" />
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+              計算中...
+            </>
+          ) : (
+            <>
+              見積もりを確認
+              <ArrowRight className="w-6 h-6 ml-2" />
+            </>
+          )}
         </Button>
       </div>
     </form>
