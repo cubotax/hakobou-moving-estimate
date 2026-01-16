@@ -135,9 +135,21 @@ export default function LiffRedirect() {
                     liff.closeWindow();
                 }
             }, 3000);
-        } catch (error) {
+        } catch (error: any) {
             console.error('LIFF Error:', error);
-            setErrorMessage(error instanceof Error ? error.message : 'エラーが発生しました');
+            let message = 'エラーが発生しました';
+            if (error instanceof Error) {
+                message = error.message;
+            }
+            if (error?.code) {
+                message += ` (Code: ${error.code})`;
+            }
+            if (error?.message) {
+                message = error.message;
+            }
+            // デバッグ用：エラー全体を表示
+            message += `\n\nDebug: ${JSON.stringify(error, null, 2)}`;
+            setErrorMessage(message);
             setStatus('error');
         }
     }
