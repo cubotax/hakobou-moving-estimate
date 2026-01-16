@@ -19,10 +19,10 @@ declare const liff: {
 };
 
 // LIFF ID
-const LIFF_ID = '2008810480-nGBqOkj';
+const LIFF_ID = '2008810460-IvjGbCbG';
 
 // API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://hakobou-mitsumori.fly.dev';
 
 // 日付をフォーマット（YYYY-MM-DD → YYYY年MM月DD日）
 function formatDate(dateStr: string): string {
