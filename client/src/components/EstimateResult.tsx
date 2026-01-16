@@ -52,7 +52,7 @@ function formatDate(dateStr: string): string {
 }
 
 // LIFF ID
-const LIFF_ID = '2008810480-nGBqOkj';
+const LIFF_ID = '2008810460-IvjGbCbG';
 
 export function EstimateResult() {
   const [, navigate] = useLocation();
