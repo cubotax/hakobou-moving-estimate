@@ -385,7 +385,9 @@ export function AddressForm() {
                     })}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        if (e.nativeEvent.isComposing) return;
                         e.preventDefault();
+                        e.stopPropagation();
                         handleValidatePickupAddress();
                       }
                     }}
@@ -416,7 +418,9 @@ export function AddressForm() {
                     })}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        if (e.nativeEvent.isComposing) return;
                         e.preventDefault();
+                        e.stopPropagation();
                         handleValidatePickupAddress();
                       }
                     }}
@@ -522,7 +526,9 @@ export function AddressForm() {
                     })}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        if (e.nativeEvent.isComposing) return;
                         e.preventDefault();
+                        e.stopPropagation();
                         handleValidateDeliveryAddress();
                       }
                     }}
@@ -553,7 +559,9 @@ export function AddressForm() {
                     })}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        if (e.nativeEvent.isComposing) return;
                         e.preventDefault();
+                        e.stopPropagation();
                         handleValidateDeliveryAddress();
                       }
                     }}
@@ -637,7 +645,9 @@ export function AddressForm() {
                     onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        if (e.nativeEvent.isComposing) return;
                         e.preventDefault();
+                        e.stopPropagation();
                         handlePickupPostalSearch();
                       }
                     }}
@@ -733,7 +743,9 @@ export function AddressForm() {
                     onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        if (e.nativeEvent.isComposing) return;
                         e.preventDefault();
+                        e.stopPropagation();
                         handleDeliveryPostalSearch();
                       }
                     }}
