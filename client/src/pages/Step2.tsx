@@ -25,7 +25,7 @@ export default function Step2() {
             <Settings className="inline-block w-10 h-10 mt-2 text-[oklch(0.8_0.18_60)]" />
           </h1>
           <p className="text-gray-600 text-base sm:text-lg px-4">
-            引越しの条件を教えてください！
+            引越しプランと条件を教えてください！
           </p>
         </header>
 
@@ -38,7 +38,7 @@ export default function Step2() {
         <div className="max-w-2xl mx-auto">
           <ConditionForm />
         </div>
-        
+
         {/* フッター装飾 */}
         <div className="text-center mt-12 text-gray-400">
           <Sparkles className="inline-block w-5 h-5 mr-2" />
