@@ -1,3 +1,10 @@
+/**
+ * LINE見積もりBot サーバー（Flex Message対応版）
+ *
+ * - /api/link の pushMessage でも Flex Message + 詳細テキストを送信
+ * - follow(webhook) の replyMessage でも Flex Message + 詳細テキストを送信
+ */
+
 import express from "express";
 import { nanoid } from "nanoid";
 
@@ -26,6 +33,8 @@ const PORT = Number(process.env.PORT || 3000);
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET || "";
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
 const LIFF_ID = process.env.LIFF_ID || "";
+const APP_BASE_URL =
+  process.env.APP_BASE_URL || "https://hakobou-moving-estimate--cubotax.replit.app";
 
 const isLineConfigured = Boolean(
   LINE_CHANNEL_SECRET && LINE_CHANNEL_ACCESS_TOKEN
@@ -90,19 +99,25 @@ app.post("/api/link", async (req, res) => {
     const estimate = await getEstimateById(estimateId);
 
     if (!estimate) {
-      return res.status(404).json({ success: false, error: "Estimate not found" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Estimate not found" });
     }
 
     // lineUserIdを紐づけ
     const updated = await linkEstimate(estimateId, lineUserId);
 
     if (!updated) {
-      return res.status(500).json({ success: false, error: "Failed to link estimate" });
+      return res
+        .status(500)
+        .json({ success: false, error: "Failed to link estimate" });
     }
 
-    // Messaging APIでプッシュメッセージを送信
+    // Messaging APIでプッシュメッセージを送信（Flex + 詳細テキスト）
     if (client) {
-      const messages = buildEstimateGreeting(estimate);
+      const detailUrl = buildLiffDetailUrl(estimateId);
+      const messages = buildEstimateMessages(estimate, detailUrl);
+
       await client.pushMessage({
         to: lineUserId,
         messages,
@@ -124,7 +139,9 @@ app.get("/api/estimates/:id", async (req, res) => {
     const estimate = await getEstimateById(req.params.id);
 
     if (!estimate) {
-      return res.status(404).json({ success: false, error: "Estimate not found" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Estimate not found" });
     }
 
     res.json({ success: true, estimate });
@@ -176,7 +193,9 @@ async function handleFollowEvent(event) {
 
   const estimate = lineUserId ? await getEstimateByLineUserId(lineUserId) : null;
 
-  const messages = estimate ? buildEstimateGreeting(estimate) : buildNormalGreeting();
+  const messages = estimate
+    ? buildEstimateMessages(estimate, buildLiffDetailUrl(estimate.id))
+    : buildWelcomeMessages();
 
   return client.replyMessage({
     replyToken: event.replyToken,
@@ -184,7 +203,12 @@ async function handleFollowEvent(event) {
   });
 }
 
-function buildNormalGreeting() {
+/**
+ * ========== Message Builders ==========
+ */
+
+function buildWelcomeMessages() {
+  // まずはテキストだけ（必要ならここもFlexにできます）
   return [
     {
       type: "text",
@@ -195,40 +219,265 @@ function buildNormalGreeting() {
   ];
 }
 
-function buildEstimateGreeting(estimate) {
-  const pickupAddress = `${estimate.pickup_prefecture || ""}${estimate.pickup_city || ""}${estimate.pickup_town || ""}`;
-  const deliveryAddress = `${estimate.delivery_prefecture || ""}${estimate.delivery_city || ""}${estimate.delivery_town || ""}`;
+function buildLiffDetailUrl(estimateId) {
+  if (LIFF_ID) return `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`;
+  return `${APP_BASE_URL}?estimateId=${estimateId}`;
+}
 
-  const feeNum = Number(estimate.total_fee);
-  const totalFee = Number.isFinite(feeNum) ? feeNum.toLocaleString() : String(estimate.total_fee || "0");
+function formatDateJP(dateStr) {
+  if (!dateStr) return "未定";
+  const d = new Date(dateStr);
+  // 無効な日付対策
+  if (Number.isNaN(d.getTime())) return "未定";
+  return d.toLocaleDateString("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("ja-JP", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const elevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
-  const elevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
-  const packingService = estimate.needs_packing ? "希望する" : "希望しない";
+function buildEstimateMessages(estimate, detailUrl = null) {
+  const flex = buildEstimateFlexMessage(estimate, detailUrl);
+  const detailText = buildEstimateDetailText(estimate);
 
   return [
+    flex,
     {
       type: "text",
-      text:
-        `【ご入力内容の詳細】\n\n` +
-        `■ 集荷先\n${pickupAddress}\n${estimate.floor_pickup || 1}階 / エレベーター：${elevatorPickup}\n\n` +
-        `■ お届け先\n${deliveryAddress}\n${estimate.floor_delivery || 1}階 / エレベーター：${elevatorDelivery}\n\n` +
-        `■ 引越し日程\n集荷日：${formatDate(estimate.pickup_date)}\nお届け日：${formatDate(estimate.delivery_date)}\n\n` +
-        `■ オプション\n梱包サービス：${packingService}\n\n` +
-        `■ お見積もり金額\n¥${totalFee}\n\n` +
-        `ご不明点がございましたら、お気軽にメッセージをお送りください！`,
+      text: detailText,
     },
   ];
+}
+
+function buildEstimateFlexMessage(estimate, detailUrl = null) {
+  const feeNum = Number(estimate.total_fee);
+  const totalFee = Number.isFinite(feeNum)
+    ? `¥${feeNum.toLocaleString()}`
+    : `¥${Number(estimate.total_fee || 0).toLocaleString()}`;
+
+  const pickupAddress = [
+    estimate.pickup_prefecture,
+    estimate.pickup_city,
+    estimate.pickup_town,
+  ]
+    .filter(Boolean)
+    .join("") || "未入力";
+
+  const deliveryAddress = [
+    estimate.delivery_prefecture,
+    estimate.delivery_city,
+    estimate.delivery_town,
+  ]
+    .filter(Boolean)
+    .join("") || "未入力";
+
+  const pickupDate = formatDateJP(estimate.pickup_date);
+  const deliveryDate = formatDateJP(estimate.delivery_date);
+
+  const actionUrl = detailUrl || APP_BASE_URL;
+
+  return {
+    type: "flex",
+    altText: `お見積もり金額: ${totalFee}`,
+    contents: {
+      type: "bubble",
+      header: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: "🚚 お引越し見積もり",
+            weight: "bold",
+            size: "lg",
+            color: "#1DB446",
+          },
+        ],
+        backgroundColor: "#F5F5F5",
+        paddingAll: "16px",
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: totalFee,
+            weight: "bold",
+            size: "3xl",
+            color: "#1DB446",
+            align: "center",
+          },
+          {
+            type: "separator",
+            margin: "lg",
+          },
+          {
+            type: "box",
+            layout: "vertical",
+            margin: "lg",
+            spacing: "sm",
+            contents: [
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  {
+                    type: "text",
+                    text: "📍 集荷先",
+                    size: "sm",
+                    color: "#555555",
+                    flex: 0,
+                  },
+                  {
+                    type: "text",
+                    text: pickupAddress,
+                    size: "sm",
+                    color: "#111111",
+                    align: "end",
+                    wrap: true,
+                    flex: 2,
+                  },
+                ],
+              },
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  {
+                    type: "text",
+                    text: "🏠 お届け先",
+                    size: "sm",
+                    color: "#555555",
+                    flex: 0,
+                  },
+                  {
+                    type: "text",
+                    text: deliveryAddress,
+                    size: "sm",
+                    color: "#111111",
+                    align: "end",
+                    wrap: true,
+                    flex: 2,
+                  },
+                ],
+              },
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  {
+                    type: "text",
+                    text: "📅 集荷日",
+                    size: "sm",
+                    color: "#555555",
+                    flex: 0,
+                  },
+                  {
+                    type: "text",
+                    text: pickupDate,
+                    size: "sm",
+                    color: "#111111",
+                    align: "end",
+                  },
+                ],
+              },
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  {
+                    type: "text",
+                    text: "📅 お届け日",
+                    size: "sm",
+                    color: "#555555",
+                    flex: 0,
+                  },
+                  {
+                    type: "text",
+                    text: deliveryDate,
+                    size: "sm",
+                    color: "#111111",
+                    align: "end",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        contents: [
+          {
+            type: "button",
+            style: "primary",
+            height: "md",
+            action: {
+              type: "uri",
+              label: "詳細を確認",
+              uri: actionUrl,
+            },
+            color: "#1DB446",
+          },
+          {
+            type: "text",
+            text: "ご不明点はお気軽にメッセージください！",
+            size: "xs",
+            color: "#888888",
+            align: "center",
+            margin: "md",
+            wrap: true,
+          },
+        ],
+        paddingAll: "16px",
+      },
+    },
+  };
+}
+
+function buildEstimateDetailText(estimate) {
+  const pickupAddress = [
+    estimate.pickup_prefecture,
+    estimate.pickup_city,
+    estimate.pickup_town,
+  ]
+    .filter(Boolean)
+    .join("") || "未入力";
+
+  const deliveryAddress = [
+    estimate.delivery_prefecture,
+    estimate.delivery_city,
+    estimate.delivery_town,
+  ]
+    .filter(Boolean)
+    .join("") || "未入力";
+
+  const pickupDate = formatDateJP(estimate.pickup_date);
+  const deliveryDate = formatDateJP(estimate.delivery_date);
+
+  const floorPickup = estimate.floor_pickup || 1;
+  const hasElevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
+  const floorDelivery = estimate.floor_delivery || 1;
+  const hasElevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
+  const needsPacking = estimate.needs_packing ? "希望する" : "希望しない";
+
+  const feeNum = Number(estimate.total_fee);
+  const totalFee = Number.isFinite(feeNum)
+    ? feeNum.toLocaleString()
+    : String(estimate.total_fee || "0");
+
+  return (
+    `【ご入力内容の詳細】\n\n` +
+    `■ 集荷先\n${pickupAddress}\n${floorPickup}階 / エレベーター：${hasElevatorPickup}\n\n` +
+    `■ お届け先\n${deliveryAddress}\n${floorDelivery}階 / エレベーター：${hasElevatorDelivery}\n\n` +
+    `■ 引越し日程\n集荷日：${pickupDate}\nお届け日：${deliveryDate}\n\n` +
+    `■ オプション\n梱包サービス：${needsPacking}\n\n` +
+    `■ お見積もり金額\n¥${totalFee}\n\n` +
+    `ご不明点がございましたら、お気軽にメッセージをお送りください！`
+  );
 }
 
 // ========= ERROR HANDLER =========
