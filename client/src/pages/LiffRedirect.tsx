@@ -67,7 +67,16 @@ export default function LiffRedirect() {
         try {
             // URLパラメータからestimateIdを取得
             const urlParams = new URLSearchParams(window.location.search);
-            const estimateId = urlParams.get('estimateId');
+            let estimateId = urlParams.get('estimateId');
+
+            // liff.stateからも確認（LIFFリダイレクト時）
+            if (!estimateId) {
+                const liffState = urlParams.get('liff.state');
+                if (liffState) {
+                    const stateParams = new URLSearchParams(liffState);
+                    estimateId = stateParams.get('estimateId');
+                }
+            }
 
             if (!estimateId) {
                 throw new Error('見積もりIDが見つかりません');
