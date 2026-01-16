@@ -74,7 +74,7 @@ app.post("/api/estimates", async (req, res) => {
   }
 });
 
-// 見積もりとLINEユーザーの紐づけ（async対応）
+// 見積もりとLINEユーザーの紐づけ + メッセージ送信
 app.post("/api/link", async (req, res) => {
   try {
     const { estimateId, lineUserId } = req.body || {};
@@ -86,13 +86,30 @@ app.post("/api/link", async (req, res) => {
       });
     }
 
-    const updated = await linkEstimate(estimateId, lineUserId);
+    // 見積もりデータを取得
+    const estimate = await getEstimateById(estimateId);
 
-    if (!updated) {
+    if (!estimate) {
       return res.status(404).json({ success: false, error: "Estimate not found" });
     }
 
-    res.json({ success: true, message: "Linked successfully" });
+    // lineUserIdを紐づけ
+    const updated = await linkEstimate(estimateId, lineUserId);
+
+    if (!updated) {
+      return res.status(500).json({ success: false, error: "Failed to link estimate" });
+    }
+
+    // Messaging APIでプッシュメッセージを送信
+    if (client) {
+      const messages = buildEstimateGreeting(estimate);
+      await client.pushMessage({
+        to: lineUserId,
+        messages,
+      });
+    }
+
+    res.json({ success: true, message: "Linked and message sent successfully" });
   } catch (error) {
     console.error("Error linking estimate:", error);
     res
