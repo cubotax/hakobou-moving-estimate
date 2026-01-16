@@ -15,7 +15,10 @@ import {
   getEstimateById,
 } from "./db.js";
 
+import cors from "cors";
+
 const app = express();
+app.use(cors()); // CORS許可
 
 const PORT = Number(process.env.PORT || 3000);
 
