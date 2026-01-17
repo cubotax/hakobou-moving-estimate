@@ -85,11 +85,7 @@ export function EstimateResult() {
         return;
       }
 
-      // estimateId から LIFF URL を組み立てる
-      const estimateId = localStorage.getItem("estimateId");
-      const liffUrl = estimateId
-        ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
-        : "https://line.me/R/ti/p/@602epmvz";
+
 
       localStorage.setItem("liffUrl", liffUrl);
       window.open(liffUrl, "_blank", "noopener,noreferrer");
@@ -126,8 +122,10 @@ export function EstimateResult() {
   const handleStartOver = () => {
     clearAllData();
     localStorage.removeItem('estimateId');
+    localStorage.removeItem('liffUrl'); // 追加
     navigate('/');
   };
+
 
   const handleGoBack = () => {
     navigate('/step2');
@@ -137,11 +135,6 @@ export function EstimateResult() {
     return null;
   }
 
-  // LIFF URLの生成
-  const estimateId = localStorage.getItem('estimateId');
-  const liffUrl = estimateId
-    ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
-    : "https://line.me/R/ti/p/@602epmvz";
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -203,7 +196,7 @@ export function EstimateResult() {
               type="button"
               onClick={handleLineConsult}
               disabled={isPosting}
-              className="inline-flex items-center justify-center ..."
+              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <MessageCircle className="w-5 h-5" />
               LINE で相談をはじめる
