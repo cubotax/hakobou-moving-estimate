@@ -1,0 +1,43 @@
+{
+  "messages": [
+    {
+      "type": "flex",
+      "altText": "お見積もり金額: ¥24,700",
+      "contents": {
+        "type": "bubble",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            { "type": "text", "text": "🚚 お引越し見積もり", "weight": "bold", "size": "lg", "color": "#1DB446" }
+          ],
+          "backgroundColor": "#F5F5F5",
+          "paddingAll": "16px"
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            { "type": "text", "text": "¥24,700", "weight": "bold", "size": "3xl", "color": "#1DB446", "align": "center" },
+            { "type": "separator", "margin": "lg" }
+          ]
+        },
+        "footer": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "button",
+              "style": "primary",
+              "height": "md",
+              "action": { "type": "uri", "label": "詳細を確認", "uri": "https://mitsumori.hakobou.com/" },
+              "color": "#1DB446"
+            }
+          ],
+          "paddingAll": "16px"
+        }
+      }
+    }
+  ]
+}

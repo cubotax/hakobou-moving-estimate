@@ -3,7 +3,11 @@
  *
  * - /api/link の pushMessage でも Flex Message + 詳細テキストを送信
  * - follow(webhook) の replyMessage でも Flex Message + 詳細テキストを送信
+ * - message(webhook) の replyMessage でも（見積もりがあれば）Flex Message + 詳細テキストを送信
  */
+
+// ===== 目印ログ（起動確認用）=====
+console.log("=== server.js booted A/B ===");
 
 import express from "express";
 import { nanoid } from "nanoid";
@@ -33,8 +37,7 @@ const PORT = Number(process.env.PORT || 3000);
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET || "";
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN || "";
 const LIFF_ID = process.env.LIFF_ID || "";
-const APP_BASE_URL =
-  process.env.APP_BASE_URL || "https://hakobou-moving-estimate--cubotax.replit.app";
+const APP_BASE_URL = process.env.APP_BASE_URL || "https://mitsumori.hakobou.com/";
 
 const isLineConfigured = Boolean(
   LINE_CHANNEL_SECRET && LINE_CHANNEL_ACCESS_TOKEN
@@ -172,13 +175,29 @@ if (isLineConfigured) {
   });
 }
 
+// ======================
+// A) handleEvent（ログ追加版）
+// ======================
 async function handleEvent(event) {
   if (!event) return null;
-  console.log("Received event:", event.type);
 
-  if (event.type === "follow") {
+  const t = event.type;
+  const mt = event.message?.type;
+  console.log("Received event:", t, "messageType:", mt);
+
+  if (t === "follow") {
+    console.log("-> route: handleFollowEvent");
     return handleFollowEvent(event);
   }
+
+  // message は自動返信しない（人が対応）
+  if (t === "message") {
+    console.log("-> route: ignore message (human support)");
+    return null;
+  }
+
+
+  console.log("-> route: ignore");
   return null;
 }
 
@@ -203,12 +222,46 @@ async function handleFollowEvent(event) {
   });
 }
 
+// ======================
+// B) handleMessageEvent（ログ＋例外詳細出力版）
+// ======================
+async function handleMessageEvent(event) {
+  const lineUserId = event?.source?.userId;
+  console.log("handleMessageEvent lineUserId:", lineUserId);
+
+  if (!client) {
+    console.log("LINE client not configured");
+    return null;
+  }
+
+  const estimate = lineUserId ? await getEstimateByLineUserId(lineUserId) : null;
+  console.log("estimate exists:", Boolean(estimate), estimate?.id);
+
+  const messages = estimate
+    ? buildEstimateMessages(estimate, buildLiffDetailUrl(estimate.id))
+    : buildWelcomeMessages();
+
+  try {
+    const r = await client.replyMessage({
+      replyToken: event.replyToken,
+      messages,
+    });
+    console.log("replyMessage OK");
+    return r;
+  } catch (e) {
+    console.error("replyMessage NG", e?.message || e);
+    if (e?.response?.data) {
+      console.error("LINE error detail:", e.response.data);
+    }
+    return null;
+  }
+}
+
 /**
  * ========== Message Builders ==========
  */
 
 function buildWelcomeMessages() {
-  // まずはテキストだけ（必要ならここもFlexにできます）
   return [
     {
       type: "text",
@@ -221,13 +274,13 @@ function buildWelcomeMessages() {
 
 function buildLiffDetailUrl(estimateId) {
   if (LIFF_ID) return `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`;
+  // APP_BASE_URL が末尾/でも、? はそのまま繋いでOK（//? にはならない）
   return `${APP_BASE_URL}?estimateId=${estimateId}`;
 }
 
 function formatDateJP(dateStr) {
   if (!dateStr) return "未定";
   const d = new Date(dateStr);
-  // 無効な日付対策
   if (Number.isNaN(d.getTime())) return "未定";
   return d.toLocaleDateString("ja-JP", {
     year: "numeric",
