@@ -74,28 +74,25 @@ export function EstimateResult() {
       : "https://line.me/R/ti/p/@602epmvz");
 
 
-  const handleLineConsult = async () => {
-    setIsPosting(true);
 
+  const handleLineConsult = () => {
     try {
-      // すでに保存済みのURLがあればそれを使う
-      const existing = localStorage.getItem("liffUrl");
-      if (existing) {
-        window.open(existing, "_blank", "noopener,noreferrer");
-        return;
-      }
+      const estimateId = localStorage.getItem("estimateId");
+      const url = estimateId
+        ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
+        : "https://line.me/R/ti/p/@602epmvz";
 
-
-
-      localStorage.setItem("liffUrl", liffUrl);
-      window.open(liffUrl, "_blank", "noopener,noreferrer");
+      // ★ ここが最重要
+      window.location.href = url;
     } catch (e) {
       console.error(e);
       alert("LINEを開けませんでした");
-    } finally {
-      setIsPosting(false);
     }
   };
+
+
+
+
 
   useEffect(() => {
     const s1 = getStep1Data();
