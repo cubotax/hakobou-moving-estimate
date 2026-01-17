@@ -65,6 +65,15 @@ export function EstimateResult() {
 
   const [isPosting, setIsPosting] = useState(false);
 
+  const estimateId = localStorage.getItem("estimateId");
+
+  const liffUrl =
+    localStorage.getItem("liffUrl") ||
+    (estimateId
+      ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
+      : "https://line.me/R/ti/p/@602epmvz");
+
+
   const handleLineConsult = async () => {
     setIsPosting(true);
 
