@@ -11,19 +11,19 @@ import {
     Truck,
     Calendar,
     Phone,
-    Mail,
     Clock,
     FileText,
     ChevronRight,
     AlertCircle,
     Loader2,
     ArrowLeft,
-    Home
+    Home,
+    Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { API_CONFIG } from '@/lib/config';
-import type { EstimateSummary, ApplyFormData, FormErrors } from './types';
-import { initialFormData } from './types';
+import type { EstimateSummary, ApplyFormData, FormErrors, TimeSlot } from './types';
+import { initialFormData, timeSlotLabels } from './types';
 
 // 日付フォーマット
 function formatDate(dateStr: string): string {
@@ -48,11 +48,12 @@ function isValidPhone(phone: string): boolean {
     return phoneRegex.test(phone.replace(/[\s\u3000]/g, ''));
 }
 
-// メールバリデーション
-function isValidEmail(email: string): boolean {
-    if (!email) return true;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+// プラン名の表示
+function getPlanLabel(plan?: string): string {
+    if (!plan) return '未選択';
+    if (plan === 'helper') return 'ヘルパープラン';
+    if (plan === 'omakase') return 'お任せプラン';
+    return plan;
 }
 
 export default function ApplyForm() {
@@ -123,10 +124,11 @@ export default function ApplyForm() {
         if (errors[field as keyof FormErrors]) {
             setErrors(prev => ({ ...prev, [field]: undefined }));
         }
-        // 連絡先エラーをクリア
-        if (field === 'phone' || field === 'email') {
-            setErrors(prev => ({ ...prev, contact: undefined }));
-        }
+    };
+
+    // 時間帯選択ハンドラ
+    const handleTimeSlotChange = (field: 'pickupTimeSlot' | 'deliveryTimeSlot', value: TimeSlot) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
     };
 
     // バリデーション
@@ -141,24 +143,19 @@ export default function ApplyForm() {
             newErrors.deliveryAddressDetail = '番地以降を入力してください';
         }
 
-        // 連絡先は電話 or メールのどちらか必須
-        if (!formData.phone.trim() && !formData.email.trim()) {
-            newErrors.contact = '電話番号またはメールアドレスのどちらかを入力してください';
-        }
-
-        // 電話番号形式チェック
-        if (formData.phone.trim() && !isValidPhone(formData.phone)) {
+        // 電話番号は必須
+        if (!formData.phone.trim()) {
+            newErrors.phone = '電話番号を入力してください';
+        } else if (!isValidPhone(formData.phone)) {
             newErrors.phone = '正しい電話番号を入力してください';
         }
 
-        // メール形式チェック
-        if (formData.email.trim() && !isValidEmail(formData.email)) {
-            newErrors.email = '正しいメールアドレスを入力してください';
+        // 希望時間帯は必須
+        if (!formData.pickupTimeSlot) {
+            newErrors.pickupTimeSlot = '集荷希望時間帯を選択してください';
         }
-
-        // 希望日時は最低1つ必須
-        if (!formData.preferredDateTime1.trim()) {
-            newErrors.preferredDateTime1 = '第1希望を入力してください';
+        if (!formData.deliveryTimeSlot) {
+            newErrors.deliveryTimeSlot = 'お届け希望時間帯を選択してください';
         }
 
         setErrors(newErrors);
@@ -282,6 +279,15 @@ export default function ApplyForm() {
                                     <p>お届け: {formatDate(estimate?.deliveryDate || '')}</p>
                                 </div>
                             </div>
+                            {/* プラン・梱包サービス */}
+                            <div className="flex items-start gap-3 bg-white/60 rounded-lg p-3">
+                                <Package className="w-5 h-5 text-purple-500 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-gray-700">プラン・オプション</p>
+                                    <p>プラン: {getPlanLabel(estimate?.plan)}</p>
+                                    <p>梱包サービス: {estimate?.needsPacking ? '利用する' : '利用しない'}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -317,27 +323,15 @@ export default function ApplyForm() {
                                         <p className="text-red-500 text-sm mt-1">{errors.pickupAddressDetail}</p>
                                     )}
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-bold mb-1">建物名</label>
-                                        <input
-                                            type="text"
-                                            value={formData.pickupBuilding}
-                                            onChange={(e) => handleInputChange('pickupBuilding', e.target.value)}
-                                            placeholder="例: ハイツ山田"
-                                            className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold mb-1">部屋番号</label>
-                                        <input
-                                            type="text"
-                                            value={formData.pickupRoom}
-                                            onChange={(e) => handleInputChange('pickupRoom', e.target.value)}
-                                            placeholder="例: 101"
-                                            className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-1">建物名・部屋番号</label>
+                                    <input
+                                        type="text"
+                                        value={formData.pickupBuilding}
+                                        onChange={(e) => handleInputChange('pickupBuilding', e.target.value)}
+                                        placeholder="例: ハイツ山田 101"
+                                        className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -370,27 +364,15 @@ export default function ApplyForm() {
                                         <p className="text-red-500 text-sm mt-1">{errors.deliveryAddressDetail}</p>
                                     )}
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-bold mb-1">建物名</label>
-                                        <input
-                                            type="text"
-                                            value={formData.deliveryBuilding}
-                                            onChange={(e) => handleInputChange('deliveryBuilding', e.target.value)}
-                                            placeholder="例: メゾン田中"
-                                            className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold mb-1">部屋番号</label>
-                                        <input
-                                            type="text"
-                                            value={formData.deliveryRoom}
-                                            onChange={(e) => handleInputChange('deliveryRoom', e.target.value)}
-                                            placeholder="例: 202"
-                                            className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
-                                        />
-                                    </div>
+                                <div>
+                                    <label className="block text-sm font-bold mb-1">建物名・部屋番号</label>
+                                    <input
+                                        type="text"
+                                        value={formData.deliveryBuilding}
+                                        onChange={(e) => handleInputChange('deliveryBuilding', e.target.value)}
+                                        placeholder="例: メゾン田中 202"
+                                        className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -403,100 +385,69 @@ export default function ApplyForm() {
                                 </div>
                                 ご連絡先
                             </h3>
-                            <p className="text-sm text-gray-500 mb-3">電話番号またはメールアドレスのどちらかを入力してください</p>
 
-                            {errors.contact && (
-                                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 mb-4">
-                                    <p className="text-red-600 text-sm font-medium flex items-center gap-2">
-                                        <AlertCircle className="w-4 h-4" />
-                                        {errors.contact}
-                                    </p>
-                                </div>
-                            )}
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold mb-1 flex items-center gap-2">
-                                        <Phone className="w-4 h-4" /> 電話番号
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        value={formData.phone}
-                                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                                        placeholder="例: 090-1234-5678"
-                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.phone ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                            }`}
-                                    />
-                                    {errors.phone && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                                    )}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold mb-1 flex items-center gap-2">
-                                        <Mail className="w-4 h-4" /> メールアドレス
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => handleInputChange('email', e.target.value)}
-                                        placeholder="例: example@email.com"
-                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.email ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                            }`}
-                                    />
-                                    {errors.email && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                                    )}
-                                </div>
+                            <div>
+                                <label className="block text-sm font-bold mb-1 flex items-center gap-2">
+                                    <Phone className="w-4 h-4" /> 電話番号 <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                                    placeholder="例: 090-1234-5678"
+                                    className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.phone ? 'border-red-500' : 'border-gray-300 focus:border-black'
+                                        }`}
+                                />
+                                {errors.phone && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                                )}
                             </div>
                         </div>
 
-                        {/* 希望日時 */}
+                        {/* 集荷希望時間帯 */}
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
                                     <Clock className="w-4 h-4 text-orange-500" />
                                 </div>
-                                集荷のご希望日時
+                                集荷希望時間帯 <span className="text-red-500">*</span>
                             </h3>
-                            <p className="text-sm text-gray-500 mb-3">最低1つは入力してください</p>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold mb-1">
-                                        第1希望 <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.preferredDateTime1}
-                                        onChange={(e) => handleInputChange('preferredDateTime1', e.target.value)}
-                                        placeholder="例: 1月20日 午前中"
-                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.preferredDateTime1 ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                            }`}
-                                    />
-                                    {errors.preferredDateTime1 && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.preferredDateTime1}</p>
-                                    )}
+                            <select
+                                value={formData.pickupTimeSlot}
+                                onChange={(e) => handleTimeSlotChange('pickupTimeSlot', e.target.value as TimeSlot)}
+                                className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors bg-white ${errors.pickupTimeSlot ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
+                            >
+                                <option value="">{timeSlotLabels['']}</option>
+                                <option value="morning">{timeSlotLabels.morning}</option>
+                                <option value="afternoon">{timeSlotLabels.afternoon}</option>
+                                <option value="anytime">{timeSlotLabels.anytime}</option>
+                            </select>
+                            {errors.pickupTimeSlot && (
+                                <p className="text-red-500 text-sm mt-1">{errors.pickupTimeSlot}</p>
+                            )}
+                        </div>
+
+                        {/* お届け希望時間帯 */}
+                        <div className="mb-8">
+                            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+                                    <Clock className="w-4 h-4 text-teal-500" />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-bold mb-1">第2希望</label>
-                                    <input
-                                        type="text"
-                                        value={formData.preferredDateTime2}
-                                        onChange={(e) => handleInputChange('preferredDateTime2', e.target.value)}
-                                        placeholder="例: 1月21日 14時〜16時"
-                                        className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold mb-1">第3希望</label>
-                                    <input
-                                        type="text"
-                                        value={formData.preferredDateTime3}
-                                        onChange={(e) => handleInputChange('preferredDateTime3', e.target.value)}
-                                        placeholder="例: 1月22日 終日可"
-                                        className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
-                                    />
-                                </div>
-                            </div>
+                                お届け希望時間帯 <span className="text-red-500">*</span>
+                            </h3>
+                            <select
+                                value={formData.deliveryTimeSlot}
+                                onChange={(e) => handleTimeSlotChange('deliveryTimeSlot', e.target.value as TimeSlot)}
+                                className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors bg-white ${errors.deliveryTimeSlot ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
+                            >
+                                <option value="">{timeSlotLabels['']}</option>
+                                <option value="morning">{timeSlotLabels.morning}</option>
+                                <option value="afternoon">{timeSlotLabels.afternoon}</option>
+                                <option value="anytime">{timeSlotLabels.anytime}</option>
+                            </select>
+                            {errors.deliveryTimeSlot && (
+                                <p className="text-red-500 text-sm mt-1">{errors.deliveryTimeSlot}</p>
+                            )}
                         </div>
 
                         {/* 備考 */}
@@ -525,14 +476,6 @@ export default function ApplyForm() {
                         >
                             確認画面へ
                             <ChevronRight className="w-5 h-5 ml-2" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => navigate('/result')}
-                            className="w-full h-12 border-2 border-gray-300 rounded-xl font-bold"
-                        >
-                            <ArrowLeft className="w-5 h-5 mr-2" />
-                            見積結果に戻る
                         </Button>
                     </div>
                 </div>

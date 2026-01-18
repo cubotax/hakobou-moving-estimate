@@ -11,18 +11,18 @@ import {
     Truck,
     Calendar,
     Phone,
-    Mail,
     Clock,
     FileText,
     ChevronLeft,
     Check,
     Loader2,
     AlertCircle,
-    Home
+    Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { API_CONFIG } from '@/lib/config';
 import type { EstimateSummary, ApplyFormData } from './types';
+import { timeSlotLabels } from './types';
 
 // 日付フォーマット
 function formatDate(dateStr: string): string {
@@ -38,6 +38,14 @@ function formatDate(dateStr: string): string {
 // 金額フォーマット
 function formatCurrency(amount: number): string {
     return `¥${amount.toLocaleString()}`;
+}
+
+// プラン名の表示
+function getPlanLabel(plan?: string): string {
+    if (!plan) return '未選択';
+    if (plan === 'helper') return 'ヘルパープラン';
+    if (plan === 'omakase') return 'お任せプラン';
+    return plan;
 }
 
 export default function Confirm() {
@@ -194,6 +202,15 @@ export default function Confirm() {
                                     <p>お届け: {formatDate(estimate.deliveryDate)}</p>
                                 </div>
                             </div>
+                            {/* プラン・梱包サービス */}
+                            <div className="flex items-start gap-3 bg-white/60 rounded-lg p-3">
+                                <Package className="w-5 h-5 text-purple-500 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-bold text-gray-700">プラン・オプション</p>
+                                    <p>プラン: {getPlanLabel(estimate.plan)}</p>
+                                    <p>梱包サービス: {estimate.needsPacking ? '利用する' : '利用しない'}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -212,12 +229,8 @@ export default function Confirm() {
                                     {estimate.pickupPrefecture}{estimate.pickupCity}{estimate.pickupTown}
                                     <span className="text-[oklch(0.5_0.2_250)] font-bold"> {formData.pickupAddressDetail}</span>
                                 </p>
-                                {(formData.pickupBuilding || formData.pickupRoom) && (
-                                    <p className="text-gray-600">
-                                        {formData.pickupBuilding && <span>{formData.pickupBuilding}</span>}
-                                        {formData.pickupBuilding && formData.pickupRoom && <span> </span>}
-                                        {formData.pickupRoom && <span>{formData.pickupRoom}号室</span>}
-                                    </p>
+                                {formData.pickupBuilding && (
+                                    <p className="text-gray-600">{formData.pickupBuilding}</p>
                                 )}
                             </div>
                         </div>
@@ -233,12 +246,8 @@ export default function Confirm() {
                                     {estimate.deliveryPrefecture}{estimate.deliveryCity}{estimate.deliveryTown}
                                     <span className="text-[oklch(0.5_0.2_250)] font-bold"> {formData.deliveryAddressDetail}</span>
                                 </p>
-                                {(formData.deliveryBuilding || formData.deliveryRoom) && (
-                                    <p className="text-gray-600">
-                                        {formData.deliveryBuilding && <span>{formData.deliveryBuilding}</span>}
-                                        {formData.deliveryBuilding && formData.deliveryRoom && <span> </span>}
-                                        {formData.deliveryRoom && <span>{formData.deliveryRoom}号室</span>}
-                                    </p>
+                                {formData.deliveryBuilding && (
+                                    <p className="text-gray-600">{formData.deliveryBuilding}</p>
                                 )}
                             </div>
                         </div>
@@ -249,36 +258,23 @@ export default function Confirm() {
                                 <Phone className="w-5 h-5 text-blue-500" />
                                 ご連絡先
                             </h3>
-                            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                                {formData.phone && (
-                                    <p className="flex items-center gap-2">
-                                        <Phone className="w-4 h-4 text-gray-400" />
-                                        <span className="font-medium">{formData.phone}</span>
-                                    </p>
-                                )}
-                                {formData.email && (
-                                    <p className="flex items-center gap-2">
-                                        <Mail className="w-4 h-4 text-gray-400" />
-                                        <span className="font-medium">{formData.email}</span>
-                                    </p>
-                                )}
+                            <div className="bg-gray-50 rounded-xl p-4">
+                                <p className="flex items-center gap-2">
+                                    <Phone className="w-4 h-4 text-gray-400" />
+                                    <span className="font-medium">{formData.phone}</span>
+                                </p>
                             </div>
                         </div>
 
-                        {/* 希望日時 */}
+                        {/* 希望時間帯 */}
                         <div className="mb-6 pb-6 border-b-2 border-dashed border-gray-200">
                             <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
                                 <Clock className="w-5 h-5 text-orange-500" />
-                                集荷のご希望日時
+                                ご希望時間帯
                             </h3>
                             <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                                <p className="font-medium">第1希望: {formData.preferredDateTime1}</p>
-                                {formData.preferredDateTime2 && (
-                                    <p className="text-gray-600">第2希望: {formData.preferredDateTime2}</p>
-                                )}
-                                {formData.preferredDateTime3 && (
-                                    <p className="text-gray-600">第3希望: {formData.preferredDateTime3}</p>
-                                )}
+                                <p className="font-medium">集荷: {timeSlotLabels[formData.pickupTimeSlot]}</p>
+                                <p className="font-medium">お届け: {timeSlotLabels[formData.deliveryTimeSlot]}</p>
                             </div>
                         </div>
 

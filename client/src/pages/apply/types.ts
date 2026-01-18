@@ -2,6 +2,9 @@
  * 申込フォーム 型定義
  */
 
+/** 希望時間帯 */
+export type TimeSlot = 'morning' | 'afternoon' | 'anytime' | '';
+
 /** 見積サマリー（API取得データ） */
 export interface EstimateSummary {
   id: string;
@@ -26,22 +29,18 @@ export interface EstimateSummary {
 export interface ApplyFormData {
   // 集荷先の詳細住所
   pickupAddressDetail: string; // 番地以降
-  pickupBuilding: string;      // 建物名
-  pickupRoom: string;          // 部屋番号
+  pickupBuilding: string;      // 建物名・部屋番号（統合）
 
   // お届け先の詳細住所
   deliveryAddressDetail: string; // 番地以降
-  deliveryBuilding: string;      // 建物名
-  deliveryRoom: string;          // 部屋番号
+  deliveryBuilding: string;      // 建物名・部屋番号（統合）
 
   // 連絡先
   phone: string;
-  email: string;
 
-  // 希望日時
-  preferredDateTime1: string;
-  preferredDateTime2: string;
-  preferredDateTime3: string;
+  // 希望時間帯
+  pickupTimeSlot: TimeSlot;
+  deliveryTimeSlot: TimeSlot;
 
   // 備考
   notes: string;
@@ -52,23 +51,26 @@ export interface FormErrors {
   pickupAddressDetail?: string;
   deliveryAddressDetail?: string;
   phone?: string;
-  email?: string;
-  preferredDateTime1?: string;
-  contact?: string; // 電話 or メールどちらか必須エラー用
+  pickupTimeSlot?: string;
+  deliveryTimeSlot?: string;
 }
 
 /** 申込フォーム初期値 */
 export const initialFormData: ApplyFormData = {
   pickupAddressDetail: '',
   pickupBuilding: '',
-  pickupRoom: '',
   deliveryAddressDetail: '',
   deliveryBuilding: '',
-  deliveryRoom: '',
   phone: '',
-  email: '',
-  preferredDateTime1: '',
-  preferredDateTime2: '',
-  preferredDateTime3: '',
+  pickupTimeSlot: '',
+  deliveryTimeSlot: '',
   notes: '',
+};
+
+/** 時間帯の表示ラベル */
+export const timeSlotLabels: Record<TimeSlot, string> = {
+  '': '選択してください',
+  morning: '午前',
+  afternoon: '午後',
+  anytime: 'どちらでも',
 };
