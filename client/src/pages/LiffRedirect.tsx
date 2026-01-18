@@ -1,7 +1,7 @@
 /**
  * LIFFリダイレクトページ
  * 
- * LINEアプリ内で開かれ、見積もり情報をトークに送信するページ
+ * LINEアプリ内で開かれ、見積もり情報をDBに保存してトークに送信するページ
  */
 
 import { useEffect, useState } from 'react';
@@ -35,23 +35,6 @@ export default function LiffRedirect() {
 
     async function initializeLiff() {
         try {
-            // URLパラメータからestimateIdを取得
-            const urlParams = new URLSearchParams(window.location.search);
-            let estimateId = urlParams.get('estimateId');
-
-            // liff.stateからも確認（LIFFリダイレクト時）
-            if (!estimateId) {
-                const liffState = urlParams.get('liff.state');
-                if (liffState) {
-                    const stateParams = new URLSearchParams(liffState);
-                    estimateId = stateParams.get('estimateId');
-                }
-            }
-
-            if (!estimateId) {
-                throw new Error('見積もりIDが見つかりません');
-            }
-
             // LIFF初期化
             await liff.init({ liffId: LIFF_ID });
 
@@ -65,19 +48,66 @@ export default function LiffRedirect() {
             const profile = await liff.getProfile();
             const lineUserId = profile.userId;
 
+            // localStorage から見積もりデータを取得
+            const step1Data = localStorage.getItem('step1Data');
+            const step2Data = localStorage.getItem('step2Data');
+            const estimateResult = localStorage.getItem('estimateResult');
+            const distanceData = localStorage.getItem('distanceData');
+
+            if (!step1Data || !step2Data || !estimateResult) {
+                throw new Error('見積もりデータが見つかりません');
+            }
+
+            const step1 = JSON.parse(step1Data);
+            const step2 = JSON.parse(step2Data);
+            const result = JSON.parse(estimateResult);
+            const distance = distanceData ? JSON.parse(distanceData) : null;
+
             setStatus('sending');
 
-            // バックエンドに送信（バックエンドがMessaging APIでメッセージ送信）
-            const response = await fetch(`${API_BASE_URL}/api/link`, {
+            // API URL 正規化
+            const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+            const endpoint = `${base}/api/estimates-with-line`;
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estimateId, lineUserId }),
+                body: JSON.stringify({
+                    lineUserId,
+                    pickupAddress: step1.pickupAddress,
+                    deliveryAddress: step1.deliveryAddress,
+                    dates: step1.dates,
+                    totalFee: result.totalFee,
+                    distanceKm: distance?.distanceKm || result.distanceKm || 0,
+                    conditions: {
+                        floorPickup: step2.floorPickup,
+                        hasElevatorPickup: step2.hasElevatorPickup,
+                        floorDelivery: step2.floorDelivery,
+                        hasElevatorDelivery: step2.hasElevatorDelivery,
+                        needsPacking: step2.needsPacking,
+                    },
+                    plan: step2.plan,
+                }),
             });
 
-            const result = await response.json();
+            const rawText = await response.text().catch(() => '');
+            let apiResult: any = null;
+            try {
+                apiResult = rawText ? JSON.parse(rawText) : null;
+            } catch {
+                apiResult = null;
+            }
 
-            if (!result.success) {
-                throw new Error(result.error || 'エラーが発生しました');
+            if (!response.ok) {
+                const msg =
+                    apiResult?.error ||
+                    `APIエラーが発生しました（HTTP ${response.status}）` +
+                    (rawText ? `: ${rawText}` : '');
+                throw new Error(msg);
+            }
+
+            if (!apiResult?.success) {
+                throw new Error(apiResult?.error || 'エラーが発生しました');
             }
 
             setStatus('success');
