@@ -24,6 +24,7 @@ import {
   linkEstimate,
   getEstimateByLineUserId,
   getEstimateById,
+  insertApplication,
 } from "./db.js";
 
 import cors from "cors";
@@ -150,6 +151,67 @@ app.get("/api/estimates/:id", async (req, res) => {
     res.json({ success: true, estimate });
   } catch (error) {
     console.error("Error getting estimate:", error);
+    res
+      .status(500)
+      .json({ success: false, error: error?.message || String(error) });
+  }
+});
+
+// 申込データ作成
+app.post("/api/apply", async (req, res) => {
+  try {
+    const {
+      estimateId,
+      pickupAddressDetail,
+      pickupBuilding,
+      pickupRoom,
+      deliveryAddressDetail,
+      deliveryBuilding,
+      deliveryRoom,
+      phone,
+      email,
+      preferredDateTime1,
+      preferredDateTime2,
+      preferredDateTime3,
+      notes,
+    } = req.body || {};
+
+    if (!estimateId) {
+      return res.status(400).json({
+        success: false,
+        error: "estimateId is required",
+      });
+    }
+
+    // 見積もりが存在するか確認
+    const estimate = await getEstimateById(estimateId);
+    if (!estimate) {
+      return res.status(404).json({
+        success: false,
+        error: "Estimate not found",
+      });
+    }
+
+    // 申込データを保存
+    const applicationId = await insertApplication({
+      estimateId,
+      pickupAddressDetail,
+      pickupBuilding,
+      pickupRoom,
+      deliveryAddressDetail,
+      deliveryBuilding,
+      deliveryRoom,
+      phone,
+      email,
+      preferredDateTime1,
+      preferredDateTime2,
+      preferredDateTime3,
+      notes,
+    });
+
+    res.json({ success: true, applicationId });
+  } catch (error) {
+    console.error("Error creating application:", error);
     res
       .status(500)
       .json({ success: false, error: error?.message || String(error) });

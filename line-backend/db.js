@@ -88,4 +88,36 @@ export async function getEstimateById(estimateId) {
   return data || null;
 }
 
+/**
+ * 申込データを保存
+ */
+export async function insertApplication(application) {
+  const { data, error } = await supabase
+    .from('applications')
+    .insert({
+      estimate_id: application.estimateId,
+      pickup_address_detail: application.pickupAddressDetail || '',
+      pickup_building: application.pickupBuilding || '',
+      pickup_room: application.pickupRoom || '',
+      delivery_address_detail: application.deliveryAddressDetail || '',
+      delivery_building: application.deliveryBuilding || '',
+      delivery_room: application.deliveryRoom || '',
+      phone: application.phone || '',
+      email: application.email || '',
+      preferred_datetime_1: application.preferredDateTime1 || '',
+      preferred_datetime_2: application.preferredDateTime2 || '',
+      preferred_datetime_3: application.preferredDateTime3 || '',
+      notes: application.notes || '',
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error inserting application:', error);
+    throw error;
+  }
+
+  return data?.id || null;
+}
+
 export default supabase;

@@ -9,6 +9,9 @@ import Step1 from "./pages/Step1";
 import Step2 from "./pages/Step2";
 import Result from "./pages/Result";
 import LiffRedirect from "./pages/LiffRedirect";
+import ApplyForm from "./pages/apply/ApplyForm";
+import Confirm from "./pages/apply/Confirm";
+import Complete from "./pages/apply/Complete";
 
 /**
  * 引越し見積もりフォーム アプリケーション
@@ -26,6 +29,9 @@ function Router() {
       <Route path="/step1" component={Step1} />
       <Route path="/step2" component={Step2} />
       <Route path="/result" component={Result} />
+      <Route path="/apply" component={ApplyForm} />
+      <Route path="/apply/confirm" component={Confirm} />
+      <Route path="/apply/complete" component={Complete} />
       <Route path="/liff" component={LiffRedirect} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
