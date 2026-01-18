@@ -173,9 +173,37 @@ export default function Confirm() {
                         </h2>
 
                         {/* 金額 */}
-                        <div className="text-center py-4 mb-4 bg-white rounded-xl border-2 border-black">
+                        <div className="text-center py-4 mb-4 bg-white rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <p className="text-sm text-gray-600 font-bold mb-1">お見積もり金額</p>
                             <p className="text-4xl font-black">{formatCurrency(estimate.totalFee)}</p>
+                        </div>
+
+                        {/* 料金内訳 */}
+                        <div className="bg-white/60 rounded-xl p-4 mb-4">
+                            <div className="space-y-3">
+                                {/* 基本料金 */}
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="font-bold text-gray-800">基本料金</p>
+                                        <p className="text-xs text-gray-500">30kmまで</p>
+                                    </div>
+                                    <p className="font-bold text-gray-800">¥ 19,800</p>
+                                </div>
+                                <div className="border-t border-dashed border-gray-300" />
+                                {/* 距離加算料金 */}
+                                {(estimate.distanceKm || 0) > 30 && (
+                                    <>
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <p className="font-bold text-gray-800">距離加算料金</p>
+                                                <p className="text-xs text-gray-500">{estimate.distanceKm?.toFixed(1)}km（累進課金）</p>
+                                            </div>
+                                            <p className="font-bold text-gray-800">¥ {((estimate.totalFee || 0) - 19800).toLocaleString()}</p>
+                                        </div>
+                                        <div className="border-t border-dashed border-gray-300" />
+                                    </>
+                                )}
+                            </div>
                         </div>
 
                         {/* 詳細情報 */}

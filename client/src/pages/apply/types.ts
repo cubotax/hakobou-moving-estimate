@@ -17,6 +17,7 @@ export interface EstimateSummary {
   pickupDate: string;
   deliveryDate: string;
   totalFee: number;
+  distanceKm: number;
   floorPickup: number;
   hasElevatorPickup: boolean;
   floorDelivery: number;
