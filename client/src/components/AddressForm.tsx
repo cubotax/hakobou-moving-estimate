@@ -636,7 +636,7 @@ export function AddressForm() {
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
                 <div className="relative">
-                  <Input
+                  <input
                     id="pickup-postal"
                     placeholder="例：0300801"
                     inputMode="numeric"
@@ -645,10 +645,11 @@ export function AddressForm() {
                     onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        if (e.nativeEvent.isComposing) return;
                         e.preventDefault();
                         e.stopPropagation();
-                        handlePickupPostalSearch();
+                        if (isValidPostalCode(pickupPostalCode)) {
+                          handlePickupPostalSearch();
+                        }
                       }
                     }}
                     className="pop-input pr-16 text-xl"
@@ -734,7 +735,7 @@ export function AddressForm() {
                   郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
                 </Label>
                 <div className="relative">
-                  <Input
+                  <input
                     id="delivery-postal"
                     placeholder="例：9800021"
                     inputMode="numeric"
@@ -743,10 +744,11 @@ export function AddressForm() {
                     onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        if (e.nativeEvent.isComposing) return;
                         e.preventDefault();
                         e.stopPropagation();
-                        handleDeliveryPostalSearch();
+                        if (isValidPostalCode(deliveryPostalCode)) {
+                          handleDeliveryPostalSearch();
+                        }
                       }
                     }}
                     className="pop-input pr-16 text-xl"

@@ -336,9 +336,9 @@ function buildWelcomeMessages() {
 }
 
 function buildLiffDetailUrl(estimateId) {
-  if (LIFF_ID) return `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`;
-  // APP_BASE_URL が末尾/でも、? はそのまま繋いでOK（//? にはならない）
-  return `${APP_BASE_URL}?estimateId=${estimateId}`;
+  // 申込みページに直接遷移（LIFFを経由しない）
+  const baseUrl = APP_BASE_URL.endsWith('/') ? APP_BASE_URL.slice(0, -1) : APP_BASE_URL;
+  return `${baseUrl}/apply?estimateId=${estimateId}`;
 }
 
 function formatDateJP(dateStr) {
