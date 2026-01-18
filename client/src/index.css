@@ -153,43 +153,6 @@
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
   }
-
-  /* keyframes を base layer に定義 */
-  @keyframes float-btn {
-
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-
-    50% {
-      transform: translateY(-4px);
-    }
-  }
-
-  @keyframes bounce-subtle {
-
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-
-    50% {
-      transform: translateY(-5px);
-    }
-  }
-
-  @keyframes wiggle {
-
-    0%,
-    100% {
-      transform: rotate(-3deg);
-    }
-
-    50% {
-      transform: rotate(3deg);
-    }
-  }
 }
 
 @layer components {
@@ -264,7 +227,6 @@
     outline: none !important;
     -webkit-appearance: none !important;
     appearance: none !important;
-    /* テキスト垂直センタリング - inputはflexが効かないのでline-heightで対応 */
     line-height: calc(3.5rem - 6px) !important;
     display: block !important;
   }
@@ -375,7 +337,6 @@
     outline: none;
     -webkit-appearance: none;
     appearance: none;
-    /* テキスト垂直センタリング - borderの分を引く */
     line-height: calc(3.5rem - 6px);
   }
 
@@ -413,21 +374,9 @@
 
 @layer utilities {
 
-  /* LINEボタンのふわふわアニメーション（影は固定、ボタンだけ動く） */
-  .line-btn-pulse {
-    position: relative;
-    box-shadow: none !important;
+  /* LINEボタンのふわふわアニメーション */
+  .animate-float-btn {
     animation: float-btn 2s infinite ease-in-out;
-  }
-
-  .line-btn-pulse::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 1);
-    border-radius: inherit;
-    transform: translate(3px, 3px);
-    z-index: -1;
   }
 
   .animate-bounce-subtle {
@@ -436,5 +385,42 @@
 
   .animate-wiggle {
     animation: wiggle 0.5s ease-in-out;
+  }
+}
+
+/* @layer の外に keyframes を定義（Tailwind v4対応） */
+@keyframes float-btn {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes bounce-subtle {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes wiggle {
+
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+
+  50% {
+    transform: rotate(3deg);
   }
 }
