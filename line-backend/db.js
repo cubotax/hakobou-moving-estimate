@@ -10,7 +10,6 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 見積もり作成（既存 - 後方互換性のため残す）
 export async function insertEstimate(estimate) {
   const { data, error } = await supabase
     .from('estimates')
@@ -44,45 +43,6 @@ export async function insertEstimate(estimate) {
   return estimate.id;
 }
 
-// ★ 新規追加：見積もり作成 + LINE連携（一括処理）
-export async function insertEstimateWithLine(estimate) {
-  console.log('insertEstimateWithLine called with:', estimate.id);
-
-  const { data, error } = await supabase
-    .from('estimates')
-    .insert({
-      id: estimate.id,
-      pickup_prefecture: estimate.pickupAddress?.prefecture || '',
-      pickup_city: estimate.pickupAddress?.city || '',
-      pickup_town: estimate.pickupAddress?.town || '',
-      delivery_prefecture: estimate.deliveryAddress?.prefecture || '',
-      delivery_city: estimate.deliveryAddress?.city || '',
-      delivery_town: estimate.deliveryAddress?.town || '',
-      pickup_date: estimate.dates?.pickupDate || '',
-      delivery_date: estimate.dates?.deliveryDate || '',
-      total_fee: estimate.totalFee || 0,
-      distance_km: estimate.distanceKm || 0,
-      floor_pickup: estimate.conditions?.floorPickup || 1,
-      has_elevator_pickup: estimate.conditions?.hasElevatorPickup || false,
-      floor_delivery: estimate.conditions?.floorDelivery || 1,
-      has_elevator_delivery: estimate.conditions?.hasElevatorDelivery || false,
-      needs_packing: estimate.conditions?.needsPacking || false,
-      plan: estimate.plan || '',
-      line_user_id: estimate.lineUserId || null,  // ★ LINE User ID も同時に保存
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error inserting estimate with line:', error);
-    return { data: null, error };
-  }
-
-  console.log('insertEstimateWithLine success:', data?.id);
-  return { data, error: null };
-}
-
-// 見積もりとLINEユーザーの紐づけ（後方互換性のため残す）
 export async function linkEstimate(estimateId, lineUserId) {
   const { data, error } = await supabase
     .from('estimates')
@@ -98,7 +58,6 @@ export async function linkEstimate(estimateId, lineUserId) {
   return data && data.length > 0;
 }
 
-// LINE User ID で見積もり取得
 export async function getEstimateByLineUserId(lineUserId) {
   const { data, error } = await supabase
     .from('estimates')
@@ -115,7 +74,6 @@ export async function getEstimateByLineUserId(lineUserId) {
   return data || null;
 }
 
-// 見積もりID で見積もり取得
 export async function getEstimateById(estimateId) {
   const { data, error } = await supabase
     .from('estimates')

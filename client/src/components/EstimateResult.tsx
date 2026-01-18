@@ -6,12 +6,11 @@
  * - 黒枠カードで内訳を表示
  * - カラフルなアイコン
  * - 日付・繁忙期・積み置き情報の表示
- * 
- * ★ DBへの保存は「LINEで相談をはじめる」ボタン時にLIFFページで行う
  */
 
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
+import { API_CONFIG } from "@/lib/config";
 
 import {
   MapPin,
@@ -64,16 +63,36 @@ export function EstimateResult() {
   const [distanceData, setDistanceData] = useState<DistanceResult | null>(null);
   const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
 
-  // ★ シンプル化：estimateId なしで LIFF URL に遷移
+  const [isPosting, setIsPosting] = useState(false);
+
+  const estimateId = localStorage.getItem("estimateId");
+
+  const liffUrl =
+    localStorage.getItem("liffUrl") ||
+    (estimateId
+      ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
+      : "https://line.me/R/ti/p/@602epmvz");
+
+
+
   const handleLineConsult = () => {
     try {
-      const url = `https://liff.line.me/${LIFF_ID}`;
+      const estimateId = localStorage.getItem("estimateId");
+      const url = estimateId
+        ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
+        : "https://line.me/R/ti/p/@602epmvz";
+
+      // ★ ここが最重要
       window.location.href = url;
     } catch (e) {
       console.error(e);
       alert("LINEを開けませんでした");
     }
   };
+
+
+
+
 
   useEffect(() => {
     const s1 = getStep1Data();
@@ -99,8 +118,11 @@ export function EstimateResult() {
 
   const handleStartOver = () => {
     clearAllData();
+    localStorage.removeItem('estimateId');
+    localStorage.removeItem('liffUrl'); // 追加
     navigate('/');
   };
+
 
   const handleGoBack = () => {
     navigate('/step2');
@@ -109,6 +131,7 @@ export function EstimateResult() {
   if (!step1Data || !step2Data || !distanceData || !estimateResult) {
     return null;
   }
+
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -169,11 +192,13 @@ export function EstimateResult() {
             <button
               type="button"
               onClick={handleLineConsult}
-              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
+              disabled={isPosting}
+              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <MessageCircle className="w-5 h-5" />
               LINE で相談をはじめる
             </button>
+
           </div>
         </div>
       </div>
@@ -341,12 +366,14 @@ export function EstimateResult() {
           <button
             type="button"
             onClick={handleLineConsult}
-            className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
+            disabled={isPosting}
+            className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <MessageCircle className="w-5 h-5" />
             LINE で相談をはじめる
           </button>
         </div>
+
 
         {/* 繁忙期メッセージ */}
         {isBusySeason(step1Data.dates.pickupDate) && (
@@ -402,6 +429,13 @@ export function EstimateResult() {
           <RotateCcw className="w-5 h-5 mr-2" />
           最初からやり直す
         </Button>
+      </div>
+
+      {/* デバッグ用情報（開発中のみ表示） */}
+      <div className="text-[10px] text-gray-300 text-center mt-8 pb-4 break-all">
+        ID: {estimateId || 'None'}
+        <br />
+        URL: {liffUrl}
       </div>
     </div>
   );

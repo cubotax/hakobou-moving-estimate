@@ -176,7 +176,7 @@ if (isLineConfigured) {
 }
 
 // ======================
-// A) handleEvent（ログ追加版）
+// handleEvent（本番用：Webhookでは一切送信しない）
 // ======================
 async function handleEvent(event) {
   if (!event) return null;
@@ -185,21 +185,22 @@ async function handleEvent(event) {
   const mt = event.message?.type;
   console.log("Received event:", t, "messageType:", mt);
 
+  // 友だち追加：サーバーからは何も送らない
   if (t === "follow") {
-    console.log("-> route: handleFollowEvent");
-    return handleFollowEvent(event);
+    console.log("-> route: ignore follow (handled by LINE official / L Message)");
+    return null;
   }
 
-  // message は自動返信しない（人が対応）
+  // トークメッセージ：自動返信しない（人対応）
   if (t === "message") {
     console.log("-> route: ignore message (human support)");
     return null;
   }
 
-
   console.log("-> route: ignore");
   return null;
 }
+
 
 // フォローイベント処理（async対応）
 async function handleFollowEvent(event) {
