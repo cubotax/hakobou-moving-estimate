@@ -67,7 +67,6 @@ export default function LiffRedirect() {
 
             setStatus('sending');
 
-            // ====== ここだけ書き直し（他は変更なし）======
             // API URL 正規化（末尾スラッシュ対策）
             const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
             const endpoint = `${base}/api/link`;
@@ -98,16 +97,11 @@ export default function LiffRedirect() {
             if (!result?.success) {
                 throw new Error(result?.error || 'エラーが発生しました');
             }
-            // ====== ここまで ======
 
             setStatus('success');
 
-            // 2秒後にLIFFを閉じる
-            setTimeout(() => {
-                if (liff.isInClient()) {
-                    liff.closeWindow();
-                }
-            }, 2000);
+            // 自動クローズは削除 - ユーザーが「トーク画面を開く」ボタンを押すまで待つ
+
         } catch (error: any) {
             console.error('LIFF Error:', error);
             let message = error?.message || 'エラーが発生しました';
@@ -141,9 +135,14 @@ export default function LiffRedirect() {
                         <p className="text-xl font-black text-gray-800">送信完了！</p>
                         <p className="text-sm text-gray-500 mt-2">
                             トーク画面に見積もり情報を送信しました。
-                            <br />
-                            まもなくこの画面を閉じます...
                         </p>
+                        <a
+                            href="https://line.me/R/ti/p/@602epmvz"
+                            className="mt-6 inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all"
+                        >
+                            <MessageCircle className="w-5 h-5" />
+                            トーク画面を開く
+                        </a>
                     </>
                 )}
 
