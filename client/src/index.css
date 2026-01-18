@@ -251,39 +251,40 @@
 
   /* ポップなインプットスタイル */
   .pop-input {
-    width: 100%;
-    height: 3.5rem;
-    padding: 0 1rem;
-    font-size: 1.125rem;
-    font-weight: 500;
-    background: #fff;
-    border: 3px solid #000;
-    border-radius: 0.75rem;
-    box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
-    transition: all 150ms;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    /* テキスト垂直センタリング */
-    line-height: 3.5rem;
-    display: block;
+    width: 100% !important;
+    height: 3.5rem !important;
+    padding: 0 1rem !important;
+    font-size: 1.25rem !important;
+    font-weight: 500 !important;
+    background: #fff !important;
+    border: 3px solid #000 !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1) !important;
+    transition: all 150ms !important;
+    outline: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    /* テキスト垂直センタリング - inputはflexが効かないのでline-heightで対応 */
+    line-height: calc(3.5rem - 6px) !important;
+    display: block !important;
   }
 
   .pop-input:focus {
     box-shadow:
       0 0 0 2px oklch(0.92 0.16 95),
       0 0 0 4px #fff,
-      3px 3px 0px 0px rgba(0, 0, 0, 1);
+      3px 3px 0px 0px rgba(0, 0, 0, 1) !important;
   }
 
   .pop-input:hover:not(:focus) {
-    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1) !important;
     transform: translate(-1px, -1px);
   }
 
   .pop-input::placeholder {
-    color: oklch(0.6 0 0);
-    font-weight: 400;
+    color: oklch(0.6 0 0) !important;
+    font-weight: 400 !important;
+    line-height: calc(3.5rem - 6px) !important;
   }
 
   /* カラフルなバッジ */
@@ -364,7 +365,7 @@
     width: 100%;
     height: 3.5rem;
     padding: 0 1rem;
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 500;
     background: #fff;
     border: 3px solid #000;
@@ -374,8 +375,8 @@
     outline: none;
     -webkit-appearance: none;
     appearance: none;
-    /* テキスト垂直センタリング */
-    line-height: 3.5rem;
+    /* テキスト垂直センタリング - borderの分を引く */
+    line-height: calc(3.5rem - 6px);
   }
 
   .native-date-input:focus {
