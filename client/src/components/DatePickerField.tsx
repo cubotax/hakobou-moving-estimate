@@ -25,9 +25,8 @@ export function DatePickerField({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className={`native-date-input w-full border-[2px] border-black rounded-xl h-12 px-4 font-bold text-base bg-white cursor-pointer ${
-        error ? 'border-[oklch(0.75_0.2_0)]' : ''
-      }`}
+      className={`native-date-input ${error ? 'border-[oklch(0.75_0.2_0)]' : ''
+        }`}
       style={{ colorScheme: 'light' }}
     />
   );
