@@ -10,6 +10,9 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/**
+ * 見積もりデータを新規作成（INSERT）
+ */
 export async function insertEstimate(estimate) {
   const { data, error } = await supabase
     .from('estimates')
@@ -31,6 +34,7 @@ export async function insertEstimate(estimate) {
       has_elevator_delivery: estimate.conditions?.hasElevatorDelivery || false,
       needs_packing: estimate.conditions?.needsPacking || false,
       plan: estimate.plan || '',
+      status: 'estimated',
     })
     .select()
     .single();
@@ -43,6 +47,9 @@ export async function insertEstimate(estimate) {
   return estimate.id;
 }
 
+/**
+ * 見積もりにLINEユーザーIDを紐付け（UPDATE）
+ */
 export async function linkEstimate(estimateId, lineUserId) {
   const { data, error } = await supabase
     .from('estimates')
@@ -58,6 +65,9 @@ export async function linkEstimate(estimateId, lineUserId) {
   return data && data.length > 0;
 }
 
+/**
+ * LINEユーザーIDから最新の見積もりを取得（SELECT）
+ */
 export async function getEstimateByLineUserId(lineUserId) {
   const { data, error } = await supabase
     .from('estimates')
@@ -74,6 +84,9 @@ export async function getEstimateByLineUserId(lineUserId) {
   return data || null;
 }
 
+/**
+ * 見積もりIDから見積もりを取得（SELECT）
+ */
 export async function getEstimateById(estimateId) {
   const { data, error } = await supabase
     .from('estimates')
@@ -89,35 +102,33 @@ export async function getEstimateById(estimateId) {
 }
 
 /**
- * 申込データを保存
+ * 見積もりに申込情報を追加（UPDATE）
  */
-export async function insertApplication(application) {
+export async function updateEstimateWithApplication(estimateId, application) {
   const { data, error } = await supabase
-    .from('applications')
-    .insert({
-      estimate_id: application.estimateId,
+    .from('estimates')
+    .update({
       pickup_address_detail: application.pickupAddressDetail || '',
       pickup_building: application.pickupBuilding || '',
-      pickup_room: application.pickupRoom || '',
       delivery_address_detail: application.deliveryAddressDetail || '',
       delivery_building: application.deliveryBuilding || '',
-      delivery_room: application.deliveryRoom || '',
       phone: application.phone || '',
-      email: application.email || '',
-      preferred_datetime_1: application.preferredDateTime1 || '',
-      preferred_datetime_2: application.preferredDateTime2 || '',
-      preferred_datetime_3: application.preferredDateTime3 || '',
+      pickup_time_slot: application.pickupTimeSlot || '',
+      delivery_time_slot: application.deliveryTimeSlot || '',
       notes: application.notes || '',
+      status: 'applied',
+      applied_at: new Date().toISOString(),
     })
+    .eq('id', estimateId)
     .select()
     .single();
 
   if (error) {
-    console.error('Error inserting application:', error);
+    console.error('Error updating estimate with application:', error);
     throw error;
   }
 
-  return data?.id || null;
+  return data;
 }
 
 export default supabase;

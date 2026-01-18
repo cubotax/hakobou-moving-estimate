@@ -22,6 +22,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { API_CONFIG } from '@/lib/config';
+import CouponInput from '@/components/apply/CouponInput';
+import PaymentSummary from '@/components/apply/PaymentSummary';
+import { useCouponValidation } from '@/hooks/useCouponValidation';
 import type { EstimateSummary, ApplyFormData, FormErrors, TimeSlot } from './types';
 import { initialFormData, timeSlotLabels } from './types';
 
@@ -67,6 +70,16 @@ export default function ApplyForm() {
     const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState<ApplyFormData>(initialFormData);
     const [errors, setErrors] = useState<FormErrors>({});
+
+    // クーポン
+    const [couponCode, setCouponCode] = useState('');
+    const {
+        loading: couponLoading,
+        error: couponError,
+        appliedCoupon,
+        validateCoupon,
+        removeCoupon,
+    } = useCouponValidation();
 
     // 見積データ取得
     useEffect(() => {
@@ -163,6 +176,18 @@ export default function ApplyForm() {
         return Object.keys(newErrors).length === 0;
     };
 
+    // クーポン適用
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim() || !estimateId) return;
+        await validateCoupon(couponCode, estimateId);
+    };
+
+    // クーポン取消
+    const handleRemoveCoupon = () => {
+        removeCoupon();
+        setCouponCode('');
+    };
+
     // 確認画面へ
     const handleSubmit = () => {
         if (!validate()) return;
@@ -170,6 +195,12 @@ export default function ApplyForm() {
         // sessionStorageにデータ保存して確認画面へ
         sessionStorage.setItem('applyFormData', JSON.stringify(formData));
         sessionStorage.setItem('estimateSummary', JSON.stringify(estimate));
+        // クーポン情報も保存
+        if (appliedCoupon) {
+            sessionStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
+        } else {
+            sessionStorage.removeItem('appliedCoupon');
+        }
         navigate('/apply/confirm');
     };
 
@@ -317,6 +348,31 @@ export default function ApplyForm() {
                                     <p>梱包サービス: {estimate?.needsPacking ? '利用する' : '利用しない'}</p>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* クーポンコード */}
+                        <div className="mt-6">
+                            <h3 className="font-bold text-sm mb-3">クーポンコード</h3>
+                            <CouponInput
+                                couponCode={couponCode}
+                                onCodeChange={setCouponCode}
+                                onApply={handleApplyCoupon}
+                                onRemove={handleRemoveCoupon}
+                                appliedCoupon={appliedCoupon}
+                                error={couponError}
+                                loading={couponLoading}
+                            />
+                        </div>
+
+                        {/* 支払い金額サマリー */}
+                        <div className="mt-6">
+                            <h3 className="font-bold text-sm mb-3">お支払い金額</h3>
+                            <PaymentSummary
+                                originalAmount={estimate?.totalFee || 0}
+                                discountAmount={appliedCoupon?.discountAmount || 0}
+                                finalAmount={appliedCoupon?.finalAmount || estimate?.totalFee || 0}
+                                couponCode={appliedCoupon?.code}
+                            />
                         </div>
                     </div>
 

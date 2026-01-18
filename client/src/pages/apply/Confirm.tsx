@@ -21,8 +21,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { API_CONFIG } from '@/lib/config';
+import PaymentSummary from '@/components/apply/PaymentSummary';
 import type { EstimateSummary, ApplyFormData } from './types';
 import { timeSlotLabels } from './types';
+import type { AppliedCoupon } from '@/hooks/useCouponValidation';
 
 // 日付フォーマット
 function formatDate(dateStr: string): string {
@@ -52,6 +54,7 @@ export default function Confirm() {
     const [, navigate] = useLocation();
     const [estimate, setEstimate] = useState<EstimateSummary | null>(null);
     const [formData, setFormData] = useState<ApplyFormData | null>(null);
+    const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +71,12 @@ export default function Confirm() {
         try {
             setFormData(JSON.parse(savedFormData));
             setEstimate(JSON.parse(savedEstimate));
+
+            // クーポン情報も取得
+            const savedCoupon = sessionStorage.getItem('appliedCoupon');
+            if (savedCoupon) {
+                setAppliedCoupon(JSON.parse(savedCoupon));
+            }
         } catch {
             navigate('/');
         }
@@ -99,6 +108,7 @@ export default function Confirm() {
             // 成功時はsessionStorageをクリア
             sessionStorage.removeItem('applyFormData');
             sessionStorage.removeItem('estimateSummary');
+            sessionStorage.removeItem('appliedCoupon');
 
             navigate('/apply/complete');
         } catch (err) {
@@ -239,6 +249,27 @@ export default function Confirm() {
                                     <p>梱包サービス: {estimate.needsPacking ? '利用する' : '利用しない'}</p>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* クーポン・支払い金額 */}
+                        {appliedCoupon && (
+                            <div className="mt-6">
+                                <h3 className="font-bold text-sm mb-3">クーポン</h3>
+                                <div className="bg-green-50 border-2 border-green-200 rounded-xl p-3 text-sm">
+                                    <span className="font-bold text-green-700">{appliedCoupon.code}</span>
+                                    <span className="ml-2 text-green-600">→ -¥{appliedCoupon.discountAmount.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-6">
+                            <h3 className="font-bold text-sm mb-3">お支払い金額</h3>
+                            <PaymentSummary
+                                originalAmount={estimate.totalFee}
+                                discountAmount={appliedCoupon?.discountAmount || 0}
+                                finalAmount={appliedCoupon?.finalAmount || estimate.totalFee}
+                                couponCode={appliedCoupon?.code}
+                            />
                         </div>
                     </div>
 

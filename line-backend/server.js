@@ -24,13 +24,19 @@ import {
   linkEstimate,
   getEstimateByLineUserId,
   getEstimateById,
-  insertApplication,
+  updateEstimateWithApplication,
 } from "./db.js";
 
 import cors from "cors";
+import cookieParser from "cookie-parser";
+
+// 管理画面用ルート
+import adminRoutes from "./adminRoutes.js";
+import couponRoutes from "./publicRoutes.js";
 
 const app = express();
 app.use(cors()); // CORS許可
+app.use(cookieParser()); // Cookie解析
 
 const PORT = Number(process.env.PORT || 3000);
 
@@ -157,22 +163,18 @@ app.get("/api/estimates/:id", async (req, res) => {
   }
 });
 
-// 申込データ作成
+// 申込データ作成（estimatesテーブルを更新）
 app.post("/api/apply", async (req, res) => {
   try {
     const {
       estimateId,
       pickupAddressDetail,
       pickupBuilding,
-      pickupRoom,
       deliveryAddressDetail,
       deliveryBuilding,
-      deliveryRoom,
       phone,
-      email,
-      preferredDateTime1,
-      preferredDateTime2,
-      preferredDateTime3,
+      pickupTimeSlot,
+      deliveryTimeSlot,
       notes,
     } = req.body || {};
 
@@ -192,31 +194,30 @@ app.post("/api/apply", async (req, res) => {
       });
     }
 
-    // 申込データを保存
-    const applicationId = await insertApplication({
-      estimateId,
+    // 見積もりに申込情報を追加（UPDATE）
+    const updatedEstimate = await updateEstimateWithApplication(estimateId, {
       pickupAddressDetail,
       pickupBuilding,
-      pickupRoom,
       deliveryAddressDetail,
       deliveryBuilding,
-      deliveryRoom,
       phone,
-      email,
-      preferredDateTime1,
-      preferredDateTime2,
-      preferredDateTime3,
+      pickupTimeSlot,
+      deliveryTimeSlot,
       notes,
     });
 
-    res.json({ success: true, applicationId });
+    res.json({ success: true, estimateId: updatedEstimate.id });
   } catch (error) {
-    console.error("Error creating application:", error);
+    console.error("Error updating estimate with application:", error);
     res
       .status(500)
       .json({ success: false, error: error?.message || String(error) });
   }
 });
+
+// ========= 管理画面API =========
+app.use("/api/admin", adminRoutes);
+app.use("/api/coupons", couponRoutes);
 
 // ========= WEBHOOK =========
 if (isLineConfigured) {
@@ -262,7 +263,6 @@ async function handleEvent(event) {
   console.log("-> route: ignore");
   return null;
 }
-
 
 // フォローイベント処理（async対応）
 async function handleFollowEvent(event) {
@@ -615,6 +615,6 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health: /health`);
   console.log(`Webhook: /webhook`);
-  console.log(`API: /api/estimates, /api/link, /api/estimates/:id`);
+  console.log(`API: /api/estimates, /api/link, /api/estimates/:id, /api/apply`);
   console.log(`LINE configured: ${isLineConfigured}`);
 });
