@@ -73,8 +73,6 @@ export function EstimateResult() {
       ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
       : "https://line.me/R/ti/p/@602epmvz");
 
-
-
   const handleLineConsult = () => {
     try {
       const estimateId = localStorage.getItem("estimateId");
@@ -82,17 +80,12 @@ export function EstimateResult() {
         ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
         : "https://line.me/R/ti/p/@602epmvz";
 
-      // ★ ここが最重要
       window.location.href = url;
     } catch (e) {
       console.error(e);
       alert("LINEを開けませんでした");
     }
   };
-
-
-
-
 
   useEffect(() => {
     const s1 = getStep1Data();
@@ -110,7 +103,6 @@ export function EstimateResult() {
     setDistanceData(dist);
     setEstimateResult(result);
 
-    // データ設定後にスクロールを実行
     setTimeout(() => {
       window.scrollTo(0, 0);
     }, 0);
@@ -119,10 +111,9 @@ export function EstimateResult() {
   const handleStartOver = () => {
     clearAllData();
     localStorage.removeItem('estimateId');
-    localStorage.removeItem('liffUrl'); // 追加
+    localStorage.removeItem('liffUrl');
     navigate('/');
   };
-
 
   const handleGoBack = () => {
     navigate('/step2');
@@ -131,7 +122,6 @@ export function EstimateResult() {
   if (!step1Data || !step2Data || !distanceData || !estimateResult) {
     return null;
   }
-
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -189,16 +179,17 @@ export function EstimateResult() {
 
           {/* LINE相談ボタン */}
           <div className="mt-6">
-            <button
-              type="button"
-              onClick={handleLineConsult}
-              className="line-btn-pulse inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
-            >
-              <MessageCircle className="w-5 h-5" />
-              LINE で相談をはじめる
-            </button>
-
-
+            <div className="relative">
+              <div className="absolute inset-0 bg-black rounded-xl transform translate-x-[3px] translate-y-[3px]" />
+              <button
+                type="button"
+                onClick={handleLineConsult}
+                className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black transition-colors animate-float-btn"
+              >
+                <MessageCircle className="w-5 h-5" />
+                LINE で相談をはじめる
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -258,7 +249,6 @@ export function EstimateResult() {
           </div>
         </div>
 
-        {/* 積み置き日数の表示 */}
         {!!estimateResult.storageDays && estimateResult.storageDays > 0 && (
           <div className="flex items-center gap-2 mt-4 p-3 bg-[oklch(0.95_0.05_80)] rounded-xl border-2 border-[oklch(0.8_0.1_80)]">
             <Clock className="w-5 h-5 text-[oklch(0.6_0.15_80)]" />
@@ -363,16 +353,18 @@ export function EstimateResult() {
 
         {/* LINE相談ボタン */}
         <div className="mt-6">
-          <button
-            type="button"
-            onClick={handleLineConsult}
-            className="line-btn-pulse inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
-          >
-            <MessageCircle className="w-5 h-5" />
-            LINE で相談をはじめる
-          </button>
+          <div className="relative">
+            <div className="absolute inset-0 bg-black rounded-xl transform translate-x-[3px] translate-y-[3px]" />
+            <button
+              type="button"
+              onClick={handleLineConsult}
+              className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black transition-colors animate-float-btn"
+            >
+              <MessageCircle className="w-5 h-5" />
+              LINE で相談をはじめる
+            </button>
+          </div>
         </div>
-
 
         {/* 繁忙期メッセージ */}
         {isBusySeason(step1Data.dates.pickupDate) && (
