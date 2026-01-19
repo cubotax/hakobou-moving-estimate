@@ -23,8 +23,6 @@ interface AdminAuthContextType {
 const AdminAuthContext = createContext<AdminAuthContextType | null>(null);
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-console.log('=== DEBUG: VITE_API_URL ===', import.meta.env.VITE_API_URL);
-console.log('=== DEBUG: API_BASE_URL ===', API_BASE_URL);
 
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {

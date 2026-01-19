@@ -98,7 +98,7 @@ router.get('/auth/callback', async (req, res) => {
         });
 
         // フロントエンドにリダイレクト（トークン付き）
-        res.redirect(`/admin?token=${jwtToken}`);
+        res.redirect(`/admin/login?token=${jwtToken}`);
     } catch (err) {
         console.error('Auth callback error:', err);
         res.redirect('/admin/login?error=auth_failed');
