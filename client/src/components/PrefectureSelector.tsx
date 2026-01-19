@@ -42,7 +42,7 @@ export function PrefectureSelector({
       <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger
           className={cn(
-            'w-full h-12 border-[2px] border-black rounded-xl text-base font-medium',
+            'pop-input',
             'focus:ring-[oklch(0.92_0.16_95)] focus:border-black',
             'data-[placeholder]:text-gray-400',
             hasValue && 'pr-10',

@@ -282,10 +282,16 @@ function CouponsPage() {
                             {/* クーポンコード */}
                             <div className="space-y-2">
                                 <Label>クーポンコード *</Label>
-                                <Input
+                                <input
+                                    type="text"
                                     value={formData.code}
                                     onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                                     placeholder="WELCOME2026"
+                                    autoComplete="off"
+                                    autoCorrect="off"
+                                    autoCapitalize="characters"
+                                    spellCheck="false"
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-base outline-none focus:border-black focus:ring-1 focus:ring-black"
                                 />
                                 <p className="text-xs text-gray-500">※半角英数字、ハイフン使用可</p>
                             </div>
@@ -319,7 +325,7 @@ function CouponsPage() {
                                         type="number"
                                         value={formData.discountValue}
                                         onChange={(e) => setFormData({ ...formData, discountValue: e.target.value })}
-                                        className="flex-1"
+                                        className="w-48"
                                     />
                                     <span>{formData.discountType === 'fixed' ? '円' : '%'}</span>
                                 </div>
