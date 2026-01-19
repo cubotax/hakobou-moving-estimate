@@ -37,10 +37,17 @@ export function isValidPostalCode(code: string): boolean {
 
 /**
  * 郵便番号から住所を取得
+ * @param postalCode 郵便番号
+ * @param options オプション
+ * @param options.validatePickupArea 集荷対応エリアのバリデーションを行うか（デフォルト: false）
  */
-export async function getAddressByPostalCode(postalCode: string): Promise<PostalResult> {
+export async function getAddressByPostalCode(
+  postalCode: string,
+  options?: { validatePickupArea?: boolean }
+): Promise<PostalResult> {
   const formatted = formatPostalCode(postalCode);
-  
+  const validatePickupArea = options?.validatePickupArea ?? false;
+
   if (!isValidPostalCode(formatted)) {
     return {
       success: false,
@@ -52,7 +59,7 @@ export async function getAddressByPostalCode(postalCode: string): Promise<Postal
     const response = await fetch(
       `https://zipcloud.ibsnet.co.jp/api/search?zipcode=${formatted}`
     );
-    
+
     if (!response.ok) {
       throw new Error('APIリクエストに失敗しました');
     }
@@ -74,6 +81,24 @@ export async function getAddressByPostalCode(postalCode: string): Promise<Postal
     }
 
     const result = data.results[0];
+
+    // 集荷対応エリアのバリデーション（集荷先のみ）
+    if (validatePickupArea) {
+      const { validatePickupAddress } = await import('./allowedAreas');
+      const validation = validatePickupAddress(
+        result.address1,
+        result.address2,
+        result.address3
+      );
+
+      if (!validation.isValid) {
+        return {
+          success: false,
+          error: validation.errorMessage,
+        };
+      }
+    }
+
     const address: PostalAddress = {
       prefecture: result.address1,
       city: result.address2,
@@ -94,13 +119,14 @@ export async function getAddressByPostalCode(postalCode: string): Promise<Postal
   }
 }
 
+
 /**
  * 住所（都道府県+市区町村+町名）が実在するかバリデーション
  * Google Maps Geocoding APIを使用して検証
  */
 export async function validateAddress(address: Address): Promise<AddressValidationResult> {
   const { prefecture, city, town } = address;
-  
+
   // 基本的な入力チェック
   if (!prefecture || !city || !town) {
     return {
@@ -111,7 +137,7 @@ export async function validateAddress(address: Address): Promise<AddressValidati
 
   // Google Maps Geocoding APIで住所を検証
   const fullAddress = `${prefecture}${city}${town}`;
-  
+
   try {
     // Google Maps APIのロードを待つ
     if (!window.google?.maps) {
@@ -124,10 +150,10 @@ export async function validateAddress(address: Address): Promise<AddressValidati
     }
 
     const geocoder = new window.google.maps.Geocoder();
-    
+
     return new Promise((resolve) => {
       geocoder.geocode(
-        { 
+        {
           address: fullAddress,
           region: 'jp',
           language: 'ja',
@@ -135,30 +161,30 @@ export async function validateAddress(address: Address): Promise<AddressValidati
         (results, status) => {
           if (status === 'OK' && results && results.length > 0) {
             const result = results[0];
-            
+
             // 結果の精度をチェック
             // ROOFTOP, RANGE_INTERPOLATED, GEOMETRIC_CENTER は高精度
             // APPROXIMATE は市区町村レベル以下の精度
             const locationType = result.geometry.location_type;
-            
+
             // 住所コンポーネントを解析
             const components = result.address_components;
             let foundPrefecture = '';
             let foundCity = '';
             let foundTown = '';
-            
+
             for (const component of components) {
               if (component.types.includes('administrative_area_level_1')) {
                 foundPrefecture = component.long_name;
               }
-              if (component.types.includes('locality') || 
-                  component.types.includes('administrative_area_level_2') ||
-                  component.types.includes('sublocality_level_1')) {
+              if (component.types.includes('locality') ||
+                component.types.includes('administrative_area_level_2') ||
+                component.types.includes('sublocality_level_1')) {
                 foundCity = component.long_name;
               }
               if (component.types.includes('sublocality_level_2') ||
-                  component.types.includes('sublocality_level_3') ||
-                  component.types.includes('sublocality')) {
+                component.types.includes('sublocality_level_3') ||
+                component.types.includes('sublocality')) {
                 foundTown = component.long_name;
               }
             }

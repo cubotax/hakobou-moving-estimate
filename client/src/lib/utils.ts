@@ -18,9 +18,9 @@ export function toHalfWidth(str: string): string {
 }
 
 /**
- * 郵便番号をフォーマット（全角→半角、ハイフン統一、数字以外除去）
+ * 郵便番号をフォーマット（全角→半角、ハイフン削除、数字のみ）
  */
 export function formatPostalCode(str: string): string {
   const half = toHalfWidth(str);
-  return half.replace(/[^0-9-]/g, "");
+  return half.replace(/[^0-9]/g, "");
 }

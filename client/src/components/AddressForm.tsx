@@ -22,10 +22,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PrefectureSelector } from './PrefectureSelector';
+import { AllowedAreasPopup } from './AllowedAreasPopup';
 import { step1Schema, type Step1FormData, defaultStep1Values } from '@/lib/schema';
 import { setStep1Data, setDistanceData, getStep1Data } from '@/lib/store';
 import { getDistanceProvider } from '@/lib/distance';
 import { getAddressByPostalCode, isValidPostalCode, validateAddress } from '@/lib/postal';
+import { OUT_OF_AREA_ERROR_MESSAGE } from '@/lib/allowedAreas';
 import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
 import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
 import { toHalfWidth, formatPostalCode, cn } from '@/lib/utils';
@@ -65,6 +67,9 @@ export function AddressForm() {
   // 送信時の住所未確定エラー状態
   const [pickupNotConfirmedError, setPickupNotConfirmedError] = useState(false);
   const [deliveryNotConfirmedError, setDeliveryNotConfirmedError] = useState(false);
+
+  // 対応エリアポップアップの表示状態
+  const [showAreasPopup, setShowAreasPopup] = useState(false);
 
   // 保存されたデータがあれば復元
   const savedData = getStep1Data();
@@ -164,7 +169,7 @@ export function AddressForm() {
     setPickupPostalAddress(null);
     setPickupNotConfirmedError(false);
     try {
-      const result = await getAddressByPostalCode(pickupPostalCode);
+      const result = await getAddressByPostalCode(pickupPostalCode, { validatePickupArea: true });
       if (result.success && result.address) {
         setValue('pickupAddress.prefecture', result.address.prefecture);
         setValue('pickupAddress.city', result.address.city);
@@ -317,15 +322,16 @@ export function AddressForm() {
 
 
   return (
-    <form onSubmit={handleFormSubmit} className="space-y-6 animate-fade-in">
-      {/* 説明文 */}
-      <p className="text-center text-gray-600 font-bold text-sm">
-        郵便番号を入力してください
-      </p>
+    <>
+      <form onSubmit={handleFormSubmit} className="space-y-6 animate-fade-in">
+        {/* 説明文 */}
+        <p className="text-center text-gray-600 font-bold text-sm">
+          郵便番号を入力してください
+        </p>
 
-      {/* 入力方法の切り替えタブ */}
-      <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
-        {/* ==============================================
+        {/* 入力方法の切り替えタブ */}
+        <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
+          {/* ==============================================
          * [一時非表示] 2026/01/19 - 「住所から入力」タブ機能の一時非表示化
          * 将来的に復活させる可能性があるため、コードは残しておく
          * ==============================================
@@ -348,12 +354,12 @@ export function AddressForm() {
         */}
 
 
-        {/* ==============================================
+          {/* ==============================================
          * [一時非表示] 2026/01/19 - 「住所から入力」タブ機能の一時非表示化
          * 将来的に復活させる可能性があるため、コードは残しておく
          * ==============================================
          */}
-        {/* 住所入力モード (一時非表示)
+          {/* 住所入力モード (一時非表示)
         <TabsContent value="city" className="mt-6 space-y-6">
           {/* 集荷先 *}
           <div className="pop-card p-6">
@@ -633,232 +639,252 @@ export function AddressForm() {
         </TabsContent>
         */}
 
-        {/* 郵便番号入力モード */}
-        <TabsContent value="postal" className="mt-6 space-y-6">
-          {/* 集荷先 */}
-          <div className="pop-card p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-[oklch(0.75_0.2_0)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                <MapPin className="w-6 h-6 text-white" />
+          {/* 郵便番号入力モード */}
+          <TabsContent value="postal" className="mt-6 space-y-6">
+            {/* 集荷先 */}
+            <div className="pop-card p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-[oklch(0.75_0.2_0)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  <MapPin className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-black">集荷先</h3>
+                <span className="badge-pink-no-border ml-auto">FROM</span>
               </div>
-              <h3 className="text-xl font-black">集荷先</h3>
-              <span className="badge-pink-no-border ml-auto">FROM</span>
-            </div>
 
-            <div className="grid gap-4 max-w-md mx-auto">
-              <div className="space-y-2">
-                <Label htmlFor="pickup-postal" className="font-bold">
-                  郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
-                </Label>
-                <div className="relative">
-                  <input
-                    id="pickup-postal"
-                    placeholder="例：0300801"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={pickupPostalCode}
-                    onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (isValidPostalCode(pickupPostalCode)) {
-                          handlePickupPostalSearch();
+              <div className="grid gap-4 max-w-md mx-auto">
+                <div className="space-y-2">
+                  <Label htmlFor="pickup-postal" className="font-bold">
+                    郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
+                  </Label>
+                  <div className="relative">
+                    <input
+                      id="pickup-postal"
+                      placeholder="例：0300801"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={pickupPostalCode}
+                      onChange={(e) => setPickupPostalCode(formatPostalCode(e.target.value))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (isValidPostalCode(pickupPostalCode)) {
+                            handlePickupPostalSearch();
+                          }
                         }
-                      }
-                    }}
-                    className="pop-input pr-16"
-                    style={{ fontSize: '1.25rem' }}
-                  />
-                  {isValidPostalCode(pickupPostalCode) && (
-                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
-                  )}
-                </div>
-              </div>
-
-              {/* 住所を確定ボタン */}
-              <div className="flex justify-center">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={handlePickupPostalSearch}
-                  disabled={pickupPostalLoading}
-                  className={cn(
-                    "border-[3px] rounded-xl font-bold",
-                    isValidPostalCode(pickupPostalCode) && "bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.14_95)]"
-                  )}
-                  style={{ borderColor: 'black' }}
-                >
-                  {pickupPostalLoading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Search className="w-4 h-4 mr-2" />
-                  )}
-                  住所を確定
-                </Button>
-              </div>
-
-              {!!pickupPostalAddress && (
-                <div className="p-4 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
-                    <span className="font-bold text-[oklch(0.4_0.1_145)]">取得した住所</span>
-                  </div>
-                  <p className="text-lg font-medium">{pickupPostalAddress}</p>
-                </div>
-              )}
-              {!!pickupPostalError && (
-                <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
-                    <span className="font-bold text-[oklch(0.4_0.15_25)]">エラー</span>
-                  </div>
-                  <p className="text-base font-medium text-[oklch(0.35_0.1_25)]">{pickupPostalError}</p>
-                </div>
-              )}
-              {pickupNotConfirmedError && !pickupPostalAddress && (
-                <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
-                    <span className="font-bold text-[oklch(0.4_0.15_25)]">住所を確定してください</span>
+                      }}
+                      className="pop-input pr-16"
+                      style={{ fontSize: '1.25rem' }}
+                    />
+                    {isValidPostalCode(pickupPostalCode) && (
+                      <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
 
-          </div>
+                {/* 住所を確定ボタン */}
+                <div className="flex justify-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handlePickupPostalSearch}
+                    disabled={pickupPostalLoading}
+                    className={cn(
+                      "border-[3px] rounded-xl font-bold",
+                      isValidPostalCode(pickupPostalCode) && "bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.14_95)]"
+                    )}
+                    style={{ borderColor: 'black' }}
+                  >
+                    {pickupPostalLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4 mr-2" />
+                    )}
+                    住所を確定
+                  </Button>
+                </div>
 
-          {/* 矢印 */}
-          <div className="flex justify-center">
-            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center border-[3px] border-black animate-bounce-slow">
-              <ArrowDown className="w-6 h-6" />
-            </div>
-          </div>
-
-          {/* お届け先 */}
-          <div className="pop-card p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_145)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                <Truck className="w-6 h-6 text-white" />
+                {!!pickupPostalAddress && (
+                  <div className="p-4 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                      <span className="font-bold text-[oklch(0.4_0.1_145)]">取得した住所</span>
+                    </div>
+                    <p className="text-lg font-medium">{pickupPostalAddress}</p>
+                  </div>
+                )}
+                {!!pickupPostalError && (
+                  <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
+                      <span className="font-bold text-[oklch(0.4_0.15_25)]">エラー</span>
+                    </div>
+                    {pickupPostalError === OUT_OF_AREA_ERROR_MESSAGE ? (
+                      <p className="text-base font-medium text-[oklch(0.35_0.1_25)]">
+                        {pickupPostalError}
+                        <button
+                          type="button"
+                          onClick={() => setShowAreasPopup(true)}
+                          className="text-blue-600 hover:text-blue-800 underline ml-1"
+                        >
+                          対応エリアはこちら
+                        </button>
+                      </p>
+                    ) : (
+                      <p className="text-base font-medium text-[oklch(0.35_0.1_25)] whitespace-pre-line">{pickupPostalError}</p>
+                    )}
+                  </div>
+                )}
+                {pickupNotConfirmedError && !pickupPostalAddress && (
+                  <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
+                      <span className="font-bold text-[oklch(0.4_0.15_25)]">住所を確定してください</span>
+                    </div>
+                  </div>
+                )}
               </div>
-              <h3 className="text-xl font-black">お届け先</h3>
-              <span className="badge-green-no-border ml-auto">TO</span>
+
             </div>
 
-            <div className="grid gap-4 max-w-md mx-auto">
-              <div className="space-y-2">
-                <Label htmlFor="delivery-postal" className="font-bold">
-                  郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
-                </Label>
-                <div className="relative">
-                  <input
-                    id="delivery-postal"
-                    placeholder="例：9800021"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={deliveryPostalCode}
-                    onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (isValidPostalCode(deliveryPostalCode)) {
-                          handleDeliveryPostalSearch();
+            {/* 矢印 */}
+            <div className="flex justify-center">
+              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center border-[3px] border-black animate-bounce-slow">
+                <ArrowDown className="w-6 h-6" />
+              </div>
+            </div>
+
+            {/* お届け先 */}
+            <div className="pop-card p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_145)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  <Truck className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-black">お届け先</h3>
+                <span className="badge-green-no-border ml-auto">TO</span>
+              </div>
+
+              <div className="grid gap-4 max-w-md mx-auto">
+                <div className="space-y-2">
+                  <Label htmlFor="delivery-postal" className="font-bold">
+                    郵便番号 <span className="text-[oklch(0.75_0.2_0)]">*</span>
+                  </Label>
+                  <div className="relative">
+                    <input
+                      id="delivery-postal"
+                      placeholder="例：9800021"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={deliveryPostalCode}
+                      onChange={(e) => setDeliveryPostalCode(formatPostalCode(e.target.value))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (isValidPostalCode(deliveryPostalCode)) {
+                            handleDeliveryPostalSearch();
+                          }
                         }
-                      }
-                    }}
-                    className="pop-input pr-16"
-                    style={{ fontSize: '1.25rem' }}
-                  />
-                  {isValidPostalCode(deliveryPostalCode) && (
-                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
-                  )}
+                      }}
+                      className="pop-input pr-16"
+                      style={{ fontSize: '1.25rem' }}
+                    />
+                    {isValidPostalCode(deliveryPostalCode) && (
+                      <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* 住所を確定ボタン */}
-              <div className="flex justify-center">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={handleDeliveryPostalSearch}
-                  disabled={deliveryPostalLoading}
-                  className={cn(
-                    "border-[3px] rounded-xl font-bold",
-                    isValidPostalCode(deliveryPostalCode) && "bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.14_95)]"
-                  )}
-                  style={{ borderColor: 'black' }}
-                >
-                  {deliveryPostalLoading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Search className="w-4 h-4 mr-2" />
-                  )}
-                  住所を確定
-                </Button>
-              </div>
+                {/* 住所を確定ボタン */}
+                <div className="flex justify-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleDeliveryPostalSearch}
+                    disabled={deliveryPostalLoading}
+                    className={cn(
+                      "border-[3px] rounded-xl font-bold",
+                      isValidPostalCode(deliveryPostalCode) && "bg-[oklch(0.92_0.16_95)] hover:bg-[oklch(0.88_0.14_95)]"
+                    )}
+                    style={{ borderColor: 'black' }}
+                  >
+                    {deliveryPostalLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4 mr-2" />
+                    )}
+                    住所を確定
+                  </Button>
+                </div>
 
-              {!!deliveryPostalAddress && (
-                <div className="p-4 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
-                    <span className="font-bold text-[oklch(0.4_0.1_145)]">取得した住所</span>
+                {!!deliveryPostalAddress && (
+                  <div className="p-4 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
+                      <span className="font-bold text-[oklch(0.4_0.1_145)]">取得した住所</span>
+                    </div>
+                    <p className="text-lg font-medium">{deliveryPostalAddress}</p>
                   </div>
-                  <p className="text-lg font-medium">{deliveryPostalAddress}</p>
-                </div>
-              )}
-              {!!deliveryPostalError && (
-                <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
-                    <span className="font-bold text-[oklch(0.4_0.15_25)]">エラー</span>
+                )}
+                {!!deliveryPostalError && (
+                  <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
+                      <span className="font-bold text-[oklch(0.4_0.15_25)]">エラー</span>
+                    </div>
+                    <p className="text-base font-medium text-[oklch(0.35_0.1_25)]">{deliveryPostalError}</p>
                   </div>
-                  <p className="text-base font-medium text-[oklch(0.35_0.1_25)]">{deliveryPostalError}</p>
-                </div>
-              )}
-              {deliveryNotConfirmedError && !deliveryPostalAddress && (
-                <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
-                    <span className="font-bold text-[oklch(0.4_0.15_25)]">住所を確定してください</span>
+                )}
+                {deliveryNotConfirmedError && !deliveryPostalAddress && (
+                  <div className="p-4 bg-[oklch(0.95_0.15_25)] rounded-xl border-2 border-[oklch(0.65_0.2_25)]">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-[oklch(0.5_0.2_25)]" />
+                      <span className="font-bold text-[oklch(0.4_0.15_25)]">住所を確定してください</span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
 
-      {/* ナビゲーションボタン */}
-      <div className="flex justify-between pt-4 gap-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate('/')}
-          className="h-14 px-6 border-[3px] border-black rounded-xl font-bold text-base shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all bg-white"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          戻る
-        </Button>
-        <Button
-          type="submit"
-          disabled={isCalculating}
-          className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
-        >
-          {isCalculating ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              距離を計算中...
-            </>
-          ) : (
-            <>
-              <span className="font-bold">プラン選択へ</span>
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </>
-          )}
-        </Button>
-      </div>
-    </form>
+        {/* ナビゲーションボタン */}
+        <div className="flex justify-between pt-4 gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="h-14 px-6 border-[3px] border-black rounded-xl font-bold text-base shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all bg-white"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            戻る
+          </Button>
+          <Button
+            type="submit"
+            disabled={isCalculating}
+            className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none"
+          >
+            {isCalculating ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                距離を計算中...
+              </>
+            ) : (
+              <>
+                <span className="font-bold">プラン選択へ</span>
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+
+      {/* 対応エリア一覧ポップアップ */}
+      <AllowedAreasPopup
+        isOpen={showAreasPopup}
+        onClose={() => setShowAreasPopup(false)}
+      />
+    </>
   );
 }
