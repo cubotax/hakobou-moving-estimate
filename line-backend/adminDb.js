@@ -5,10 +5,30 @@
 import { createClient } from '@supabase/supabase-js';
 import { nanoid } from 'nanoid';
 
-// Supabaseクライアント
+// Supabaseクライアント（遅延初期化）
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let supabaseClient = null;
+
+function getSupabase() {
+    if (!supabaseClient) {
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            console.warn('Warning: SUPABASE_URL or SUPABASE_ANON_KEY not configured for admin');
+            return null;
+        }
+        supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return supabaseClient;
+}
+
+function requireSupabase() {
+    const client = getSupabase();
+    if (!client) {
+        throw new Error('Supabase is not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY');
+    }
+    return client;
+}
 
 // =====================================================
 // 見積もり管理
@@ -24,6 +44,7 @@ export async function getEstimatesList({
     page = 1,
     limit = 20,
 } = {}) {
+    const supabase = requireSupabase();
     let query = supabase
         .from('estimates')
         .select('*', { count: 'exact' });
@@ -88,6 +109,7 @@ export async function getEstimatesList({
  * 見積もり詳細を取得
  */
 export async function getEstimateDetail(estimateId) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('estimates')
         .select('*')
@@ -106,6 +128,7 @@ export async function getEstimateDetail(estimateId) {
  * 見積もりステータスを更新
  */
 export async function updateEstimateStatus(estimateId, status) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('estimates')
         .update({ status })
@@ -125,6 +148,7 @@ export async function updateEstimateStatus(estimateId, status) {
  * 見積もり金額を更新
  */
 export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason }) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('estimates')
         .update({
@@ -151,6 +175,7 @@ export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason 
  * メモ一覧を取得
  */
 export async function getEstimateMemos(estimateId) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('admin_memos')
         .select('*')
@@ -169,6 +194,7 @@ export async function getEstimateMemos(estimateId) {
  * メモを追加
  */
 export async function addEstimateMemo(estimateId, content, createdBy) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('admin_memos')
         .insert({
@@ -196,6 +222,7 @@ export async function addEstimateMemo(estimateId, content, createdBy) {
  * 送信履歴を取得
  */
 export async function getMessageLogs(estimateId) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('message_logs')
         .select('*')
@@ -214,6 +241,7 @@ export async function getMessageLogs(estimateId) {
  * 送信履歴を追加
  */
 export async function addMessageLog(estimateId, messageType, sentBy = null) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('message_logs')
         .insert({
@@ -241,6 +269,7 @@ export async function addMessageLog(estimateId, messageType, sentBy = null) {
  * クーポン一覧を取得
  */
 export async function getCouponsList() {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('coupons')
         .select('*')
@@ -273,6 +302,7 @@ export async function getCouponsList() {
  * クーポン詳細を取得
  */
 export async function getCouponDetail(couponId) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('coupons')
         .select('*')
@@ -301,6 +331,7 @@ export async function getCouponDetail(couponId) {
  * クーポンをコードで取得
  */
 export async function getCouponByCode(code) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('coupons')
         .select('*')
@@ -329,6 +360,7 @@ export async function getCouponByCode(code) {
  * クーポンを作成
  */
 export async function createCoupon(couponData) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('coupons')
         .insert({
@@ -358,6 +390,7 @@ export async function createCoupon(couponData) {
  * クーポンを更新
  */
 export async function updateCoupon(couponId, couponData) {
+    const supabase = requireSupabase();
     const updateData = {};
 
     if (couponData.code !== undefined) updateData.code = couponData.code.toUpperCase();
@@ -389,6 +422,7 @@ export async function updateCoupon(couponId, couponData) {
  * クーポンを削除
  */
 export async function deleteCoupon(couponId) {
+    const supabase = requireSupabase();
     const { error } = await supabase
         .from('coupons')
         .delete()
@@ -406,19 +440,20 @@ export async function deleteCoupon(couponId) {
  * クーポン利用履歴を取得
  */
 export async function getCouponUsages(couponId) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('coupon_usages')
         .select(`
-      *,
-      estimates:estimate_id (
-        id,
-        pickup_prefecture,
-        pickup_city,
-        delivery_prefecture,
-        delivery_city,
-        total_fee
-      )
-    `)
+            *,
+            estimates:estimate_id (
+                id,
+                pickup_prefecture,
+                pickup_city,
+                delivery_prefecture,
+                delivery_city,
+                total_fee
+            )
+        `)
         .eq('coupon_id', couponId)
         .order('used_at', { ascending: false });
 
@@ -441,6 +476,7 @@ export async function recordCouponUsage({
     discountAmount,
     finalAmount,
 }) {
+    const supabase = requireSupabase();
     const { data, error } = await supabase
         .from('coupon_usages')
         .insert({
@@ -467,6 +503,7 @@ export async function recordCouponUsage({
  * ユーザーがクーポンを使用済みかチェック
  */
 export async function hasUserUsedCoupon(couponId, lineUserId) {
+    const supabase = requireSupabase();
     const { count, error } = await supabase
         .from('coupon_usages')
         .select('*', { count: 'exact', head: true })
@@ -489,6 +526,8 @@ export async function hasUserUsedCoupon(couponId, lineUserId) {
  * クーポンを検証
  */
 export async function validateCoupon(code, estimateId, lineUserId) {
+    const supabase = requireSupabase();
+
     // クーポンを取得
     const coupon = await getCouponByCode(code);
 
@@ -576,4 +615,4 @@ export async function validateCoupon(code, estimateId, lineUserId) {
     };
 }
 
-export default supabase;
+export { getSupabase };

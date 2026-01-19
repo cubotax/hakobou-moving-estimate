@@ -6,6 +6,9 @@
  * - message(webhook) の replyMessage でも（見積もりがあれば）Flex Message + 詳細テキストを送信
  */
 
+import 'dotenv/config';
+
+
 // ===== 目印ログ（起動確認用）=====
 console.log("=== server.js booted A/B ===");
 
