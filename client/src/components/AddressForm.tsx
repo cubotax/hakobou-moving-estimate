@@ -229,21 +229,25 @@ export function AddressForm() {
     setPickupNotConfirmedError(false);
     setDeliveryNotConfirmedError(false);
 
-    // 市町村入力モードの場合、バリデーションを確認
-    if (inputMode === 'city') {
-      let hasError = false;
-      if (!pickupValidated) {
-        setPickupNotConfirmedError(true);
-        hasError = true;
-      }
-      if (!deliveryValidated) {
-        setDeliveryNotConfirmedError(true);
-        hasError = true;
-      }
-      if (hasError) {
-        return;
-      }
-    }
+    // ==============================================
+    // [一時非表示] 2026/01/19 - 「住所から入力」タブ機能の一時非表示化
+    // 将来的に復活させる可能性があるため、コードは残しておく
+    // ==============================================
+    // // 市町村入力モードの場合、バリデーションを確認
+    // if (inputMode === 'city') {
+    //   let hasError = false;
+    //   if (!pickupValidated) {
+    //     setPickupNotConfirmedError(true);
+    //     hasError = true;
+    //   }
+    //   if (!deliveryValidated) {
+    //     setDeliveryNotConfirmedError(true);
+    //     hasError = true;
+    //   }
+    //   if (hasError) {
+    //     return;
+    //   }
+    // }
 
     // 郵便番号入力モードの場合、住所確定済みか確認
     if (inputMode === 'postal') {
@@ -316,11 +320,15 @@ export function AddressForm() {
     <form onSubmit={handleFormSubmit} className="space-y-6 animate-fade-in">
       {/* 説明文 */}
       <p className="text-center text-gray-600 font-bold text-sm">
-        住所・郵便番号のどちらからでも入力できます！
+        郵便番号を入力してください
       </p>
 
       {/* 入力方法の切り替えタブ */}
       <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
+        {/* ==============================================
+         * [一時非表示] 2026/01/19 - 「住所から入力」タブ機能の一時非表示化
+         * 将来的に復活させる可能性があるため、コードは残しておく
+         * ==============================================
         <TabsList className="grid w-full grid-cols-2 h-16 p-2 bg-gray-100 rounded-2xl border-[3px] border-black">
           <TabsTrigger
             value="postal"
@@ -337,11 +345,17 @@ export function AddressForm() {
             住所から入力
           </TabsTrigger>
         </TabsList>
+        */}
 
 
-        {/* 住所入力モード */}
+        {/* ==============================================
+         * [一時非表示] 2026/01/19 - 「住所から入力」タブ機能の一時非表示化
+         * 将来的に復活させる可能性があるため、コードは残しておく
+         * ==============================================
+         */}
+        {/* 住所入力モード (一時非表示)
         <TabsContent value="city" className="mt-6 space-y-6">
-          {/* 集荷先 */}
+          {/* 集荷先 *}
           <div className="pop-card p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-full bg-[oklch(0.75_0.2_0)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
@@ -438,7 +452,7 @@ export function AddressForm() {
                 <p className="text-xs text-gray-500">※町名までの入力で番地は不要です。</p>
               </div>
 
-              {/* 住所を確定ボタン */}
+              {/* 住所を確定ボタン *}
               <div className="flex justify-center">
                 <Button
                   type="button"
@@ -460,7 +474,7 @@ export function AddressForm() {
                 </Button>
               </div>
 
-              {/* バリデーション結果 */}
+              {/* バリデーション結果 *}
               {!!pickupValidated && (
                 <div className="flex items-center gap-2 p-3 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
                   <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
@@ -475,14 +489,14 @@ export function AddressForm() {
             </div>
           </div>
 
-          {/* 矢印 */}
+          {/* 矢印 *}
           <div className="flex justify-center">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center border-[3px] border-black animate-bounce-slow">
               <ArrowDown className="w-6 h-6" />
             </div>
           </div>
 
-          {/* お届け先 */}
+          {/* お届け先 *}
           <div className="pop-card p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-full bg-[oklch(0.7_0.15_145)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
@@ -579,7 +593,7 @@ export function AddressForm() {
                 <p className="text-xs text-gray-500">※町名までの入力で番地は不要です。</p>
               </div>
 
-              {/* 住所確定ボタン */}
+              {/* 住所確定ボタン *}
               <div className="flex justify-center">
                 <Button
                   type="button"
@@ -602,7 +616,7 @@ export function AddressForm() {
               </div>
 
 
-              {/* バリデーション結果 */}
+              {/* バリデーション結果 *}
               {!!deliveryValidated && (
                 <div className="flex items-center gap-2 p-3 bg-[oklch(0.95_0.1_145)] rounded-xl border-2 border-[oklch(0.7_0.15_145)]">
                   <CheckCircle2 className="w-5 h-5 text-[oklch(0.5_0.15_145)]" />
@@ -617,6 +631,7 @@ export function AddressForm() {
             </div>
           </div>
         </TabsContent>
+        */}
 
         {/* 郵便番号入力モード */}
         <TabsContent value="postal" className="mt-6 space-y-6">
