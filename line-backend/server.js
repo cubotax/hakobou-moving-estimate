@@ -8,12 +8,13 @@
 
 import 'dotenv/config';
 
-
 // ===== 目印ログ（起動確認用）=====
 console.log("=== server.js booted A/B ===");
 
 import express from "express";
 import { nanoid } from "nanoid";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import {
   middleware,
@@ -36,6 +37,10 @@ import cookieParser from "cookie-parser";
 // 管理画面用ルート
 import adminRoutes from "./adminRoutes.js";
 import couponRoutes from "./publicRoutes.js";
+
+// __dirname の代替（ESM用）
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors()); // CORS許可
@@ -64,10 +69,6 @@ if (isLineConfigured) {
 }
 
 // ========= BASIC ROUTES =========
-app.get("/", (req, res) => {
-  res.status(200).send("ok");
-});
-
 app.get("/health", (req, res) => {
   res.status(200).json({ ok: true, timestamp: new Date().toISOString() });
 });
@@ -613,11 +614,22 @@ app.use((err, req, res, next) => {
   return res.status(500).send("Internal server error");
 });
 
+// ========= 静的ファイル配信（フロントエンド）=========
+// ビルドされたフロントエンドを配信
+const distPath = path.resolve(__dirname, "..", "dist", "public");
+app.use(express.static(distPath));
+
+// SPA用：すべてのルートでindex.htmlを返す（APIルート以外）
+app.get("*", (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
+});
+
 // ========= START =========
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health: /health`);
   console.log(`Webhook: /webhook`);
   console.log(`API: /api/estimates, /api/link, /api/estimates/:id, /api/apply`);
+  console.log(`Static files: ${distPath}`);
   console.log(`LINE configured: ${isLineConfigured}`);
 });
