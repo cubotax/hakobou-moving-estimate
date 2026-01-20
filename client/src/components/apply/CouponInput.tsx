@@ -30,6 +30,7 @@ export default function CouponInput({
     loading = false,
 }: CouponInputProps) {
     const [isApplying, setIsApplying] = useState(false);
+    const [isComposing, setIsComposing] = useState(false);
 
     const handleApply = async () => {
         setIsApplying(true);
@@ -38,6 +39,30 @@ export default function CouponInput({
         } finally {
             setIsApplying(false);
         }
+    };
+
+    // クーポンコード変更ハンドラ（IME対応）
+    const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        // IME入力中は加工せずそのまま設定
+        if (isComposing) {
+            onCodeChange(value);
+            return;
+        }
+
+        // 確定後のみ大文字変換と英数字のみに制限
+        const processed = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        onCodeChange(processed);
+    };
+
+    // IME変換確定時の処理
+    const handleCompositionEnd = (e: React.CompositionEvent<HTMLInputElement>) => {
+        setIsComposing(false);
+        // 変換確定時に加工を適用
+        const target = e.target as HTMLInputElement;
+        const processed = target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        onCodeChange(processed);
     };
 
     // クーポン適用済みの場合
@@ -69,8 +94,13 @@ export default function CouponInput({
                 <input
                     type="text"
                     value={couponCode}
-                    onChange={(e) => onCodeChange(e.target.value.toUpperCase())}
+                    onChange={handleCodeChange}
+                    onCompositionStart={() => setIsComposing(true)}
+                    onCompositionEnd={handleCompositionEnd}
                     placeholder="クーポンコードを入力"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    inputMode="text"
                     className="flex-1 min-w-0 px-4 py-3 bg-white border-2 border-gray-300 rounded-xl text-lg focus:border-yellow-400 focus:outline-none transition-colors"
                     disabled={loading || isApplying}
                 />
