@@ -28,6 +28,12 @@ export interface EstimateSummary {
 
 /** 申込フォームデータ */
 export interface ApplyFormData {
+  // お名前
+  lastName: string;        // 姓
+  firstName: string;       // 名
+  lastNameKana: string;    // せい（ふりがな）
+  firstNameKana: string;   // めい（ふりがな）
+
   // 集荷先の詳細住所
   pickupAddressDetail: string; // 番地以降
   pickupBuilding: string;      // 建物名・部屋番号（統合）
@@ -49,6 +55,10 @@ export interface ApplyFormData {
 
 /** バリデーションエラー */
 export interface FormErrors {
+  lastName?: string;
+  firstName?: string;
+  lastNameKana?: string;
+  firstNameKana?: string;
   pickupAddressDetail?: string;
   deliveryAddressDetail?: string;
   phone?: string;
@@ -58,6 +68,10 @@ export interface FormErrors {
 
 /** 申込フォーム初期値 */
 export const initialFormData: ApplyFormData = {
+  lastName: '',
+  firstName: '',
+  lastNameKana: '',
+  firstNameKana: '',
   pickupAddressDetail: '',
   pickupBuilding: '',
   deliveryAddressDetail: '',

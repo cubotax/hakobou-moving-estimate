@@ -108,6 +108,10 @@ export async function updateEstimateWithApplication(estimateId, application) {
   const { data, error } = await supabase
     .from('estimates')
     .update({
+      last_name: application.lastName || '',
+      first_name: application.firstName || '',
+      last_name_kana: application.lastNameKana || '',
+      first_name_kana: application.firstNameKana || '',
       pickup_address_detail: application.pickupAddressDetail || '',
       pickup_building: application.pickupBuilding || '',
       delivery_address_detail: application.deliveryAddressDetail || '',

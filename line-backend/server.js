@@ -173,6 +173,10 @@ app.post("/api/apply", async (req, res) => {
   try {
     const {
       estimateId,
+      lastName,
+      firstName,
+      lastNameKana,
+      firstNameKana,
       pickupAddressDetail,
       pickupBuilding,
       deliveryAddressDetail,
@@ -201,6 +205,10 @@ app.post("/api/apply", async (req, res) => {
 
     // 見積もりに申込情報を追加（UPDATE）
     const updatedEstimate = await updateEstimateWithApplication(estimateId, {
+      lastName,
+      firstName,
+      lastNameKana,
+      firstNameKana,
       pickupAddressDetail,
       pickupBuilding,
       deliveryAddressDetail,

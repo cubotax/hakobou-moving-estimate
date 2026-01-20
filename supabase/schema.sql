@@ -108,6 +108,21 @@ ALTER TABLE estimates ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ;
 ALTER TABLE estimates ADD COLUMN IF NOT EXISTS cancel_reason TEXT;
 
 -- =====================================================
+-- 5.2. estimates テーブルへの名前カラム追加
+-- =====================================================
+-- 姓
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS last_name TEXT;
+
+-- 名
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS first_name TEXT;
+
+-- せい（ふりがな）
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS last_name_kana TEXT;
+
+-- めい（ふりがな）
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS first_name_kana TEXT;
+
+-- =====================================================
 -- 6. RLS（Row Level Security）ポリシー
 -- =====================================================
 -- coupons テーブル

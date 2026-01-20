@@ -277,6 +277,22 @@ export default function Confirm() {
                     <div className="pop-card p-6">
                         <h2 className="text-xl font-black mb-6">ご入力いただいた情報</h2>
 
+                        {/* お名前 */}
+                        <div className="mb-6 pb-6 border-b-2 border-dashed border-gray-200">
+                            <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                                <span className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 text-xs font-bold">名</span>
+                                お名前
+                            </h3>
+                            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                                <p className="font-medium">
+                                    {formData.lastName} {formData.firstName}
+                                </p>
+                                <p className="text-gray-600 text-sm">
+                                    {formData.lastNameKana} {formData.firstNameKana}
+                                </p>
+                            </div>
+                        </div>
+
                         {/* 集荷先詳細 */}
                         <div className="mb-6 pb-6 border-b-2 border-dashed border-gray-200">
                             <h3 className="font-bold text-lg mb-3 flex items-center gap-2">

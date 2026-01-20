@@ -51,6 +51,13 @@ function isValidPhone(phone: string): boolean {
     return phoneRegex.test(phone.replace(/[\s\u3000]/g, ''));
 }
 
+// ひらがなのみバリデーション
+function isHiraganaOnly(text: string): boolean {
+    if (!text) return true;
+    const hiraganaRegex = /^[\u3040-\u309F\u30FC\u3000\s]+$/;
+    return hiraganaRegex.test(text);
+}
+
 // プラン名の表示
 function getPlanLabel(plan?: string): string {
     if (!plan) return '未選択';
@@ -148,6 +155,24 @@ export default function ApplyForm() {
     // バリデーション
     const validate = (): boolean => {
         const newErrors: FormErrors = {};
+
+        // 名前バリデーション
+        if (!formData.lastName.trim()) {
+            newErrors.lastName = '姓を入力してください';
+        }
+        if (!formData.firstName.trim()) {
+            newErrors.firstName = '名を入力してください';
+        }
+        if (!formData.lastNameKana.trim()) {
+            newErrors.lastNameKana = 'ふりがな（せい）を入力してください';
+        } else if (!isHiraganaOnly(formData.lastNameKana)) {
+            newErrors.lastNameKana = 'ひらがなで入力してください';
+        }
+        if (!formData.firstNameKana.trim()) {
+            newErrors.firstNameKana = 'ふりがな（めい）を入力してください';
+        } else if (!isHiraganaOnly(formData.firstNameKana)) {
+            newErrors.firstNameKana = 'ひらがなで入力してください';
+        }
 
         // 番地以降は必須
         if (!formData.pickupAddressDetail.trim()) {
@@ -379,6 +404,86 @@ export default function ApplyForm() {
                     {/* 不足情報入力フォーム */}
                     <div className="pop-card p-6">
                         <h2 className="text-xl font-black mb-6">追加情報の入力</h2>
+
+                        {/* お名前 */}
+                        <div className="mb-8">
+                            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <span className="text-blue-500 font-bold text-sm">名</span>
+                                </div>
+                                お名前
+                            </h3>
+                            {/* 姓・名 */}
+                            <div className="flex gap-4 mb-4">
+                                <div className="flex-1">
+                                    <label className="block text-sm font-bold mb-1">
+                                        姓 <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.lastName}
+                                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                                        placeholder="例: 山田"
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.lastName ? 'border-red-500' : 'border-gray-300 focus:border-black'
+                                            }`}
+                                    />
+                                    {errors.lastName && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                                    )}
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-sm font-bold mb-1">
+                                        名 <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.firstName}
+                                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                                        placeholder="例: 太郎"
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.firstName ? 'border-red-500' : 'border-gray-300 focus:border-black'
+                                            }`}
+                                    />
+                                    {errors.firstName && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                                    )}
+                                </div>
+                            </div>
+                            {/* せい・めい */}
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-sm font-bold mb-1">
+                                        せい <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.lastNameKana}
+                                        onChange={(e) => handleInputChange('lastNameKana', e.target.value)}
+                                        placeholder="例: やまだ"
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.lastNameKana ? 'border-red-500' : 'border-gray-300 focus:border-black'
+                                            }`}
+                                    />
+                                    {errors.lastNameKana && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.lastNameKana}</p>
+                                    )}
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-sm font-bold mb-1">
+                                        めい <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.firstNameKana}
+                                        onChange={(e) => handleInputChange('firstNameKana', e.target.value)}
+                                        placeholder="例: たろう"
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.firstNameKana ? 'border-red-500' : 'border-gray-300 focus:border-black'
+                                            }`}
+                                    />
+                                    {errors.firstNameKana && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.firstNameKana}</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
 
                         {/* 集荷先詳細 */}
                         <div className="mb-8">
