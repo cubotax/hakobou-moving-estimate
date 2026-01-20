@@ -42,6 +42,7 @@ import couponRoutes from "./publicRoutes.js";
 import { Resend } from "resend";
 
 // Resend初期化
+console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 /**
