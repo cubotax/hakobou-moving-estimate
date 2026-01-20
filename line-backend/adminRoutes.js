@@ -291,6 +291,36 @@ function buildInviteFlexMessage(estimate) {
     const baseUrl = APP_BASE_URL.endsWith('/') ? APP_BASE_URL.slice(0, -1) : APP_BASE_URL;
     const applyUrl = `${baseUrl}/apply?estimateId=${estimate.id}`;
 
+    // 住所情報
+    const pickupAddress = [
+        estimate.pickup_prefecture,
+        estimate.pickup_city,
+        estimate.pickup_town,
+    ].filter(Boolean).join('') || '未入力';
+
+    const deliveryAddress = [
+        estimate.delivery_prefecture,
+        estimate.delivery_city,
+        estimate.delivery_town,
+    ].filter(Boolean).join('') || '未入力';
+
+    // 階数・エレベーター情報
+    const floorPickup = estimate.floor_pickup || 1;
+    const hasElevatorPickup = estimate.has_elevator_pickup ? 'あり' : 'なし';
+    const pickupCondition = `${floorPickup}階 / エレベーター：${hasElevatorPickup}`;
+
+    const floorDelivery = estimate.floor_delivery || 1;
+    const hasElevatorDelivery = estimate.has_elevator_delivery ? 'あり' : 'なし';
+    const deliveryCondition = `${floorDelivery}階 / エレベーター：${hasElevatorDelivery}`;
+
+    // プラン表示
+    let planLabel = '未選択';
+    if (estimate.plan === 'helper') planLabel = 'ヘルパープラン';
+    else if (estimate.plan === 'omakase') planLabel = 'お任せプラン';
+
+    // 梱包サービス
+    const packingLabel = estimate.needs_packing ? '希望する' : '希望しない';
+
     return {
         type: 'flex',
         altText: '📋 日程調整が完了しました！',
@@ -320,6 +350,7 @@ function buildInviteFlexMessage(estimate) {
                         text: 'お見積もり金額',
                         size: 'sm',
                         color: '#555555',
+                        align: 'center',
                     },
                     {
                         type: 'text',
@@ -328,6 +359,7 @@ function buildInviteFlexMessage(estimate) {
                         size: '3xl',
                         color: '#1DB446',
                         margin: 'sm',
+                        align: 'center',
                     },
                     {
                         type: 'separator',
@@ -339,23 +371,88 @@ function buildInviteFlexMessage(estimate) {
                         margin: 'lg',
                         spacing: 'sm',
                         contents: [
+                            // 集荷日
                             {
                                 type: 'box',
                                 layout: 'horizontal',
                                 contents: [
-                                    { type: 'text', text: '集荷日', size: 'sm', color: '#555555', flex: 1 },
-                                    { type: 'text', text: pickupDate, size: 'sm', color: '#111111', flex: 2, align: 'end' },
+                                    { type: 'text', text: '📅 集荷日', size: 'sm', color: '#555555', flex: 0 },
+                                    { type: 'text', text: pickupDate, size: 'sm', color: '#111111', align: 'end' },
+                                ],
+                            },
+                            // お届け日
+                            {
+                                type: 'box',
+                                layout: 'horizontal',
+                                contents: [
+                                    { type: 'text', text: '📅 お届け日', size: 'sm', color: '#555555', flex: 0 },
+                                    { type: 'text', text: deliveryDate, size: 'sm', color: '#111111', align: 'end' },
+                                ],
+                            },
+                            // 集荷先
+                            {
+                                type: 'box',
+                                layout: 'horizontal',
+                                contents: [
+                                    { type: 'text', text: '📍 集荷先', size: 'sm', color: '#555555', flex: 0 },
+                                    { type: 'text', text: pickupAddress, size: 'sm', color: '#111111', align: 'end', wrap: true, flex: 2 },
                                 ],
                             },
                             {
+                                type: 'text',
+                                text: `   ${pickupCondition}`,
+                                size: 'xs',
+                                color: '#888888',
+                            },
+                            // お届け先
+                            {
                                 type: 'box',
                                 layout: 'horizontal',
                                 contents: [
-                                    { type: 'text', text: 'お届け日', size: 'sm', color: '#555555', flex: 1 },
-                                    { type: 'text', text: deliveryDate, size: 'sm', color: '#111111', flex: 2, align: 'end' },
+                                    { type: 'text', text: '🏠 お届け先', size: 'sm', color: '#555555', flex: 0 },
+                                    { type: 'text', text: deliveryAddress, size: 'sm', color: '#111111', align: 'end', wrap: true, flex: 2 },
+                                ],
+                            },
+                            {
+                                type: 'text',
+                                text: `   ${deliveryCondition}`,
+                                size: 'xs',
+                                color: '#888888',
+                            },
+                            // セパレーター
+                            {
+                                type: 'separator',
+                                margin: 'md',
+                            },
+                            // プラン
+                            {
+                                type: 'box',
+                                layout: 'horizontal',
+                                margin: 'md',
+                                contents: [
+                                    { type: 'text', text: '📋 プラン', size: 'sm', color: '#555555', flex: 0 },
+                                    { type: 'text', text: planLabel, size: 'sm', color: '#111111', align: 'end' },
+                                ],
+                            },
+                            // 梱包サービス
+                            {
+                                type: 'box',
+                                layout: 'horizontal',
+                                contents: [
+                                    { type: 'text', text: '📦 梱包サービス', size: 'sm', color: '#555555', flex: 0 },
+                                    { type: 'text', text: packingLabel, size: 'sm', color: '#111111', align: 'end' },
                                 ],
                             },
                         ],
+                    },
+                    // 案内テキスト
+                    {
+                        type: 'text',
+                        text: '日程調整が完了しました！このメッセージから3日以内であれば現在の見積もりプランでお申込みが可能です。',
+                        size: 'sm',
+                        color: '#666666',
+                        wrap: true,
+                        margin: 'lg',
                     },
                 ],
             },

@@ -433,7 +433,22 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
   const pickupDate = formatDateJP(estimate.pickup_date);
   const deliveryDate = formatDateJP(estimate.delivery_date);
 
-  const actionUrl = detailUrl || APP_BASE_URL;
+  // 階数・エレベーター情報
+  const floorPickup = estimate.floor_pickup || 1;
+  const hasElevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
+  const pickupCondition = `${floorPickup}階 / エレベーター：${hasElevatorPickup}`;
+
+  const floorDelivery = estimate.floor_delivery || 1;
+  const hasElevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
+  const deliveryCondition = `${floorDelivery}階 / エレベーター：${hasElevatorDelivery}`;
+
+  // プラン表示
+  let planLabel = "未選択";
+  if (estimate.plan === "helper") planLabel = "ヘルパープラン";
+  else if (estimate.plan === "omakase") planLabel = "お任せプラン";
+
+  // 梱包サービス
+  const packingLabel = estimate.needs_packing ? "希望する" : "希望しない";
 
   return {
     type: "flex",
@@ -477,6 +492,49 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
             margin: "lg",
             spacing: "sm",
             contents: [
+              // 集荷日
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  {
+                    type: "text",
+                    text: "📅 集荷日",
+                    size: "sm",
+                    color: "#555555",
+                    flex: 0,
+                  },
+                  {
+                    type: "text",
+                    text: pickupDate,
+                    size: "sm",
+                    color: "#111111",
+                    align: "end",
+                  },
+                ],
+              },
+              // お届け日
+              {
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  {
+                    type: "text",
+                    text: "📅 お届け日",
+                    size: "sm",
+                    color: "#555555",
+                    flex: 0,
+                  },
+                  {
+                    type: "text",
+                    text: deliveryDate,
+                    size: "sm",
+                    color: "#111111",
+                    align: "end",
+                  },
+                ],
+              },
+              // 集荷先
               {
                 type: "box",
                 layout: "horizontal",
@@ -500,6 +558,13 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
                 ],
               },
               {
+                type: "text",
+                text: `   ${pickupCondition}`,
+                size: "xs",
+                color: "#888888",
+              },
+              // お届け先
+              {
                 type: "box",
                 layout: "horizontal",
                 contents: [
@@ -522,39 +587,53 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
                 ],
               },
               {
+                type: "text",
+                text: `   ${deliveryCondition}`,
+                size: "xs",
+                color: "#888888",
+              },
+              // セパレーター
+              {
+                type: "separator",
+                margin: "md",
+              },
+              // プラン
+              {
                 type: "box",
                 layout: "horizontal",
+                margin: "md",
                 contents: [
                   {
                     type: "text",
-                    text: "📅 集荷日",
+                    text: "📋 プラン",
                     size: "sm",
                     color: "#555555",
                     flex: 0,
                   },
                   {
                     type: "text",
-                    text: pickupDate,
+                    text: planLabel,
                     size: "sm",
                     color: "#111111",
                     align: "end",
                   },
                 ],
               },
+              // 梱包サービス
               {
                 type: "box",
                 layout: "horizontal",
                 contents: [
                   {
                     type: "text",
-                    text: "📅 お届け日",
+                    text: "📦 梱包サービス",
                     size: "sm",
                     color: "#555555",
                     flex: 0,
                   },
                   {
                     type: "text",
-                    text: deliveryDate,
+                    text: packingLabel,
                     size: "sm",
                     color: "#111111",
                     align: "end",
@@ -572,10 +651,18 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
         contents: [
           {
             type: "text",
-            text: "上記の内容でお間違えなければ日程を相談するボタンを押してください。日程を確認してスタッフより返信いたします。",
+            text: "上記内容でお間違いなければ、【このプランで相談する】を押してください。送信後、担当スタッフよりプランと日程確認のご連絡をいたします。",
             size: "sm",
             color: "#666666",
             wrap: true,
+          },
+          {
+            type: "text",
+            text: "※この時点では予約は確定しませんのでご安心ください。",
+            size: "xs",
+            color: "#888888",
+            wrap: true,
+            margin: "sm",
           },
           {
             type: "button",
@@ -583,9 +670,9 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
             height: "md",
             action: {
               type: "postback",
-              label: "日程を相談する",
+              label: "このプランで相談する",
               data: `action=consult&estimateId=${estimate.id}`,
-              displayText: "日程を相談したいです",
+              displayText: "このプランで相談したいです",
             },
             color: "#06C755",
             margin: "md",

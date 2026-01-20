@@ -15,13 +15,6 @@ import {
     MessageLog
 } from '@/hooks/useAdminApi';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -45,11 +38,16 @@ const statusLabels: Record<string, string> = {
     cancelled: 'キャンセル',
 };
 
-// ステータスオプション
-const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({
-    value,
-    label,
-}));
+// ステータスバッジスタイル
+const statusBadgeStyles: Record<string, { bg: string; text: string }> = {
+    estimated: { bg: '#E5E7EB', text: '#374151' },
+    consulting: { bg: '#FEF3C7', text: '#92400E' },
+    application_sent: { bg: '#DBEAFE', text: '#1E40AF' },
+    applied: { bg: '#D1FAE5', text: '#065F46' },
+    payment_sent: { bg: '#EDE9FE', text: '#5B21B6' },
+    paid: { bg: '#A7F3D0', text: '#047857' },
+    cancelled: { bg: '#FEE2E2', text: '#991B1B' },
+};
 
 // メッセージタイプラベル
 const messageTypeLabels: Record<string, string> = {
@@ -222,18 +220,15 @@ function EstimateDetail() {
                             <InfoRow label="作成日時" value={formatDateTime(estimate.created_at)} />
                             <div className="flex items-center justify-between py-2">
                                 <span className="text-gray-500">ステータス:</span>
-                                <Select value={estimate.status} onValueChange={handleStatusChange}>
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {statusOptions.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <span
+                                    className="px-3 py-1 rounded-full text-sm font-medium"
+                                    style={{
+                                        backgroundColor: statusBadgeStyles[estimate.status]?.bg || '#E5E7EB',
+                                        color: statusBadgeStyles[estimate.status]?.text || '#374151',
+                                    }}
+                                >
+                                    {statusLabels[estimate.status] || estimate.status}
+                                </span>
                             </div>
                         </div>
                     </Section>
