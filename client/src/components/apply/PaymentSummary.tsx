@@ -16,7 +16,7 @@ export default function PaymentSummary({
     couponCode,
 }: PaymentSummaryProps) {
     return (
-        <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+        <div className="bg-white rounded-xl p-4 space-y-3 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex justify-between text-gray-600">
                 <span>見積もり金額</span>
                 <span>¥{originalAmount.toLocaleString()}</span>

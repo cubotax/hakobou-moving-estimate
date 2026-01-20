@@ -71,13 +71,13 @@ export default function CouponInput({
                     value={couponCode}
                     onChange={(e) => onCodeChange(e.target.value.toUpperCase())}
                     placeholder="クーポンコードを入力"
-                    className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl text-lg focus:border-yellow-400 focus:outline-none transition-colors"
+                    className="flex-1 min-w-0 px-4 py-3 bg-white border-2 border-gray-300 rounded-xl text-lg focus:border-yellow-400 focus:outline-none transition-colors"
                     disabled={loading || isApplying}
                 />
                 <button
                     onClick={handleApply}
                     disabled={!couponCode.trim() || loading || isApplying}
-                    className="px-6 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    className="shrink-0 px-6 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
                     {isApplying ? (
                         <>

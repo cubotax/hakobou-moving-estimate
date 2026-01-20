@@ -388,7 +388,7 @@ export default function ApplyForm() {
                                 </div>
                                 集荷先の詳細住所
                             </h3>
-                            <p className="text-sm text-gray-500 mb-3">
+                            <p className="text-base text-gray-500 mb-3">
                                 {estimate?.pickupPrefecture}{estimate?.pickupCity}{estimate?.pickupTown} の続き
                             </p>
                             <div className="space-y-4">
@@ -429,7 +429,7 @@ export default function ApplyForm() {
                                 </div>
                                 お届け先の詳細住所
                             </h3>
-                            <p className="text-sm text-gray-500 mb-3">
+                            <p className="text-base text-gray-500 mb-3">
                                 {estimate?.deliveryPrefecture}{estimate?.deliveryCity}{estimate?.deliveryTown} の続き
                             </p>
                             <div className="space-y-4">
