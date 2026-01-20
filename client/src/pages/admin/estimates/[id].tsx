@@ -1,5 +1,5 @@
 /**
- * 管理画面 - 見積もり詳細
+ * 管理画面 - 見積もり詳細（調整機能付き）
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,7 +12,8 @@ import {
     useMessages,
     Estimate,
     Memo,
-    MessageLog
+    MessageLog,
+    AdjustmentData
 } from '@/hooks/useAdminApi';
 import {
     Dialog,
@@ -25,7 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Edit, Plus, Send } from 'lucide-react';
+import { ArrowLeft, Edit, Plus, Send, ArrowRight } from 'lucide-react';
 
 // ステータスラベル
 const statusLabels: Record<string, string> = {
@@ -63,6 +64,12 @@ const timeSlotLabels: Record<string, string> = {
     anytime: 'どちらでも',
 };
 
+// プランラベル
+const planLabels: Record<string, string> = {
+    helper: 'ヘルパープラン',
+    omakase: 'お任せプラン',
+};
+
 // 日付フォーマット
 function formatDate(dateStr: string | null) {
     if (!dateStr) return '-';
@@ -97,7 +104,7 @@ function EstimateDetail() {
     const [, params] = useRoute('/admin/estimates/:id');
     const estimateId = params?.id;
 
-    const { getEstimate, updateStatus, updateFee, loading } = useEstimates();
+    const { getEstimate, updateStatus, updateFee, updateAdjustment, loading } = useEstimates();
     const { getMemos, addMemo, loading: memosLoading } = useMemos();
     const { getLogs, sendInvite, sendPayment, loading: messagesLoading } = useMessages();
 
@@ -110,10 +117,26 @@ function EstimateDetail() {
     const [addMemoModal, setAddMemoModal] = useState(false);
     const [sendModal, setSendModal] = useState<'invite' | 'payment' | null>(null);
 
+    // 調整モーダル状態
+    const [editDateModal, setEditDateModal] = useState(false);
+    const [editPlanModal, setEditPlanModal] = useState(false);
+    const [editPickupModal, setEditPickupModal] = useState(false);
+    const [editDeliveryModal, setEditDeliveryModal] = useState(false);
+
     // フォーム状態
     const [newFee, setNewFee] = useState('');
     const [feeReason, setFeeReason] = useState('');
     const [memoContent, setMemoContent] = useState('');
+
+    // 調整フォーム状態
+    const [adjPickupDate, setAdjPickupDate] = useState('');
+    const [adjDeliveryDate, setAdjDeliveryDate] = useState('');
+    const [adjPlan, setAdjPlan] = useState('');
+    const [adjNeedsPacking, setAdjNeedsPacking] = useState(false);
+    const [adjFloorPickup, setAdjFloorPickup] = useState(1);
+    const [adjHasElevatorPickup, setAdjHasElevatorPickup] = useState(false);
+    const [adjFloorDelivery, setAdjFloorDelivery] = useState(1);
+    const [adjHasElevatorDelivery, setAdjHasElevatorDelivery] = useState(false);
 
     // データ取得
     const fetchData = useCallback(async () => {
@@ -133,13 +156,6 @@ function EstimateDetail() {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
-
-    // ステータス変更
-    const handleStatusChange = async (newStatus: string) => {
-        if (!estimateId) return;
-        const success = await updateStatus(estimateId, newStatus);
-        if (success) fetchData();
-    };
 
     // 金額変更
     const handleFeeSubmit = async () => {
@@ -174,6 +190,90 @@ function EstimateDetail() {
             setSendModal(null);
             fetchData();
         }
+    };
+
+    // 日程調整保存
+    const handleDateAdjustment = async () => {
+        if (!estimateId) return;
+        const success = await updateAdjustment(estimateId, {
+            adjustedPickupDate: adjPickupDate || undefined,
+            adjustedDeliveryDate: adjDeliveryDate || undefined,
+        });
+        if (success) {
+            setEditDateModal(false);
+            fetchData();
+        }
+    };
+
+    // プラン調整保存
+    const handlePlanAdjustment = async () => {
+        if (!estimateId) return;
+        const success = await updateAdjustment(estimateId, {
+            adjustedPlan: adjPlan || undefined,
+            adjustedNeedsPacking: adjNeedsPacking,
+        });
+        if (success) {
+            setEditPlanModal(false);
+            fetchData();
+        }
+    };
+
+    // 集荷先条件調整保存
+    const handlePickupAdjustment = async () => {
+        if (!estimateId) return;
+        const success = await updateAdjustment(estimateId, {
+            adjustedFloorPickup: adjFloorPickup,
+            adjustedHasElevatorPickup: adjHasElevatorPickup,
+        });
+        if (success) {
+            setEditPickupModal(false);
+            fetchData();
+        }
+    };
+
+    // お届け先条件調整保存
+    const handleDeliveryAdjustment = async () => {
+        if (!estimateId) return;
+        const success = await updateAdjustment(estimateId, {
+            adjustedFloorDelivery: adjFloorDelivery,
+            adjustedHasElevatorDelivery: adjHasElevatorDelivery,
+        });
+        if (success) {
+            setEditDeliveryModal(false);
+            fetchData();
+        }
+    };
+
+    // 日程編集モーダルを開く
+    const openDateModal = () => {
+        if (!estimate) return;
+        setAdjPickupDate(estimate.adjusted_pickup_date || estimate.pickup_date || '');
+        setAdjDeliveryDate(estimate.adjusted_delivery_date || estimate.delivery_date || '');
+        setEditDateModal(true);
+    };
+
+    // プラン編集モーダルを開く
+    const openPlanModal = () => {
+        if (!estimate) return;
+        setAdjPlan(estimate.adjusted_plan || estimate.plan || '');
+        setAdjNeedsPacking(estimate.adjusted_needs_packing ?? estimate.needs_packing ?? false);
+        setEditPlanModal(true);
+    };
+
+    // 集荷先条件編集モーダルを開く
+    const openPickupModal = () => {
+        if (!estimate) return;
+        setAdjFloorPickup(estimate.adjusted_floor_pickup ?? estimate.floor_pickup ?? 1);
+        setAdjHasElevatorPickup(estimate.adjusted_has_elevator_pickup ?? estimate.has_elevator_pickup ?? false);
+        setEditPickupModal(true);
+    };
+
+    // お届け先条件編集モーダルを開く
+    const openDeliveryModal = () => {
+        if (!estimate) return;
+        setAdjFloorDelivery(estimate.adjusted_floor_delivery ?? estimate.floor_delivery ?? 1);
+        setAdjHasElevatorDelivery(estimate.adjusted_has_elevator_delivery ?? estimate.has_elevator_delivery ?? false);
+        setEditDeliveryModal(true);
     };
 
     if (loading && !estimate) {
@@ -233,72 +333,142 @@ function EstimateDetail() {
                         </div>
                     </Section>
 
-                    {/* 集荷先 */}
-                    <Section title="集荷先">
-                        <div className="space-y-3">
-                            <InfoRow
-                                label="住所"
-                                value={`${estimate.pickup_prefecture}${estimate.pickup_city}${estimate.pickup_town}`}
-                            />
-                            {estimate.pickup_address_detail && (
-                                <InfoRow label="番地" value={estimate.pickup_address_detail} />
-                            )}
-                            {estimate.pickup_building && (
-                                <InfoRow label="建物" value={estimate.pickup_building} />
-                            )}
-                            <InfoRow
-                                label="階数 / エレベーター"
-                                value={`${estimate.floor_pickup}階 / ${estimate.has_elevator_pickup ? 'あり' : 'なし'}`}
-                            />
-                            {estimate.pickup_time_slot && (
-                                <InfoRow
-                                    label="希望時間帯"
-                                    value={timeSlotLabels[estimate.pickup_time_slot] || estimate.pickup_time_slot}
-                                />
-                            )}
-                        </div>
+                    {/* 日程（2列表示） */}
+                    <Section
+                        title="日程"
+                        action={
+                            <button
+                                onClick={openDateModal}
+                                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                            >
+                                <Edit size={14} />
+                                編集
+                            </button>
+                        }
+                    >
+                        <TwoColumnRow
+                            label="集荷日"
+                            original={formatDate(estimate.pickup_date)}
+                            adjusted={estimate.adjusted_pickup_date ? formatDate(estimate.adjusted_pickup_date) : null}
+                        />
+                        <TwoColumnRow
+                            label="お届け日"
+                            original={formatDate(estimate.delivery_date)}
+                            adjusted={estimate.adjusted_delivery_date ? formatDate(estimate.adjusted_delivery_date) : null}
+                        />
                     </Section>
 
-                    {/* お届け先 */}
-                    <Section title="お届け先">
-                        <div className="space-y-3">
-                            <InfoRow
-                                label="住所"
-                                value={`${estimate.delivery_prefecture}${estimate.delivery_city}${estimate.delivery_town}`}
-                            />
-                            {estimate.delivery_address_detail && (
-                                <InfoRow label="番地" value={estimate.delivery_address_detail} />
-                            )}
-                            {estimate.delivery_building && (
-                                <InfoRow label="建物" value={estimate.delivery_building} />
-                            )}
-                            <InfoRow
-                                label="階数 / エレベーター"
-                                value={`${estimate.floor_delivery}階 / ${estimate.has_elevator_delivery ? 'あり' : 'なし'}`}
-                            />
-                            {estimate.delivery_time_slot && (
-                                <InfoRow
-                                    label="希望時間帯"
-                                    value={timeSlotLabels[estimate.delivery_time_slot] || estimate.delivery_time_slot}
-                                />
-                            )}
-                        </div>
+                    {/* プラン・オプション（2列表示） */}
+                    <Section
+                        title="プラン・オプション"
+                        action={
+                            <button
+                                onClick={openPlanModal}
+                                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                            >
+                                <Edit size={14} />
+                                編集
+                            </button>
+                        }
+                    >
+                        <TwoColumnRow
+                            label="プラン"
+                            original={planLabels[estimate.plan || ''] || '未選択'}
+                            adjusted={estimate.adjusted_plan ? (planLabels[estimate.adjusted_plan] || estimate.adjusted_plan) : null}
+                        />
+                        <TwoColumnRow
+                            label="梱包サービス"
+                            original={estimate.needs_packing ? '希望する' : '希望しない'}
+                            adjusted={estimate.adjusted_needs_packing !== null && estimate.adjusted_needs_packing !== undefined
+                                ? (estimate.adjusted_needs_packing ? '希望する' : '希望しない')
+                                : null}
+                        />
                     </Section>
 
-                    {/* 日程 */}
-                    <Section title="日程">
-                        <div className="space-y-3">
-                            <InfoRow label="集荷日" value={formatDate(estimate.pickup_date)} />
-                            <InfoRow label="お届け日" value={formatDate(estimate.delivery_date)} />
-                        </div>
+                    {/* 集荷先（2列表示） */}
+                    <Section
+                        title="集荷先"
+                        action={
+                            <button
+                                onClick={openPickupModal}
+                                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                            >
+                                <Edit size={14} />
+                                編集
+                            </button>
+                        }
+                    >
+                        <InfoRow
+                            label="住所"
+                            value={`${estimate.pickup_prefecture}${estimate.pickup_city}${estimate.pickup_town}`}
+                        />
+                        {estimate.pickup_address_detail && (
+                            <InfoRow label="番地" value={estimate.pickup_address_detail} />
+                        )}
+                        {estimate.pickup_building && (
+                            <InfoRow label="建物" value={estimate.pickup_building} />
+                        )}
+                        <TwoColumnRow
+                            label="階数"
+                            original={`${estimate.floor_pickup}階`}
+                            adjusted={estimate.adjusted_floor_pickup ? `${estimate.adjusted_floor_pickup}階` : null}
+                        />
+                        <TwoColumnRow
+                            label="エレベーター"
+                            original={estimate.has_elevator_pickup ? 'あり' : 'なし'}
+                            adjusted={estimate.adjusted_has_elevator_pickup !== null && estimate.adjusted_has_elevator_pickup !== undefined
+                                ? (estimate.adjusted_has_elevator_pickup ? 'あり' : 'なし')
+                                : null}
+                        />
+                        {estimate.pickup_time_slot && (
+                            <InfoRow
+                                label="希望時間帯"
+                                value={timeSlotLabels[estimate.pickup_time_slot] || estimate.pickup_time_slot}
+                            />
+                        )}
                     </Section>
 
-                    {/* プラン・オプション */}
-                    <Section title="プラン・オプション">
-                        <div className="space-y-3">
-                            <InfoRow label="プラン" value={estimate.plan || 'スタンダード'} />
-                            <InfoRow label="梱包サービス" value={estimate.needs_packing ? '利用する' : '利用しない'} />
-                        </div>
+                    {/* お届け先（2列表示） */}
+                    <Section
+                        title="お届け先"
+                        action={
+                            <button
+                                onClick={openDeliveryModal}
+                                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+                            >
+                                <Edit size={14} />
+                                編集
+                            </button>
+                        }
+                    >
+                        <InfoRow
+                            label="住所"
+                            value={`${estimate.delivery_prefecture}${estimate.delivery_city}${estimate.delivery_town}`}
+                        />
+                        {estimate.delivery_address_detail && (
+                            <InfoRow label="番地" value={estimate.delivery_address_detail} />
+                        )}
+                        {estimate.delivery_building && (
+                            <InfoRow label="建物" value={estimate.delivery_building} />
+                        )}
+                        <TwoColumnRow
+                            label="階数"
+                            original={`${estimate.floor_delivery}階`}
+                            adjusted={estimate.adjusted_floor_delivery ? `${estimate.adjusted_floor_delivery}階` : null}
+                        />
+                        <TwoColumnRow
+                            label="エレベーター"
+                            original={estimate.has_elevator_delivery ? 'あり' : 'なし'}
+                            adjusted={estimate.adjusted_has_elevator_delivery !== null && estimate.adjusted_has_elevator_delivery !== undefined
+                                ? (estimate.adjusted_has_elevator_delivery ? 'あり' : 'なし')
+                                : null}
+                        />
+                        {estimate.delivery_time_slot && (
+                            <InfoRow
+                                label="希望時間帯"
+                                value={timeSlotLabels[estimate.delivery_time_slot] || estimate.delivery_time_slot}
+                            />
+                        )}
                     </Section>
 
                     {/* 金額 */}
@@ -318,18 +488,19 @@ function EstimateDetail() {
                         }
                     >
                         <div className="space-y-3">
-                            <InfoRow label="見積金額" value={formatFee(estimate.total_fee)} />
+                            <TwoColumnRow
+                                label="見積金額"
+                                original={formatFee(estimate.total_fee)}
+                                adjusted={estimate.final_fee && estimate.final_fee !== estimate.total_fee
+                                    ? formatFee(estimate.final_fee)
+                                    : null}
+                            />
                             {estimate.coupon_code && (
                                 <InfoRow
                                     label="クーポン"
-                                    value={`${estimate.coupon_code}（${formatFee(-estimate.discount_amount)}）`}
+                                    value={`${estimate.coupon_code}（${formatFee(-(estimate.discount_amount || 0))}）`}
                                 />
                             )}
-                            <InfoRow
-                                label="最終金額"
-                                value={formatFee(estimate.final_fee || estimate.total_fee)}
-                                bold
-                            />
                             {estimate.fee_change_reason && (
                                 <InfoRow label="変更理由" value={estimate.fee_change_reason} />
                             )}
@@ -398,19 +569,12 @@ function EstimateDetail() {
                                 <Send size={16} className="mr-2" />
                                 決済案内を送信
                             </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => handleStatusChange('cancelled')}
-                                className="text-red-600 border-red-200 hover:bg-red-50"
-                            >
-                                キャンセルにする
-                            </Button>
+                            {!estimate.line_user_id && (
+                                <p className="text-sm text-gray-400">
+                                    ※LINE連携がないため送信できません
+                                </p>
+                            )}
                         </div>
-                        {!estimate.line_user_id && (
-                            <p className="text-sm text-gray-400 mt-2">
-                                ※ LINE連携がないため送信できません
-                            </p>
-                        )}
                     </Section>
 
                     {/* 送信履歴 */}
@@ -420,12 +584,12 @@ function EstimateDetail() {
                         ) : (
                             <div className="space-y-2">
                                 {logs.map((log) => (
-                                    <div key={log.id} className="flex items-center gap-4 text-sm">
+                                    <div
+                                        key={log.id}
+                                        className="flex justify-between text-sm py-2 border-b border-gray-100 last:border-0"
+                                    >
+                                        <span>{messageTypeLabels[log.message_type] || log.message_type}</span>
                                         <span className="text-gray-400">{formatDateTime(log.sent_at)}</span>
-                                        <span className="font-medium">{messageTypeLabels[log.message_type]}</span>
-                                        {log.sent_by && (
-                                            <span className="text-gray-400">by {log.sent_by}</span>
-                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -438,31 +602,26 @@ function EstimateDetail() {
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>金額を編集</DialogTitle>
+                            <DialogDescription>
+                                最終金額と変更理由を入力してください
+                            </DialogDescription>
                         </DialogHeader>
-                        <div className="space-y-4 py-4">
+                        <div className="py-4 space-y-4">
                             <div>
-                                <label className="text-sm font-medium text-gray-600">元の見積金額</label>
-                                <p className="text-lg font-medium">{formatFee(estimate?.total_fee)}</p>
+                                <label className="block text-sm font-medium mb-1">最終金額 *</label>
+                                <Input
+                                    type="number"
+                                    value={newFee}
+                                    onChange={(e) => setNewFee(e.target.value)}
+                                    placeholder="例: 25000"
+                                />
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-gray-600">最終金額</label>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span>¥</span>
-                                    <Input
-                                        type="number"
-                                        value={newFee}
-                                        onChange={(e) => setNewFee(e.target.value)}
-                                        className="flex-1"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-600">変更理由</label>
+                                <label className="block text-sm font-medium mb-1">変更理由</label>
                                 <Input
                                     value={feeReason}
                                     onChange={(e) => setFeeReason(e.target.value)}
-                                    placeholder="荷物追加のため"
-                                    className="mt-1"
+                                    placeholder="例: オプション追加のため"
                                 />
                             </div>
                         </div>
@@ -471,6 +630,193 @@ function EstimateDetail() {
                                 キャンセル
                             </Button>
                             <Button onClick={handleFeeSubmit} disabled={loading}>
+                                保存する
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* 日程調整モーダル */}
+                <Dialog open={editDateModal} onOpenChange={setEditDateModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>日程の調整</DialogTitle>
+                            <DialogDescription>
+                                顧客希望: 集荷 {formatDate(estimate.pickup_date)} / お届け {formatDate(estimate.delivery_date)}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">調整後の集荷日</label>
+                                <Input
+                                    type="date"
+                                    value={adjPickupDate}
+                                    onChange={(e) => setAdjPickupDate(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">調整後のお届け日</label>
+                                <Input
+                                    type="date"
+                                    value={adjDeliveryDate}
+                                    onChange={(e) => setAdjDeliveryDate(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditDateModal(false)}>
+                                キャンセル
+                            </Button>
+                            <Button onClick={handleDateAdjustment} disabled={loading}>
+                                保存する
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* プラン調整モーダル */}
+                <Dialog open={editPlanModal} onOpenChange={setEditPlanModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>プラン・オプションの調整</DialogTitle>
+                            <DialogDescription>
+                                顧客希望: {planLabels[estimate.plan || ''] || '未選択'} / 梱包: {estimate.needs_packing ? '希望する' : '希望しない'}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">プラン</label>
+                                <select
+                                    value={adjPlan}
+                                    onChange={(e) => setAdjPlan(e.target.value)}
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                >
+                                    <option value="">未選択</option>
+                                    <option value="helper">ヘルパープラン</option>
+                                    <option value="omakase">お任せプラン</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-2">梱包サービス</label>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            checked={adjNeedsPacking}
+                                            onChange={() => setAdjNeedsPacking(true)}
+                                        />
+                                        希望する
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="radio"
+                                            checked={!adjNeedsPacking}
+                                            onChange={() => setAdjNeedsPacking(false)}
+                                        />
+                                        希望しない
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditPlanModal(false)}>
+                                キャンセル
+                            </Button>
+                            <Button onClick={handlePlanAdjustment} disabled={loading}>
+                                保存する
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* 集荷先条件調整モーダル */}
+                <Dialog open={editPickupModal} onOpenChange={setEditPickupModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>集荷先条件の調整</DialogTitle>
+                            <DialogDescription>
+                                住所: {estimate.pickup_prefecture}{estimate.pickup_city}{estimate.pickup_town}（変更不可）
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                            <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded">
+                                顧客希望: {estimate.floor_pickup}階 / エレベーター: {estimate.has_elevator_pickup ? 'あり' : 'なし'}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">階数</label>
+                                <select
+                                    value={adjFloorPickup}
+                                    onChange={(e) => setAdjFloorPickup(parseInt(e.target.value))}
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                >
+                                    {Array.from({ length: 50 }, (_, i) => i + 1).map((floor) => (
+                                        <option key={floor} value={floor}>{floor}階</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={adjHasElevatorPickup}
+                                        onChange={(e) => setAdjHasElevatorPickup(e.target.checked)}
+                                    />
+                                    エレベーターあり
+                                </label>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditPickupModal(false)}>
+                                キャンセル
+                            </Button>
+                            <Button onClick={handlePickupAdjustment} disabled={loading}>
+                                保存する
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* お届け先条件調整モーダル */}
+                <Dialog open={editDeliveryModal} onOpenChange={setEditDeliveryModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>お届け先条件の調整</DialogTitle>
+                            <DialogDescription>
+                                住所: {estimate.delivery_prefecture}{estimate.delivery_city}{estimate.delivery_town}（変更不可）
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                            <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded">
+                                顧客希望: {estimate.floor_delivery}階 / エレベーター: {estimate.has_elevator_delivery ? 'あり' : 'なし'}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">階数</label>
+                                <select
+                                    value={adjFloorDelivery}
+                                    onChange={(e) => setAdjFloorDelivery(parseInt(e.target.value))}
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                >
+                                    {Array.from({ length: 50 }, (_, i) => i + 1).map((floor) => (
+                                        <option key={floor} value={floor}>{floor}階</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={adjHasElevatorDelivery}
+                                        onChange={(e) => setAdjHasElevatorDelivery(e.target.checked)}
+                                    />
+                                    エレベーターあり
+                                </label>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditDeliveryModal(false)}>
+                                キャンセル
+                            </Button>
+                            <Button onClick={handleDeliveryAdjustment} disabled={loading}>
                                 保存する
                             </Button>
                         </DialogFooter>
@@ -487,8 +833,8 @@ function EstimateDetail() {
                             <Textarea
                                 value={memoContent}
                                 onChange={(e) => setMemoContent(e.target.value)}
-                                rows={4}
                                 placeholder="メモを入力..."
+                                rows={4}
                             />
                         </div>
                         <DialogFooter>
@@ -496,7 +842,7 @@ function EstimateDetail() {
                                 キャンセル
                             </Button>
                             <Button onClick={handleMemoSubmit} disabled={memosLoading}>
-                                追加する
+                                保存する
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -524,6 +870,11 @@ function EstimateDetail() {
                                     {formatFee(estimate?.final_fee || estimate?.total_fee)}
                                 </span>
                             </div>
+                            {(estimate?.adjusted_pickup_date || estimate?.adjusted_delivery_date) && (
+                                <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                                    ※調整後の日程が適用されます
+                                </div>
+                            )}
                         </div>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setSendModal(null)}>
@@ -583,6 +934,37 @@ function InfoRow({
             <span className={`${mono ? 'font-mono' : ''} ${bold ? 'font-bold text-lg' : ''}`}>
                 {value || '-'}
             </span>
+        </div>
+    );
+}
+
+// 2列表示コンポーネント（顧客希望 → 調整後）
+function TwoColumnRow({
+    label,
+    original,
+    adjusted,
+}: {
+    label: string;
+    original: string;
+    adjusted: string | null;
+}) {
+    const hasChange = adjusted !== null && adjusted !== original;
+
+    return (
+        <div className="flex items-center justify-between py-2">
+            <span className="text-gray-500">{label}:</span>
+            <div className="flex items-center gap-2">
+                <span className={hasChange ? 'text-gray-400' : ''}>{original}</span>
+                {hasChange && (
+                    <>
+                        <ArrowRight size={14} className="text-gray-400" />
+                        <span className="text-blue-600 font-medium">{adjusted}</span>
+                    </>
+                )}
+                {adjusted === null && original && (
+                    <span className="text-gray-300 text-sm italic ml-2">（変更なし）</span>
+                )}
+            </div>
         </div>
     );
 }

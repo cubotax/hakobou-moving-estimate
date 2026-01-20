@@ -167,6 +167,64 @@ export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason 
     return data;
 }
 
+/**
+ * 見積もり調整値を更新
+ */
+export async function updateEstimateAdjustment(estimateId, adjustmentData, adjustedBy) {
+    const supabase = requireSupabase();
+
+    const updateData = {
+        adjusted_at: new Date().toISOString(),
+        adjusted_by: adjustedBy,
+    };
+
+    // 日程
+    if (adjustmentData.adjustedPickupDate !== undefined) {
+        updateData.adjusted_pickup_date = adjustmentData.adjustedPickupDate;
+    }
+    if (adjustmentData.adjustedDeliveryDate !== undefined) {
+        updateData.adjusted_delivery_date = adjustmentData.adjustedDeliveryDate;
+    }
+
+    // プラン・オプション
+    if (adjustmentData.adjustedPlan !== undefined) {
+        updateData.adjusted_plan = adjustmentData.adjustedPlan;
+    }
+    if (adjustmentData.adjustedNeedsPacking !== undefined) {
+        updateData.adjusted_needs_packing = adjustmentData.adjustedNeedsPacking;
+    }
+
+    // 集荷先条件
+    if (adjustmentData.adjustedFloorPickup !== undefined) {
+        updateData.adjusted_floor_pickup = adjustmentData.adjustedFloorPickup;
+    }
+    if (adjustmentData.adjustedHasElevatorPickup !== undefined) {
+        updateData.adjusted_has_elevator_pickup = adjustmentData.adjustedHasElevatorPickup;
+    }
+
+    // お届け先条件
+    if (adjustmentData.adjustedFloorDelivery !== undefined) {
+        updateData.adjusted_floor_delivery = adjustmentData.adjustedFloorDelivery;
+    }
+    if (adjustmentData.adjustedHasElevatorDelivery !== undefined) {
+        updateData.adjusted_has_elevator_delivery = adjustmentData.adjustedHasElevatorDelivery;
+    }
+
+    const { data, error } = await supabase
+        .from('estimates')
+        .update(updateData)
+        .eq('id', estimateId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating estimate adjustment:', error);
+        throw error;
+    }
+
+    return data;
+}
+
 // =====================================================
 // メモ管理
 // =====================================================
