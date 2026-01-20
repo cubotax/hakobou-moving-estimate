@@ -404,15 +404,8 @@ function formatDateJP(dateStr) {
 
 function buildEstimateMessages(estimate, detailUrl = null) {
   const flex = buildEstimateFlexMessage(estimate, detailUrl);
-  const detailText = buildEstimateDetailText(estimate);
 
-  return [
-    flex,
-    {
-      type: "text",
-      text: detailText,
-    },
-  ];
+  return [flex];
 }
 
 function buildEstimateFlexMessage(estimate, detailUrl = null) {
@@ -578,19 +571,15 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
         spacing: "sm",
         contents: [
           {
-            type: "button",
-            style: "primary",
-            height: "md",
-            action: {
-              type: "uri",
-              label: "詳細を確認",
-              uri: actionUrl,
-            },
-            color: "#1DB446",
+            type: "text",
+            text: "上記の内容でお間違えなければ日程を相談するボタンを押してください。日程を確認してスタッフより返信いたします。",
+            size: "sm",
+            color: "#666666",
+            wrap: true,
           },
           {
             type: "button",
-            style: "secondary",
+            style: "primary",
             height: "md",
             action: {
               type: "postback",
@@ -598,6 +587,8 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
               data: `action=consult&estimateId=${estimate.id}`,
               displayText: "日程を相談したいです",
             },
+            color: "#06C755",
+            margin: "md",
           },
           {
             type: "text",
