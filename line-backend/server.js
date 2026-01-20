@@ -39,10 +39,10 @@ import cookieParser from "cookie-parser";
 import adminRoutes from "./adminRoutes.js";
 import couponRoutes from "./publicRoutes.js";
 
-// import { Resend } from "resend";
+import { Resend } from "resend";
 
 // Resend初期化
-const resend = null; // メール機能一時無効
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 /**
  * 見積もり作成時のメール通知
@@ -60,7 +60,7 @@ async function sendEstimateNotification(estimate) {
   const subject = `【ハコボウ】概算見積通知（ID: ${estimate.id}）`;
   const text = `━━━━━━━━━━━━━━━━━━━━━━\n新規見積もりのお知らせ\n━━━━━━━━━━━━━━━━━━━━━━\n\n以下の内容で見積もりが作成されました。\n\n■ 見積もりID: ${estimate.id}\n■ 見積もり金額: ¥${estimate.total_fee?.toLocaleString() || 0}\n\n【集荷先】\n${estimate.pickup_prefecture}${estimate.pickup_city}${estimate.pickup_town}\n${estimate.floor_pickup}階 / エレベーター：${elevatorPickup}\n\n【お届け先】\n${estimate.delivery_prefecture}${estimate.delivery_city}${estimate.delivery_town}\n${estimate.floor_delivery}階 / エレベーター：${elevatorDelivery}\n\n【日程】\n集荷日: ${estimate.pickup_date}\nお届け日: ${estimate.delivery_date}\n\n【プラン】\n${planName} / 梱包サービス：${packingService}\n\n━━━━━━━━━━━━━━━━━━━━━━\n管理画面で確認:\nhttps://mitsumori.hakobou.com/admin\n━━━━━━━━━━━━━━━━━━━━━━`;
   try {
-    // await resend.emails.send({ from: "ハコボウ通知 <onboarding@resend.dev>", to: notificationEmail, subject: subject, text: text });
+    await resend.emails.send({ from: "ハコボウ通知 <onboarding@resend.dev>", to: notificationEmail, subject: subject, text: text });
     console.log("メール通知を送信しました:", estimate.id);
   } catch (error) {
     console.error("メール通知の送信に失敗しました:", error);
