@@ -87,6 +87,27 @@ ALTER TABLE estimates ADD COLUMN IF NOT EXISTS coupon_code TEXT;
 ALTER TABLE estimates ADD COLUMN IF NOT EXISTS discount_amount INTEGER;
 
 -- =====================================================
+-- 5.1. estimates テーブルへのステータス管理カラム追加
+-- =====================================================
+-- 相談ボタン押下日時
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS consulted_at TIMESTAMPTZ;
+
+-- 申込案内送信日時
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS application_sent_at TIMESTAMPTZ;
+
+-- 決済案内送信日時
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS payment_sent_at TIMESTAMPTZ;
+
+-- 決済完了日時
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+
+-- キャンセル日時
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ;
+
+-- キャンセル理由
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS cancel_reason TEXT;
+
+-- =====================================================
 -- 6. RLS（Row Level Security）ポリシー
 -- =====================================================
 -- coupons テーブル

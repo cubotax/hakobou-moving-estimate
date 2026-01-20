@@ -29,6 +29,7 @@ import {
   getEstimateByLineUserId,
   getEstimateById,
   updateEstimateWithApplication,
+  updateEstimateToConsulting,
 } from "./db.js";
 
 import cors from "cors";
@@ -264,7 +265,52 @@ async function handleEvent(event) {
     return null;
   }
 
+  // postbackイベント：「相談する」ボタン押下時
+  if (t === "postback") {
+    return handlePostbackEvent(event);
+  }
+
   console.log("-> route: ignore");
+  return null;
+}
+
+// postbackイベント処理（相談するボタン）
+async function handlePostbackEvent(event) {
+  if (!client) {
+    console.log("LINE client not configured");
+    return null;
+  }
+
+  const data = event.postback?.data || "";
+  const params = new URLSearchParams(data);
+  const action = params.get("action");
+  const estimateId = params.get("estimateId");
+
+  console.log("Postback received:", { action, estimateId });
+
+  // 相談アクション
+  if (action === "consult" && estimateId) {
+    try {
+      // ステータスを「相談中」に更新
+      await updateEstimateToConsulting(estimateId);
+      console.log("Updated estimate to consulting:", estimateId);
+
+      // ユーザーへ返信
+      return client.replyMessage({
+        replyToken: event.replyToken,
+        messages: [
+          {
+            type: "text",
+            text: "ご相談ありがとうございます！\n\n担当者より折り返しご連絡いたします。\nしばらくお待ちくださいませ。",
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("Error handling consult postback:", error);
+      return null;
+    }
+  }
+
   return null;
 }
 
@@ -541,6 +587,17 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
               uri: actionUrl,
             },
             color: "#1DB446",
+          },
+          {
+            type: "button",
+            style: "secondary",
+            height: "md",
+            action: {
+              type: "postback",
+              label: "日程を相談する",
+              data: `action=consult&estimateId=${estimate.id}`,
+              displayText: "日程を相談したいです",
+            },
           },
           {
             type: "text",

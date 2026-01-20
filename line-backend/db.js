@@ -131,4 +131,26 @@ export async function updateEstimateWithApplication(estimateId, application) {
   return data;
 }
 
+/**
+ * 見積もりを「相談中」ステータスに更新
+ */
+export async function updateEstimateToConsulting(estimateId) {
+  const { data, error } = await supabase
+    .from('estimates')
+    .update({
+      status: 'consulting',
+      consulted_at: new Date().toISOString(),
+    })
+    .eq('id', estimateId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating estimate to consulting:', error);
+    throw error;
+  }
+
+  return data;
+}
+
 export default supabase;
