@@ -26,7 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Edit, Plus, Send, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Edit, Plus, Send, ArrowRight, XCircle } from 'lucide-react';
 
 // ステータスラベル
 const statusLabels: Record<string, string> = {
@@ -116,6 +116,7 @@ function EstimateDetail() {
     const [editFeeModal, setEditFeeModal] = useState(false);
     const [addMemoModal, setAddMemoModal] = useState(false);
     const [sendModal, setSendModal] = useState<'invite' | 'payment' | null>(null);
+    const [cancelModal, setCancelModal] = useState(false);
 
     // 調整モーダル状態
     const [editDateModal, setEditDateModal] = useState(false);
@@ -127,6 +128,7 @@ function EstimateDetail() {
     const [newFee, setNewFee] = useState('');
     const [feeReason, setFeeReason] = useState('');
     const [memoContent, setMemoContent] = useState('');
+    const [cancelReason, setCancelReason] = useState('');
 
     // 調整フォーム状態
     const [adjPickupDate, setAdjPickupDate] = useState('');
@@ -188,6 +190,17 @@ function EstimateDetail() {
             : await sendPayment(estimateId);
         if (success) {
             setSendModal(null);
+            fetchData();
+        }
+    };
+
+    // キャンセル処理
+    const handleCancel = async () => {
+        if (!estimateId) return;
+        const success = await updateStatus(estimateId, 'cancelled');
+        if (success) {
+            setCancelModal(false);
+            setCancelReason('');
             fetchData();
         }
     };
@@ -569,6 +582,17 @@ function EstimateDetail() {
                                 <Send size={16} className="mr-2" />
                                 決済案内を送信
                             </Button>
+                            {/* キャンセルボタン */}
+                            {estimate.status !== 'cancelled' && estimate.status !== 'paid' && (
+                                <Button
+                                    onClick={() => setCancelModal(true)}
+                                    variant="outline"
+                                    className="border-red-300 text-red-600 hover:bg-red-50"
+                                >
+                                    <XCircle size={16} className="mr-2" />
+                                    キャンセルにする
+                                </Button>
+                            )}
                             {!estimate.line_user_id && (
                                 <p className="text-sm text-gray-400">
                                     ※LINE連携がないため送信できません
@@ -843,6 +867,35 @@ function EstimateDetail() {
                             </Button>
                             <Button onClick={handleMemoSubmit} disabled={memosLoading}>
                                 保存する
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* キャンセル確認モーダル */}
+                <Dialog open={cancelModal} onOpenChange={setCancelModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>見積もりをキャンセル</DialogTitle>
+                            <DialogDescription>
+                                この見積もりをキャンセルしますか？この操作は取り消せません。
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                            <div className="text-sm text-gray-500 bg-red-50 p-3 rounded border border-red-200">
+                                見積ID: {estimate?.id}
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setCancelModal(false)}>
+                                戻る
+                            </Button>
+                            <Button
+                                onClick={handleCancel}
+                                disabled={loading}
+                                className="bg-red-600 hover:bg-red-700"
+                            >
+                                キャンセルにする
                             </Button>
                         </DialogFooter>
                     </DialogContent>
