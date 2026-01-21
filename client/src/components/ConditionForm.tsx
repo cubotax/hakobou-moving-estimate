@@ -10,7 +10,7 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Building2,
   Package,
@@ -20,7 +20,8 @@ import {
   Truck,
   Sparkles,
   ClipboardList,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ const FLOOR_OPTIONS = Array.from({ length: 20 }, (_, i) => i + 1);
 
 export function ConditionForm() {
   const [, navigate] = useLocation();
+  const [showTruckGuide, setShowTruckGuide] = useState(false);
 
   // ページ読み込み時にトップにスクロール
   useEffect(() => {
@@ -83,6 +85,7 @@ export function ConditionForm() {
   const hasElevatorDelivery = watch('hasElevatorDelivery');
   const floorPickup = watch('floorPickup');
   const floorDelivery = watch('floorDelivery');
+  const truckCount = watch('truckCount');
 
   const onSubmit = async (data: Step2FormData) => {
     // データを保存
@@ -108,10 +111,20 @@ export function ConditionForm() {
       } : undefined;
 
       const result = calculateEstimate(distanceData, options, dates);
-      setEstimateResult(result);
+
+      // トラック台数で料金を掛け算した結果を保存
+      const finalResult = {
+        ...result,
+        totalFee: result.totalFee * data.truckCount,
+        truckCount: data.truckCount,
+      };
+      setEstimateResult(finalResult);
 
       // バックエンドAPIに見積もりデータを送信
       try {
+        // トラック台数で料金を掛け算
+        const finalTotalFee = result.totalFee * data.truckCount;
+
         const response = await fetch(`${API_CONFIG.BASE_URL}/api/estimates`, {
           method: 'POST',
           headers: {
@@ -121,7 +134,7 @@ export function ConditionForm() {
             pickupAddress: step1Data.pickupAddress,
             deliveryAddress: step1Data.deliveryAddress,
             dates: step1Data.dates,
-            totalFee: result.totalFee,
+            totalFee: finalTotalFee,
             distanceKm: result.distanceKm,
             conditions: {
               floorPickup: data.floorPickup,
@@ -131,6 +144,7 @@ export function ConditionForm() {
               needsPacking: data.needsPacking,
             },
             plan: data.plan,
+            truckCount: data.truckCount,
           }),
         });
 
@@ -465,6 +479,118 @@ export function ConditionForm() {
           )}
         />
       </div>
+
+      {/* トラック台数 */}
+      <div className="pop-card p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 rounded-full bg-[oklch(0.6_0.15_300)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <Truck className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-xl font-black">トラック台数</h3>
+          <span className="ml-auto px-3 py-1 rounded-full text-sm font-black text-white bg-[oklch(0.6_0.15_300)]">TRUCK</span>
+        </div>
+
+        <div className="space-y-4">
+          <Controller
+            name="truckCount"
+            control={control}
+            render={({ field }) => (
+              <div className="space-y-2">
+                <Label htmlFor="truck-count" className="flex items-center gap-2 font-bold">
+                  <Truck className="w-5 h-5" />
+                  台数
+                </Label>
+                <div className="flex items-center gap-3">
+                  <Select
+                    value={String(field.value)}
+                    onValueChange={(value) => field.onChange(Number(value))}
+                  >
+                    <SelectTrigger
+                      id="truck-count"
+                      className="w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white"
+                    >
+                      <SelectValue placeholder="選択" />
+                    </SelectTrigger>
+                    <SelectContent className="border-[2px] border-black rounded-xl">
+                      <SelectItem value="1" className="text-lg font-medium">1</SelectItem>
+                      <SelectItem value="2" className="text-lg font-medium">2</SelectItem>
+                      <SelectItem value="3" className="text-lg font-medium">3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-lg font-medium">台</span>
+                </div>
+              </div>
+            )}
+          />
+
+          {truckCount > 1 && (
+            <p className="text-sm text-[oklch(0.6_0.15_300)] font-medium flex items-center gap-1">
+              <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.6_0.15_300)]"></span>
+              料金が{truckCount}倍になります
+            </p>
+          )}
+
+          <p className="text-sm text-gray-600">
+            トラック1台分の積み込み目安は
+            <button
+              type="button"
+              onClick={() => setShowTruckGuide(true)}
+              className="font-bold text-[oklch(0.6_0.15_300)] underline hover:no-underline cursor-pointer"
+            >
+              こちら
+            </button>
+            をご確認ください
+          </p>
+        </div>
+      </div>
+
+      {/* トラック目安モーダル */}
+      {showTruckGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowTruckGuide(false)}>
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[80vh] overflow-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <h4 className="font-bold text-lg">トラック1台分の積み込み目安</h4>
+              <button
+                type="button"
+                onClick={() => setShowTruckGuide(false)}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              <ul className="space-y-2">
+                {[
+                  '2人掛けソファー',
+                  'ダブルのベッドマットレス',
+                  'ベッドフレーム',
+                  'ローテーブル',
+                  '洗濯機',
+                  '冷蔵庫',
+                  '電子レンジ',
+                  'カーペット',
+                  '布団毛布類',
+                  '120サイズ段ボール10個分',
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[oklch(0.6_0.15_300)]"></span>
+                    <span className="text-gray-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="px-6 pb-6">
+              <Button
+                type="button"
+                onClick={() => setShowTruckGuide(false)}
+                className="w-full h-12 bg-[oklch(0.6_0.15_300)] hover:bg-[oklch(0.5_0.15_300)] text-white font-bold rounded-xl"
+              >
+                閉じる
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ナビゲーションボタン */}
       <div className="flex justify-between pt-4 gap-4">

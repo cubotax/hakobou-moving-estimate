@@ -340,6 +340,21 @@ export function EstimateResult() {
               追加料金はありません
             </p>
           )}
+
+          {/* トラック台数が2台以上の場合、トラック台数と小計を表示 */}
+          {(estimateResult as any).truckCount && (estimateResult as any).truckCount > 1 && (
+            <>
+              <div className="flex justify-between items-start py-2 border-b-2 border-dashed border-gray-200">
+                <div>
+                  <p className="font-bold">トラック台数</p>
+                  <p className="text-sm text-gray-500">× {(estimateResult as any).truckCount}台分</p>
+                </div>
+                <span className="font-black text-lg whitespace-nowrap ml-4">
+                  {formatCurrency(estimateResult.breakdown.reduce((sum, item) => sum + item.amount, 0) * ((estimateResult as any).truckCount - 1))}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="mt-6 p-4 bg-[oklch(0.92_0.16_95)] rounded-xl border-[3px] border-black">

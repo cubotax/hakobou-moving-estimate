@@ -326,6 +326,43 @@ function EstimateDetail() {
                         一覧に戻る
                     </Link>
 
+                    {/* アクション（上部に移動） */}
+                    <Section title="アクション">
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+                            <Button
+                                onClick={() => setSendModal('invite')}
+                                disabled={!estimate.line_user_id}
+                                className="bg-blue-600 hover:bg-blue-700"
+                            >
+                                <Send size={16} className="mr-2" />
+                                申込案内を送信
+                            </Button>
+                            <Button
+                                onClick={() => setSendModal('payment')}
+                                disabled={!estimate.line_user_id}
+                                className="bg-green-600 hover:bg-green-700"
+                            >
+                                <Send size={16} className="mr-2" />
+                                決済案内を送信
+                            </Button>
+                            {estimate.status !== 'cancelled' && estimate.status !== 'paid' && (
+                                <Button
+                                    onClick={() => setCancelModal(true)}
+                                    variant="outline"
+                                    className="border-red-300 text-red-600 hover:bg-red-50"
+                                >
+                                    <XCircle size={16} className="mr-2" />
+                                    キャンセルにする
+                                </Button>
+                            )}
+                            {!estimate.line_user_id && (
+                                <p className="text-sm text-gray-400">
+                                    ※LINE連携がないため送信できません
+                                </p>
+                            )}
+                        </div>
+                    </Section>
+
                     {/* 基本情報 */}
                     <Section title="基本情報">
                         <div className="space-y-3">
@@ -561,44 +598,6 @@ function EstimateDetail() {
                                 ))}
                             </div>
                         )}
-                    </Section>
-
-                    {/* アクション */}
-                    <Section title="アクション">
-                        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-                            <Button
-                                onClick={() => setSendModal('invite')}
-                                disabled={!estimate.line_user_id}
-                                className="bg-blue-600 hover:bg-blue-700"
-                            >
-                                <Send size={16} className="mr-2" />
-                                申込案内を送信
-                            </Button>
-                            <Button
-                                onClick={() => setSendModal('payment')}
-                                disabled={!estimate.line_user_id}
-                                className="bg-green-600 hover:bg-green-700"
-                            >
-                                <Send size={16} className="mr-2" />
-                                決済案内を送信
-                            </Button>
-                            {/* キャンセルボタン */}
-                            {estimate.status !== 'cancelled' && estimate.status !== 'paid' && (
-                                <Button
-                                    onClick={() => setCancelModal(true)}
-                                    variant="outline"
-                                    className="border-red-300 text-red-600 hover:bg-red-50"
-                                >
-                                    <XCircle size={16} className="mr-2" />
-                                    キャンセルにする
-                                </Button>
-                            )}
-                            {!estimate.line_user_id && (
-                                <p className="text-sm text-gray-400">
-                                    ※LINE連携がないため送信できません
-                                </p>
-                            )}
-                        </div>
                     </Section>
 
                     {/* 送信履歴 */}

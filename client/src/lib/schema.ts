@@ -88,6 +88,10 @@ export const step2Schema = z.object({
     .max(FORM_CONFIG.maxFloor, `${FORM_CONFIG.maxFloor}階以下を入力してください`),
   needsPacking: z.boolean(),
   plan: z.enum(['helper', 'full']),
+  truckCount: z
+    .number()
+    .min(1, '1台以上を選択してください')
+    .max(3, '3台以下を選択してください'),
 });
 
 export type Step2FormData = z.infer<typeof step2Schema>;
@@ -123,4 +127,5 @@ export const defaultStep2Values: Step2FormData = {
   floorDelivery: FORM_CONFIG.defaultFloor,
   needsPacking: false,
   plan: 'helper',
+  truckCount: 1,
 };
