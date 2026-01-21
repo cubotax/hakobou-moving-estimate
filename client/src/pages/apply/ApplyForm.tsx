@@ -58,6 +58,14 @@ function isHiraganaOnly(text: string): boolean {
     return hiraganaRegex.test(text);
 }
 
+// 全角英数字を半角に変換
+function convertFullWidthToHalfWidth(text: string): string {
+    return text
+        .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+        .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+        .replace(/[ー−―‐]/g, '-');
+}
+
 // プラン名の表示
 function getPlanLabel(plan?: string): string {
     if (!plan) return '未選択';
@@ -144,6 +152,14 @@ export default function ApplyForm() {
         // 入力時にエラーをクリア
         if (errors[field as keyof FormErrors]) {
             setErrors(prev => ({ ...prev, [field]: undefined }));
+        }
+    };
+
+    // フォーカスが外れた時に全角→半角変換を適用
+    const handleBlurWithConversion = (field: keyof ApplyFormData) => {
+        const converted = convertFullWidthToHalfWidth(formData[field]);
+        if (converted !== formData[field]) {
+            setFormData(prev => ({ ...prev, [field]: converted }));
         }
     };
 
@@ -505,6 +521,7 @@ export default function ApplyForm() {
                                         type="text"
                                         value={formData.pickupAddressDetail}
                                         onChange={(e) => handleInputChange('pickupAddressDetail', e.target.value)}
+                                        onBlur={() => handleBlurWithConversion('pickupAddressDetail')}
                                         placeholder="例: 1-2-3"
                                         className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.pickupAddressDetail ? 'border-red-500' : 'border-gray-300 focus:border-black'
                                             }`}
@@ -519,6 +536,7 @@ export default function ApplyForm() {
                                         type="text"
                                         value={formData.pickupBuilding}
                                         onChange={(e) => handleInputChange('pickupBuilding', e.target.value)}
+                                        onBlur={() => handleBlurWithConversion('pickupBuilding')}
                                         placeholder="例: ハイツ山田 101"
                                         className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
                                     />
@@ -546,6 +564,7 @@ export default function ApplyForm() {
                                         type="text"
                                         value={formData.deliveryAddressDetail}
                                         onChange={(e) => handleInputChange('deliveryAddressDetail', e.target.value)}
+                                        onBlur={() => handleBlurWithConversion('deliveryAddressDetail')}
                                         placeholder="例: 4-5-6"
                                         className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.deliveryAddressDetail ? 'border-red-500' : 'border-gray-300 focus:border-black'
                                             }`}
@@ -560,6 +579,7 @@ export default function ApplyForm() {
                                         type="text"
                                         value={formData.deliveryBuilding}
                                         onChange={(e) => handleInputChange('deliveryBuilding', e.target.value)}
+                                        onBlur={() => handleBlurWithConversion('deliveryBuilding')}
                                         placeholder="例: メゾン田中 202"
                                         className="w-full h-12 px-4 border-2 border-gray-300 rounded-xl font-medium focus:border-black transition-colors"
                                     />
@@ -582,8 +602,10 @@ export default function ApplyForm() {
                                 </label>
                                 <input
                                     type="tel"
+                                    inputMode="numeric"
                                     value={formData.phone}
                                     onChange={(e) => handleInputChange('phone', e.target.value)}
+                                    onBlur={() => handleBlurWithConversion('phone')}
                                     placeholder="例: 090-1234-5678"
                                     className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.phone ? 'border-red-500' : 'border-gray-300 focus:border-black'
                                         }`}

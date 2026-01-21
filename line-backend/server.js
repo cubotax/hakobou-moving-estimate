@@ -54,12 +54,51 @@ async function sendEstimateNotification(estimate) {
     console.log("メール通知設定がありません。スキップします。");
     return;
   }
+
+  // データ構造に対応
+  const pickupAddress = estimate.pickupAddress || {};
+  const deliveryAddress = estimate.deliveryAddress || {};
+  const dates = estimate.dates || {};
+  const conditions = estimate.conditions || {};
+
   const planName = estimate.plan === "helper" ? "ヘルパープラン" : estimate.plan === "omakase" ? "お任せプラン" : "未選択";
-  const packingService = estimate.needs_packing ? "希望する" : "希望しない";
-  const elevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
-  const elevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
+  const packingService = conditions.needsPacking ? "希望する" : "希望しない";
+  const elevatorPickup = conditions.hasElevatorPickup ? "あり" : "なし";
+  const elevatorDelivery = conditions.hasElevatorDelivery ? "あり" : "なし";
+
+  const pickupAddressStr = `${pickupAddress.prefecture || ''}${pickupAddress.city || ''}${pickupAddress.town || ''}`;
+  const deliveryAddressStr = `${deliveryAddress.prefecture || ''}${deliveryAddress.city || ''}${deliveryAddress.town || ''}`;
+
   const subject = `【ハコボウ】概算見積通知（ID: ${estimate.id}）`;
-  const text = `━━━━━━━━━━━━━━━━━━━━━━\n新規見積もりのお知らせ\n━━━━━━━━━━━━━━━━━━━━━━\n\n以下の内容で見積もりが作成されました。\n\n■ 見積もりID: ${estimate.id}\n■ 見積もり金額: ¥${estimate.total_fee?.toLocaleString() || 0}\n\n【集荷先】\n${estimate.pickup_prefecture}${estimate.pickup_city}${estimate.pickup_town}\n${estimate.floor_pickup}階 / エレベーター：${elevatorPickup}\n\n【お届け先】\n${estimate.delivery_prefecture}${estimate.delivery_city}${estimate.delivery_town}\n${estimate.floor_delivery}階 / エレベーター：${elevatorDelivery}\n\n【日程】\n集荷日: ${estimate.pickup_date}\nお届け日: ${estimate.delivery_date}\n\n【プラン】\n${planName} / 梱包サービス：${packingService}\n\n━━━━━━━━━━━━━━━━━━━━━━\n管理画面で確認:\nhttps://mitsumori.hakobou.com/admin\n━━━━━━━━━━━━━━━━━━━━━━`;
+  const text = `━━━━━━━━━━━━━━━━━━━━━━
+新規見積もりのお知らせ
+━━━━━━━━━━━━━━━━━━━━━━
+
+以下の内容で見積もりが作成されました。
+
+■ 見積もりID: ${estimate.id}
+■ 見積もり金額: ¥${(estimate.totalFee || 0).toLocaleString()}
+
+【集荷先】
+${pickupAddressStr}
+${conditions.floorPickup || 1}階 / エレベーター：${elevatorPickup}
+
+【お届け先】
+${deliveryAddressStr}
+${conditions.floorDelivery || 1}階 / エレベーター：${elevatorDelivery}
+
+【日程】
+集荷日: ${dates.pickupDate || '未設定'}
+お届け日: ${dates.deliveryDate || '未設定'}
+
+【プラン】
+${planName} / 梱包サービス：${packingService}
+
+━━━━━━━━━━━━━━━━━━━━━━
+管理画面で確認:
+https://mitsumori.hakobou.com/admin
+━━━━━━━━━━━━━━━━━━━━━━`;
+
   try {
     await resend.emails.send({ from: "ハコボウ通知 <onboarding@resend.dev>", to: notificationEmail, subject: subject, text: text });
     console.log("メール通知を送信しました:", estimate.id);
@@ -67,6 +106,95 @@ async function sendEstimateNotification(estimate) {
     console.error("メール通知の送信に失敗しました:", error);
   }
 }
+
+/**
+ * 申込確定時のメール通知
+ */
+async function sendApplicationNotification(estimate, application) {
+  const notificationEmail = process.env.NOTIFICATION_EMAIL;
+  if (!notificationEmail || !resend) {
+    console.log("メール通知設定がありません。スキップします。");
+    return;
+  }
+
+  const fullName = `${application.lastName || ''} ${application.firstName || ''}`.trim() || '未入力';
+  const fullNameKana = `${application.lastNameKana || ''} ${application.firstNameKana || ''}`.trim() || '未入力';
+
+  const pickupFull = [
+    estimate.pickup_prefecture,
+    estimate.pickup_city,
+    estimate.pickup_town,
+    application.pickupAddressDetail,
+    application.pickupBuilding
+  ].filter(Boolean).join('') || '未入力';
+
+  const deliveryFull = [
+    estimate.delivery_prefecture,
+    estimate.delivery_city,
+    estimate.delivery_town,
+    application.deliveryAddressDetail,
+    application.deliveryBuilding
+  ].filter(Boolean).join('') || '未入力';
+
+  const pickupDate = estimate.pickup_date || '未設定';
+  const deliveryDate = estimate.delivery_date || '未設定';
+
+  const floorPickup = estimate.floor_pickup || 1;
+  const elevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
+  const floorDelivery = estimate.floor_delivery || 1;
+  const elevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
+
+  const planName = estimate.plan === "helper" ? "ヘルパープラン" : estimate.plan === "omakase" ? "お任せプラン" : "未選択";
+  const packingService = estimate.needs_packing ? "希望する" : "希望しない";
+
+  const subject = `【ハコボウ】申込がありました（ID: ${estimate.id}）`;
+  const text = `━━━━━━━━━━━━━━━━━━━━━━
+🎉 新規申込のお知らせ
+━━━━━━━━━━━━━━━━━━━━━━
+
+以下の内容で申込がありました。
+
+■ 見積もりID: ${estimate.id}
+■ 見積もり金額: ¥${(estimate.total_fee || 0).toLocaleString()}
+
+【お客様情報】
+お名前: ${fullName}
+フリガナ: ${fullNameKana}
+電話番号: ${application.phone || '未入力'}
+
+【集荷先】
+${pickupFull}
+${floorPickup}階 / エレベーター：${elevatorPickup}
+希望時間帯: ${application.pickupTimeSlot || '指定なし'}
+
+【お届け先】
+${deliveryFull}
+${floorDelivery}階 / エレベーター：${elevatorDelivery}
+希望時間帯: ${application.deliveryTimeSlot || '指定なし'}
+
+【日程】
+集荷日: ${pickupDate}
+お届け日: ${deliveryDate}
+
+【プラン】
+${planName} / 梱包サービス：${packingService}
+
+【備考】
+${application.notes || 'なし'}
+
+━━━━━━━━━━━━━━━━━━━━━━
+管理画面で確認:
+https://mitsumori.hakobou.com/admin
+━━━━━━━━━━━━━━━━━━━━━━`;
+
+  try {
+    await resend.emails.send({ from: "ハコボウ通知 <onboarding@resend.dev>", to: notificationEmail, subject: subject, text: text });
+    console.log("申込通知メールを送信しました:", estimate.id);
+  } catch (error) {
+    console.error("申込通知メールの送信に失敗しました:", error);
+  }
+}
+
 
 // __dirname の代替（ESM用）
 const __filename = fileURLToPath(import.meta.url);
@@ -251,6 +379,24 @@ app.post("/api/apply", async (req, res) => {
       pickupTimeSlot,
       deliveryTimeSlot,
       notes,
+    });
+
+    // 申込通知メールを送信（バックグラウンド）
+    sendApplicationNotification(estimate, {
+      lastName,
+      firstName,
+      lastNameKana,
+      firstNameKana,
+      pickupAddressDetail,
+      pickupBuilding,
+      deliveryAddressDetail,
+      deliveryBuilding,
+      phone,
+      pickupTimeSlot,
+      deliveryTimeSlot,
+      notes,
+    }).catch(err => {
+      console.error("申込通知メールエラー:", err);
     });
 
     res.json({ success: true, estimateId: updatedEstimate.id });
