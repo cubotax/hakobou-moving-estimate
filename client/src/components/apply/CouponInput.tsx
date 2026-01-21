@@ -30,16 +30,9 @@ export default function CouponInput({
     loading = false,
 }: CouponInputProps) {
     const [isApplying, setIsApplying] = useState(false);
-    const [inputValue, setInputValue] = useState(couponCode);
+    const [isComposing, setIsComposing] = useState(false);
 
     const handleApply = async () => {
-        // 適用時に大文字変換と英数字フィルタを適用
-        const processed = inputValue.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        onCodeChange(processed);
-        setInputValue(processed);
-
-        if (!processed.trim()) return;
-
         setIsApplying(true);
         try {
             await onApply();
@@ -48,15 +41,27 @@ export default function CouponInput({
         }
     };
 
-    // 入力中は加工せずそのまま保持
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInputValue(e.target.value);
+    // クーポンコード変更ハンドラ（IME対応）
+    const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        // IME入力中は加工せずそのまま設定
+        if (isComposing) {
+            onCodeChange(value);
+            return;
+        }
+
+        // 確定後のみ大文字変換と英数字のみに制限
+        const processed = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        onCodeChange(processed);
     };
 
-    // フォーカスが外れたときに加工を適用
-    const handleBlur = () => {
-        const processed = inputValue.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        setInputValue(processed);
+    // IME変換確定時の処理
+    const handleCompositionEnd = (e: React.CompositionEvent<HTMLInputElement>) => {
+        setIsComposing(false);
+        // 変換確定時に加工を適用
+        const target = e.target as HTMLInputElement;
+        const processed = target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         onCodeChange(processed);
     };
 
@@ -88,22 +93,20 @@ export default function CouponInput({
             <div className="flex gap-2">
                 <input
                     type="text"
-                    value={inputValue}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
+                    value={couponCode}
+                    onChange={handleCodeChange}
+                    onCompositionStart={() => setIsComposing(true)}
+                    onCompositionEnd={handleCompositionEnd}
                     placeholder="クーポンコードを入力"
                     autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    inputMode="latin"
-                    className="flex-1 min-w-0 px-4 py-3 bg-white border-2 border-gray-300 rounded-xl text-lg focus:border-yellow-400 focus:outline-none transition-colors uppercase"
-                    style={{ textTransform: 'uppercase' }}
+                    autoCapitalize="characters"
+                    inputMode="text"
+                    className="flex-1 min-w-0 px-4 py-3 bg-white border-2 border-gray-300 rounded-xl text-lg focus:border-yellow-400 focus:outline-none transition-colors"
                     disabled={loading || isApplying}
                 />
                 <button
                     onClick={handleApply}
-                    disabled={!inputValue.trim() || loading || isApplying}
+                    disabled={!couponCode.trim() || loading || isApplying}
                     className="shrink-0 px-6 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
                 >
                     {isApplying ? (

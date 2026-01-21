@@ -411,7 +411,7 @@ export function AddressForm() {
                         handleValidatePickupAddress();
                       }
                     }}
-                    className="pop-input pr-16"
+                    className="pop-input pr-16 tracking-widest text-xl"
                   />
                   {!!pickupCity && (
                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
@@ -444,7 +444,7 @@ export function AddressForm() {
                         handleValidatePickupAddress();
                       }
                     }}
-                    className="pop-input pr-16"
+                    className="pop-input pr-16 tracking-widest text-xl"
                   />
                   {!!pickupTown && (
                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
@@ -552,7 +552,7 @@ export function AddressForm() {
                         handleValidateDeliveryAddress();
                       }
                     }}
-                    className="pop-input pr-16"
+                    className="pop-input pr-16 tracking-widest text-xl"
                   />
                   {!!deliveryCity && (
                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
@@ -585,7 +585,7 @@ export function AddressForm() {
                         handleValidateDeliveryAddress();
                       }
                     }}
-                    className="pop-input pr-16"
+                    className="pop-input pr-16 tracking-widest text-xl"
                   />
                   {!!deliveryTown && (
                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[oklch(0.5_0.15_145)]" />
@@ -673,7 +673,7 @@ export function AddressForm() {
                           }
                         }
                       }}
-                      className="pop-input pr-16"
+                      className="pop-input pr-16 tracking-widest text-xl"
                       style={{ fontSize: '1.25rem' }}
                     />
                     {isValidPostalCode(pickupPostalCode) && (
@@ -786,7 +786,7 @@ export function AddressForm() {
                           }
                         }
                       }}
-                      className="pop-input pr-16"
+                      className="pop-input pr-16 tracking-widest text-xl"
                       style={{ fontSize: '1.25rem' }}
                     />
                     {isValidPostalCode(deliveryPostalCode) && (

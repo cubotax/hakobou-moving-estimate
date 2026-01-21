@@ -70,6 +70,28 @@ export interface Estimate {
     line_user_id?: string;
     created_at: string;
     applied_at?: string;
+    // 調整後の値
+    adjusted_pickup_date?: string;
+    adjusted_delivery_date?: string;
+    adjusted_plan?: string;
+    adjusted_needs_packing?: boolean;
+    adjusted_floor_pickup?: number;
+    adjusted_has_elevator_pickup?: boolean;
+    adjusted_floor_delivery?: number;
+    adjusted_has_elevator_delivery?: boolean;
+    adjusted_at?: string;
+    adjusted_by?: string;
+}
+
+export interface AdjustmentData {
+    adjustedPickupDate?: string;
+    adjustedDeliveryDate?: string;
+    adjustedPlan?: string;
+    adjustedNeedsPacking?: boolean;
+    adjustedFloorPickup?: number;
+    adjustedHasElevatorPickup?: boolean;
+    adjustedFloorDelivery?: number;
+    adjustedHasElevatorDelivery?: boolean;
 }
 
 export interface EstimatesListResponse {
@@ -197,6 +219,34 @@ export function useEstimates() {
         }
     }, []);
 
+    const updateAdjustment = useCallback(async (
+        id: string,
+        adjustmentData: AdjustmentData
+    ): Promise<boolean> => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authFetch(`${API_BASE_URL}/api/admin/estimates/${id}/adjust`, {
+                method: 'PUT',
+                body: JSON.stringify(adjustmentData),
+            });
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to update adjustment');
+            }
+
+            return true;
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'エラーが発生しました';
+            setError(message);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         loading,
         error,
@@ -204,6 +254,7 @@ export function useEstimates() {
         getEstimate,
         updateStatus,
         updateFee,
+        updateAdjustment,
     };
 }
 

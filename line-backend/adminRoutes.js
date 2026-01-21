@@ -18,6 +18,7 @@ import {
     getEstimateDetail,
     updateEstimateStatus,
     updateEstimateFee,
+    updateEstimateAdjustment,
     getEstimateMemos,
     addEstimateMemo,
     getMessageLogs,
@@ -204,6 +205,22 @@ router.put('/estimates/:id/fee', authMiddleware, async (req, res) => {
     }
 });
 
+/**
+ * 見積もり調整値更新
+ */
+router.put('/estimates/:id/adjust', authMiddleware, async (req, res) => {
+    try {
+        const adjustmentData = req.body;
+        const adjustedBy = req.user?.email || 'unknown';
+
+        const estimate = await updateEstimateAdjustment(req.params.id, adjustmentData, adjustedBy);
+        res.json({ success: true, estimate });
+    } catch (err) {
+        console.error('Error updating adjustment:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // =====================================================
 // メモエンドポイント
 // =====================================================
@@ -282,16 +299,22 @@ function formatDateJP(dateStr) {
 
 /**
  * 申込案内Flexメッセージを作成
+ * ※調整後の値がある場合は調整後を優先使用
  */
 function buildInviteFlexMessage(estimate) {
     const totalFee = estimate.final_fee || estimate.total_fee || 0;
     const feeText = `¥${totalFee.toLocaleString()}`;
-    const pickupDate = formatDateJP(estimate.pickup_date);
-    const deliveryDate = formatDateJP(estimate.delivery_date);
+
+    // 調整後の値を優先使用
+    const pickupDateValue = estimate.adjusted_pickup_date || estimate.pickup_date;
+    const deliveryDateValue = estimate.adjusted_delivery_date || estimate.delivery_date;
+    const pickupDate = formatDateJP(pickupDateValue);
+    const deliveryDate = formatDateJP(deliveryDateValue);
+
     const baseUrl = APP_BASE_URL.endsWith('/') ? APP_BASE_URL.slice(0, -1) : APP_BASE_URL;
     const applyUrl = `${baseUrl}/apply?estimateId=${estimate.id}`;
 
-    // 住所情報
+    // 住所情報（変更不可なのでオリジナルのまま）
     const pickupAddress = [
         estimate.pickup_prefecture,
         estimate.pickup_city,
@@ -304,22 +327,26 @@ function buildInviteFlexMessage(estimate) {
         estimate.delivery_town,
     ].filter(Boolean).join('') || '未入力';
 
-    // 階数・エレベーター情報
-    const floorPickup = estimate.floor_pickup || 1;
-    const hasElevatorPickup = estimate.has_elevator_pickup ? 'あり' : 'なし';
+    // 階数・エレベーター情報（調整後を優先）
+    const floorPickup = estimate.adjusted_floor_pickup ?? estimate.floor_pickup ?? 1;
+    const hasElevatorPickupValue = estimate.adjusted_has_elevator_pickup ?? estimate.has_elevator_pickup;
+    const hasElevatorPickup = hasElevatorPickupValue ? 'あり' : 'なし';
     const pickupCondition = `${floorPickup}階 / エレベーター：${hasElevatorPickup}`;
 
-    const floorDelivery = estimate.floor_delivery || 1;
-    const hasElevatorDelivery = estimate.has_elevator_delivery ? 'あり' : 'なし';
+    const floorDelivery = estimate.adjusted_floor_delivery ?? estimate.floor_delivery ?? 1;
+    const hasElevatorDeliveryValue = estimate.adjusted_has_elevator_delivery ?? estimate.has_elevator_delivery;
+    const hasElevatorDelivery = hasElevatorDeliveryValue ? 'あり' : 'なし';
     const deliveryCondition = `${floorDelivery}階 / エレベーター：${hasElevatorDelivery}`;
 
-    // プラン表示
+    // プラン表示（調整後を優先）
+    const planValue = estimate.adjusted_plan || estimate.plan;
     let planLabel = '未選択';
-    if (estimate.plan === 'helper') planLabel = 'ヘルパープラン';
-    else if (estimate.plan === 'omakase') planLabel = 'お任せプラン';
+    if (planValue === 'helper') planLabel = 'ヘルパープラン';
+    else if (planValue === 'omakase') planLabel = 'お任せプラン';
 
-    // 梱包サービス
-    const packingLabel = estimate.needs_packing ? '希望する' : '希望しない';
+    // 梱包サービス（調整後を優先）
+    const needsPackingValue = estimate.adjusted_needs_packing ?? estimate.needs_packing;
+    const packingLabel = needsPackingValue ? '希望する' : '希望しない';
 
     return {
         type: 'flex',

@@ -39,6 +39,35 @@ import cookieParser from "cookie-parser";
 import adminRoutes from "./adminRoutes.js";
 import couponRoutes from "./publicRoutes.js";
 
+import { Resend } from "resend";
+
+// Resend初期化
+console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+/**
+ * 見積もり作成時のメール通知
+ */
+async function sendEstimateNotification(estimate) {
+  const notificationEmail = process.env.NOTIFICATION_EMAIL;
+  if (!notificationEmail || !resend) {
+    console.log("メール通知設定がありません。スキップします。");
+    return;
+  }
+  const planName = estimate.plan === "helper" ? "ヘルパープラン" : estimate.plan === "omakase" ? "お任せプラン" : "未選択";
+  const packingService = estimate.needs_packing ? "希望する" : "希望しない";
+  const elevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
+  const elevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
+  const subject = `【ハコボウ】概算見積通知（ID: ${estimate.id}）`;
+  const text = `━━━━━━━━━━━━━━━━━━━━━━\n新規見積もりのお知らせ\n━━━━━━━━━━━━━━━━━━━━━━\n\n以下の内容で見積もりが作成されました。\n\n■ 見積もりID: ${estimate.id}\n■ 見積もり金額: ¥${estimate.total_fee?.toLocaleString() || 0}\n\n【集荷先】\n${estimate.pickup_prefecture}${estimate.pickup_city}${estimate.pickup_town}\n${estimate.floor_pickup}階 / エレベーター：${elevatorPickup}\n\n【お届け先】\n${estimate.delivery_prefecture}${estimate.delivery_city}${estimate.delivery_town}\n${estimate.floor_delivery}階 / エレベーター：${elevatorDelivery}\n\n【日程】\n集荷日: ${estimate.pickup_date}\nお届け日: ${estimate.delivery_date}\n\n【プラン】\n${planName} / 梱包サービス：${packingService}\n\n━━━━━━━━━━━━━━━━━━━━━━\n管理画面で確認:\nhttps://mitsumori.hakobou.com/admin\n━━━━━━━━━━━━━━━━━━━━━━`;
+  try {
+    await resend.emails.send({ from: "ハコボウ通知 <onboarding@resend.dev>", to: notificationEmail, subject: subject, text: text });
+    console.log("メール通知を送信しました:", estimate.id);
+  } catch (error) {
+    console.error("メール通知の送信に失敗しました:", error);
+  }
+}
+
 // __dirname の代替（ESM用）
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,6 +113,11 @@ app.post("/api/estimates", async (req, res) => {
     const estimateData = { id: estimateId, ...req.body };
 
     await insertEstimate(estimateData);
+
+    // メール通知を送信（バックグラウンド）
+    sendEstimateNotification(estimateData).catch(err => {
+      console.error("メール通知エラー:", err);
+    });
 
     const liffUrl = LIFF_ID
       ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`

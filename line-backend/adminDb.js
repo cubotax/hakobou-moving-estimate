@@ -167,6 +167,64 @@ export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason 
     return data;
 }
 
+/**
+ * 見積もり調整値を更新
+ */
+export async function updateEstimateAdjustment(estimateId, adjustmentData, adjustedBy) {
+    const supabase = requireSupabase();
+
+    const updateData = {
+        adjusted_at: new Date().toISOString(),
+        adjusted_by: adjustedBy,
+    };
+
+    // 日程
+    if (adjustmentData.adjustedPickupDate !== undefined) {
+        updateData.adjusted_pickup_date = adjustmentData.adjustedPickupDate;
+    }
+    if (adjustmentData.adjustedDeliveryDate !== undefined) {
+        updateData.adjusted_delivery_date = adjustmentData.adjustedDeliveryDate;
+    }
+
+    // プラン・オプション
+    if (adjustmentData.adjustedPlan !== undefined) {
+        updateData.adjusted_plan = adjustmentData.adjustedPlan;
+    }
+    if (adjustmentData.adjustedNeedsPacking !== undefined) {
+        updateData.adjusted_needs_packing = adjustmentData.adjustedNeedsPacking;
+    }
+
+    // 集荷先条件
+    if (adjustmentData.adjustedFloorPickup !== undefined) {
+        updateData.adjusted_floor_pickup = adjustmentData.adjustedFloorPickup;
+    }
+    if (adjustmentData.adjustedHasElevatorPickup !== undefined) {
+        updateData.adjusted_has_elevator_pickup = adjustmentData.adjustedHasElevatorPickup;
+    }
+
+    // お届け先条件
+    if (adjustmentData.adjustedFloorDelivery !== undefined) {
+        updateData.adjusted_floor_delivery = adjustmentData.adjustedFloorDelivery;
+    }
+    if (adjustmentData.adjustedHasElevatorDelivery !== undefined) {
+        updateData.adjusted_has_elevator_delivery = adjustmentData.adjustedHasElevatorDelivery;
+    }
+
+    const { data, error } = await supabase
+        .from('estimates')
+        .update(updateData)
+        .eq('id', estimateId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating estimate adjustment:', error);
+        throw error;
+    }
+
+    return data;
+}
+
 // =====================================================
 // メモ管理
 // =====================================================
@@ -518,15 +576,15 @@ export async function hasUserUsedCoupon(couponId, lineUserId) {
     return (count || 0) > 0;
 }
 
-// =====================================================
-// クーポン検証
-// =====================================================
-
 /**
  * クーポンを検証
+ * ※ 割引は「基本料金」に対してのみ適用（総額ではない）
  */
 export async function validateCoupon(code, estimateId, lineUserId) {
     const supabase = requireSupabase();
+
+    // 基本料金（固定値）
+    const BASE_FEE = 19800;
 
     // クーポンを取得
     const coupon = await getCouponByCode(code);
@@ -591,17 +649,23 @@ export async function validateCoupon(code, estimateId, lineUserId) {
         };
     }
 
-    // 割引額を計算
+    // 割引額を計算（基本料金に対してのみ適用）
     let discountAmount;
     if (coupon.discount_type === 'fixed') {
-        discountAmount = coupon.discount_value;
+        // 固定額割引: 基本料金を上限とする
+        discountAmount = Math.min(coupon.discount_value, BASE_FEE);
     } else {
-        discountAmount = Math.floor(originalAmount * coupon.discount_value / 100);
+        // 割引率: 基本料金に対して計算
+        discountAmount = Math.floor(BASE_FEE * coupon.discount_value / 100);
     }
 
-    // 割引額が元の金額を超えないようにする
-    discountAmount = Math.min(discountAmount, originalAmount);
-    const finalAmount = originalAmount - discountAmount;
+    // オプション・加算料金（基本料金以外の部分）を計算
+    const otherFees = Math.max(0, originalAmount - BASE_FEE);
+
+    // 最終金額 = (基本料金 - 割引) + オプション合計
+    // ※基本料金部分がマイナスにならないよう保護
+    const discountedBaseFee = Math.max(0, BASE_FEE - discountAmount);
+    const finalAmount = discountedBaseFee + otherFees;
 
     return {
         valid: true,
