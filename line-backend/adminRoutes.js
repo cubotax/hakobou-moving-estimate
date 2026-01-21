@@ -3,10 +3,7 @@
  */
 
 import express from 'express';
-import twilio from 'twilio';
 import Stripe from 'stripe';
-
-
 import { messagingApi } from '@line/bot-sdk';
 import {
     authMiddleware,
@@ -51,31 +48,11 @@ if (LINE_CHANNEL_ACCESS_TOKEN) {
     });
 }
 
-// Twilio SMSクライアント
-let twilioClient = null;
-if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
-    twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-    console.log('Twilio client initialized');
-}
-
 // Stripeクライアント
 let stripe = null;
 if (process.env.STRIPE_SECRET_KEY) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     console.log('Stripe client initialized');
-}
-
-// 電話番号を国際形式に変換
-function formatPhoneForSMS(phone) {
-    if (!phone) return null;
-    const digits = phone.replace(/\D/g, '');
-    if (digits.startsWith('0')) {
-        return '+81' + digits.substring(1);
-    }
-    if (digits.startsWith('81')) {
-        return '+' + digits;
-    }
-    return '+' + digits;
 }
 
 // =====================================================
@@ -112,25 +89,19 @@ router.get('/auth/callback', async (req, res) => {
             return res.redirect('/admin/login?error=no_code');
         }
 
-        // Googleトークンを取得
         const tokens = await exchangeCodeForTokens(code);
-
-        // ユーザー情報を取得
         const userInfo = await getGoogleUserInfo(tokens.access_token);
 
-        // メールアドレスが許可されているか確認
         if (!isEmailAllowed(userInfo.email)) {
             return res.redirect('/admin/login?error=not_authorized');
         }
 
-        // JWTトークンを生成
         const jwtToken = generateToken({
             email: userInfo.email,
             name: userInfo.name,
             picture: userInfo.picture,
         });
 
-        // フロントエンドにリダイレクト（トークン付き）
         res.redirect(`/admin/login?token=${jwtToken}`);
     } catch (err) {
         console.error('Auth callback error:', err);
@@ -331,13 +302,11 @@ function formatDateJP(dateStr) {
 
 /**
  * 申込案内Flexメッセージを作成
- * ※調整後の値がある場合は調整後を優先使用
  */
 function buildInviteFlexMessage(estimate) {
     const totalFee = estimate.final_fee || estimate.total_fee || 0;
     const feeText = `¥${totalFee.toLocaleString()}`;
 
-    // 調整後の値を優先使用
     const pickupDateValue = estimate.adjusted_pickup_date || estimate.pickup_date;
     const deliveryDateValue = estimate.adjusted_delivery_date || estimate.delivery_date;
     const pickupDate = formatDateJP(pickupDateValue);
@@ -346,7 +315,6 @@ function buildInviteFlexMessage(estimate) {
     const baseUrl = APP_BASE_URL.endsWith('/') ? APP_BASE_URL.slice(0, -1) : APP_BASE_URL;
     const applyUrl = `${baseUrl}/apply?estimateId=${estimate.id}`;
 
-    // 住所情報（変更不可なのでオリジナルのまま）
     const pickupAddress = [
         estimate.pickup_prefecture,
         estimate.pickup_city,
@@ -359,7 +327,6 @@ function buildInviteFlexMessage(estimate) {
         estimate.delivery_town,
     ].filter(Boolean).join('') || '未入力';
 
-    // 階数・エレベーター情報（調整後を優先）
     const floorPickup = estimate.adjusted_floor_pickup ?? estimate.floor_pickup ?? 1;
     const hasElevatorPickupValue = estimate.adjusted_has_elevator_pickup ?? estimate.has_elevator_pickup;
     const hasElevatorPickup = hasElevatorPickupValue ? 'あり' : 'なし';
@@ -370,13 +337,11 @@ function buildInviteFlexMessage(estimate) {
     const hasElevatorDelivery = hasElevatorDeliveryValue ? 'あり' : 'なし';
     const deliveryCondition = `${floorDelivery}階 / エレベーター：${hasElevatorDelivery}`;
 
-    // プラン表示（調整後を優先）
     const planValue = estimate.adjusted_plan || estimate.plan;
     let planLabel = '未選択';
     if (planValue === 'helper') planLabel = 'ヘルパープラン';
     else if (planValue === 'omakase') planLabel = 'お任せプラン';
 
-    // 梱包サービス（調整後を優先）
     const needsPackingValue = estimate.adjusted_needs_packing ?? estimate.needs_packing;
     const packingLabel = needsPackingValue ? '希望する' : '希望しない';
 
@@ -430,7 +395,6 @@ function buildInviteFlexMessage(estimate) {
                         margin: 'lg',
                         spacing: 'sm',
                         contents: [
-                            // 集荷日
                             {
                                 type: 'box',
                                 layout: 'horizontal',
@@ -439,7 +403,6 @@ function buildInviteFlexMessage(estimate) {
                                     { type: 'text', text: pickupDate, size: 'sm', color: '#111111', align: 'end' },
                                 ],
                             },
-                            // お届け日
                             {
                                 type: 'box',
                                 layout: 'horizontal',
@@ -448,7 +411,6 @@ function buildInviteFlexMessage(estimate) {
                                     { type: 'text', text: deliveryDate, size: 'sm', color: '#111111', align: 'end' },
                                 ],
                             },
-                            // 集荷先
                             {
                                 type: 'box',
                                 layout: 'horizontal',
@@ -463,7 +425,6 @@ function buildInviteFlexMessage(estimate) {
                                 size: 'xs',
                                 color: '#888888',
                             },
-                            // お届け先
                             {
                                 type: 'box',
                                 layout: 'horizontal',
@@ -478,12 +439,10 @@ function buildInviteFlexMessage(estimate) {
                                 size: 'xs',
                                 color: '#888888',
                             },
-                            // セパレーター
                             {
                                 type: 'separator',
                                 margin: 'md',
                             },
-                            // プラン
                             {
                                 type: 'box',
                                 layout: 'horizontal',
@@ -493,7 +452,6 @@ function buildInviteFlexMessage(estimate) {
                                     { type: 'text', text: planLabel, size: 'sm', color: '#111111', align: 'end' },
                                 ],
                             },
-                            // 梱包サービス
                             {
                                 type: 'box',
                                 layout: 'horizontal',
@@ -504,7 +462,6 @@ function buildInviteFlexMessage(estimate) {
                             },
                         ],
                     },
-                    // 案内テキスト
                     {
                         type: 'text',
                         text: '日程調整が完了しました！このメッセージから3日以内であれば現在の見積もりプランでお申込みが可能です。',
@@ -548,9 +505,9 @@ function buildInviteFlexMessage(estimate) {
 }
 
 /**
- * 決済案内Flexメッセージを作成
+ * 決済案内Flexメッセージを作成（LINE経由で決済リンク付き）
  */
-function buildPaymentFlexMessage(estimate) {
+function buildPaymentFlexMessage(estimate, paymentUrl) {
     const finalFee = estimate.final_fee || estimate.total_fee || 0;
     const discountAmount = estimate.discount_amount || 0;
     const feeText = `¥${finalFee.toLocaleString()}`;
@@ -605,36 +562,49 @@ function buildPaymentFlexMessage(estimate) {
                         margin: 'lg',
                     },
                     {
-                        type: 'box',
-                        layout: 'vertical',
+                        type: 'text',
+                        text: '下のボタンからクレジットカードでお支払いください。',
+                        size: 'sm',
+                        color: '#555555',
                         margin: 'lg',
-                        contents: [
-                            {
-                                type: 'text',
-                                text: 'ご登録の電話番号宛にSMSで',
-                                size: 'sm',
-                                color: '#555555',
-                                wrap: true,
-                            },
-                            {
-                                type: 'text',
-                                text: '決済リンクをお送りしました。',
-                                size: 'sm',
-                                color: '#555555',
-                                wrap: true,
-                            },
-                            {
-                                type: 'text',
-                                text: '24時間以内にお支払いください。',
-                                size: 'sm',
-                                color: '#111111',
-                                weight: 'bold',
-                                margin: 'md',
-                                wrap: true,
-                            },
-                        ],
+                        wrap: true,
+                    },
+                    {
+                        type: 'text',
+                        text: '24時間以内にお支払いください。',
+                        size: 'sm',
+                        color: '#111111',
+                        weight: 'bold',
+                        margin: 'md',
+                        wrap: true,
                     },
                 ].filter(Boolean),
+            },
+            footer: {
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                    {
+                        type: 'button',
+                        action: {
+                            type: 'uri',
+                            label: 'お支払いはこちら',
+                            uri: paymentUrl,
+                        },
+                        style: 'primary',
+                        color: '#1DB446',
+                        height: 'md',
+                    },
+                    {
+                        type: 'text',
+                        text: '※クレジットカード決済（Stripe）',
+                        size: 'xs',
+                        color: '#888888',
+                        align: 'center',
+                        margin: 'md',
+                    },
+                ],
+                paddingAll: '16px',
             },
         },
     };
@@ -659,17 +629,13 @@ router.post('/estimates/:id/send-invite', authMiddleware, async (req, res) => {
             return res.status(500).json({ success: false, error: 'LINE client not configured' });
         }
 
-        // Flexメッセージを送信
         const message = buildInviteFlexMessage(estimate);
         await lineClient.pushMessage({
             to: estimate.line_user_id,
             messages: [message],
         });
 
-        // ステータスを更新
         await updateEstimateStatus(req.params.id, 'invite_sent');
-
-        // 送信履歴を追加
         await addMessageLog(req.params.id, 'invite', req.adminUser.email);
 
         res.json({ success: true, message: 'Invite sent successfully' });
@@ -680,10 +646,7 @@ router.post('/estimates/:id/send-invite', authMiddleware, async (req, res) => {
 });
 
 /**
- * 決済案内送信
- */
-/**
- * 決済案内送信（SMS経由）
+ * 決済案内送信（LINE経由）
  */
 router.post('/estimates/:id/send-payment', authMiddleware, async (req, res) => {
     try {
@@ -693,16 +656,16 @@ router.post('/estimates/:id/send-payment', authMiddleware, async (req, res) => {
             return res.status(404).json({ success: false, error: 'Estimate not found' });
         }
 
-        if (!estimate.phone) {
-            return res.status(400).json({ success: false, error: '電話番号が登録されていません' });
+        if (!estimate.line_user_id) {
+            return res.status(400).json({ success: false, error: 'LINE user IDが登録されていません' });
         }
 
         if (!stripe) {
             return res.status(500).json({ success: false, error: 'Stripe not configured' });
         }
 
-        if (!twilioClient) {
-            return res.status(500).json({ success: false, error: 'Twilio not configured' });
+        if (!lineClient) {
+            return res.status(500).json({ success: false, error: 'LINE client not configured' });
         }
 
         const finalFee = estimate.final_fee || estimate.total_fee || 0;
@@ -736,26 +699,14 @@ router.post('/estimates/:id/send-payment', authMiddleware, async (req, res) => {
         // DBにセッションIDを保存
         await updateEstimatePaymentSession(req.params.id, session.id);
 
-        // SMSで決済リンクを送信
-        const formattedPhone = formatPhoneForSMS(estimate.phone);
-        console.log(`SMS送信先: ${formattedPhone}`);
-
-        await twilioClient.messages.create({
-            body: `【ハコ坊】お支払いはこちら: ${session.url}`,
-            from: process.env.TWILIO_PHONE_NUMBER,
-            to: formattedPhone,
+        // LINEで決済リンク付きメッセージを送信
+        const message = buildPaymentFlexMessage(estimate, session.url);
+        await lineClient.pushMessage({
+            to: estimate.line_user_id,
+            messages: [message],
         });
 
-        console.log('SMS送信成功');
-
-        // LINEにも通知（決済リンクはSMSで送った旨を伝える）
-        if (estimate.line_user_id && lineClient) {
-            const message = buildPaymentFlexMessage(estimate);
-            await lineClient.pushMessage({
-                to: estimate.line_user_id,
-                messages: [message],
-            });
-        }
+        console.log('LINE決済案内送信成功');
 
         // ステータスを更新
         await updateEstimateStatus(req.params.id, 'payment_sent');
@@ -763,14 +714,12 @@ router.post('/estimates/:id/send-payment', authMiddleware, async (req, res) => {
         // 送信履歴を追加
         await addMessageLog(req.params.id, 'payment', req.adminUser.email);
 
-        res.json({ success: true, message: 'Payment request sent via SMS' });
+        res.json({ success: true, message: 'Payment request sent via LINE' });
     } catch (err) {
         console.error('Error sending payment:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
-
-
 
 // =====================================================
 // クーポン管理エンドポイント
