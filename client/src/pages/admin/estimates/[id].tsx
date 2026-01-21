@@ -289,6 +289,47 @@ function EstimateDetail() {
         setEditDeliveryModal(true);
     };
 
+    // ユーザーイベントを時系列で構築
+    const buildUserEvents = () => {
+        if (!estimate) return [];
+
+        const events: { date: string; label: string; details?: string }[] = [];
+
+        // 見積もり作成
+        if (estimate.created_at) {
+            events.push({
+                date: estimate.created_at,
+                label: '見積もり作成',
+                details: `${estimate.pickup_prefecture}${estimate.pickup_city} → ${estimate.delivery_prefecture}${estimate.delivery_city}`,
+            });
+        }
+
+        // 相談開始
+        if (estimate.consulted_at) {
+            events.push({
+                date: estimate.consulted_at,
+                label: '相談開始',
+                details: 'LINEで「このプランで相談する」を押下',
+            });
+        }
+
+        // 申込完了
+        if (estimate.applied_at) {
+            const name = [estimate.last_name, estimate.first_name].filter(Boolean).join(' ') || '未入力';
+            const phone = estimate.phone || '未入力';
+            events.push({
+                date: estimate.applied_at,
+                label: '申込完了',
+                details: `${name} / ${phone}`,
+            });
+        }
+
+        // 時系列でソート（新しい順）
+        events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        return events;
+    };
+
     if (loading && !estimate) {
         return (
             <RequireAuth>
@@ -312,6 +353,8 @@ function EstimateDetail() {
             </RequireAuth>
         );
     }
+
+    const userEvents = buildUserEvents();
 
     return (
         <RequireAuth>
@@ -613,6 +656,32 @@ function EstimateDetail() {
                                     >
                                         <span>{messageTypeLabels[log.message_type] || log.message_type}</span>
                                         <span className="text-gray-400">{formatDateTime(log.sent_at)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </Section>
+
+                    {/* ユーザーから送信された情報 */}
+                    <Section title="ユーザーから送信された情報">
+                        {userEvents.length === 0 ? (
+                            <p className="text-gray-400 text-sm">情報はありません</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {userEvents.map((event, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex flex-col sm:flex-row sm:justify-between text-sm py-2 border-b border-gray-100 last:border-0"
+                                    >
+                                        <div>
+                                            <span className="font-medium">{event.label}</span>
+                                            {event.details && (
+                                                <span className="text-gray-500 ml-2">{event.details}</span>
+                                            )}
+                                        </div>
+                                        <span className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-0">
+                                            {formatDateTime(event.date)}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
