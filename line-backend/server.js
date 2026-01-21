@@ -45,6 +45,31 @@ import { Resend } from "resend";
 console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
+// 見積もり有効期限（日数）
+const ESTIMATE_EXPIRY_DAYS = 3;
+
+/**
+ * 見積もりの有効期限をチェック
+ * @param {Object} estimate - 見積もりオブジェクト
+ * @returns {boolean} - 有効期限内ならtrue、期限切れならfalse
+ */
+function isEstimateValid(estimate) {
+  if (!estimate || !estimate.created_at) return false;
+
+  // すでに相談中以降のステータスなら有効
+  const activeStatuses = ['consulting', 'applied', 'invite_sent', 'payment_sent', 'paid'];
+  if (activeStatuses.includes(estimate.status)) {
+    return true;
+  }
+
+  // 初回見積（estimated）の場合は3日間の有効期限をチェック
+  const createdAt = new Date(estimate.created_at);
+  const now = new Date();
+  const diffDays = (now - createdAt) / (1000 * 60 * 60 * 24);
+
+  return diffDays <= ESTIMATE_EXPIRY_DAYS;
+}
+
 /**
  * 見積もり作成時のメール通知
  */
@@ -492,6 +517,37 @@ async function handlePostbackEvent(event) {
   // 相談アクション
   if (action === "consult" && estimateId) {
     try {
+      // 見積もりを取得
+      const estimate = await getEstimateById(estimateId);
+
+      // 見積もりが存在しない場合
+      if (!estimate) {
+        console.log("Estimate not found:", estimateId);
+        return client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [
+            {
+              type: "text",
+              text: "申し訳ございません。\n\nこの見積もりは見つかりませんでした。\n新しくお見積もりを作成してください。\n\n▼ お見積もりはこちら\nhttps://mitsumori.hakobou.com/",
+            },
+          ],
+        });
+      }
+
+      // 有効期限チェック（3日間）
+      if (!isEstimateValid(estimate)) {
+        console.log("Estimate expired:", estimateId, "created_at:", estimate.created_at);
+        return client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [
+            {
+              type: "text",
+              text: "申し訳ございません。\n\nこの見積もりの有効期限（3日間）が過ぎております。\n\nお手数ですが、再度お見積もりを作成してください。\n\n▼ お見積もりはこちら\nhttps://mitsumori.hakobou.com/",
+            },
+          ],
+        });
+      }
+
       // ステータスを「相談中」に更新
       await updateEstimateToConsulting(estimateId);
       console.log("Updated estimate to consulting:", estimateId);
