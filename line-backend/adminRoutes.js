@@ -3,6 +3,10 @@
  */
 
 import express from 'express';
+import twilio from 'twilio';
+import Stripe from 'stripe';
+
+
 import { messagingApi } from '@line/bot-sdk';
 import {
     authMiddleware,
@@ -30,6 +34,7 @@ import {
     deleteCoupon,
     getCouponUsages,
     validateCoupon,
+    updateEstimatePaymentSession,
     recordCouponUsage,
 } from './adminDb.js';
 
@@ -44,6 +49,33 @@ if (LINE_CHANNEL_ACCESS_TOKEN) {
     lineClient = new messagingApi.MessagingApiClient({
         channelAccessToken: LINE_CHANNEL_ACCESS_TOKEN,
     });
+}
+
+// Twilio SMSクライアント
+let twilioClient = null;
+if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+    twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    console.log('Twilio client initialized');
+}
+
+// Stripeクライアント
+let stripe = null;
+if (process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    console.log('Stripe client initialized');
+}
+
+// 電話番号を国際形式に変換
+function formatPhoneForSMS(phone) {
+    if (!phone) return null;
+    const digits = phone.replace(/\D/g, '');
+    if (digits.startsWith('0')) {
+        return '+81' + digits.substring(1);
+    }
+    if (digits.startsWith('81')) {
+        return '+' + digits;
+    }
+    return '+' + digits;
 }
 
 // =====================================================
@@ -650,6 +682,9 @@ router.post('/estimates/:id/send-invite', authMiddleware, async (req, res) => {
 /**
  * 決済案内送信
  */
+/**
+ * 決済案内送信（SMS経由）
+ */
 router.post('/estimates/:id/send-payment', authMiddleware, async (req, res) => {
     try {
         const estimate = await getEstimateDetail(req.params.id);
@@ -658,20 +693,69 @@ router.post('/estimates/:id/send-payment', authMiddleware, async (req, res) => {
             return res.status(404).json({ success: false, error: 'Estimate not found' });
         }
 
-        if (!estimate.line_user_id) {
-            return res.status(400).json({ success: false, error: 'LINE user ID not found' });
+        if (!estimate.phone) {
+            return res.status(400).json({ success: false, error: '電話番号が登録されていません' });
         }
 
-        if (!lineClient) {
-            return res.status(500).json({ success: false, error: 'LINE client not configured' });
+        if (!stripe) {
+            return res.status(500).json({ success: false, error: 'Stripe not configured' });
         }
 
-        // Flexメッセージを送信
-        const message = buildPaymentFlexMessage(estimate);
-        await lineClient.pushMessage({
-            to: estimate.line_user_id,
-            messages: [message],
+        if (!twilioClient) {
+            return res.status(500).json({ success: false, error: 'Twilio not configured' });
+        }
+
+        const finalFee = estimate.final_fee || estimate.total_fee || 0;
+
+        // Stripe Checkout Session作成
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'jpy',
+                        product_data: {
+                            name: `引越し料金（見積もりID: ${estimate.id}）`,
+                        },
+                        unit_amount: Math.round(finalFee),
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `${APP_BASE_URL}payment/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${APP_BASE_URL}payment/cancel`,
+            metadata: {
+                estimate_id: estimate.id,
+                line_user_id: estimate.line_user_id || '',
+            },
         });
+
+        console.log(`Stripe Session作成: ${session.id}`);
+
+        // DBにセッションIDを保存
+        await updateEstimatePaymentSession(req.params.id, session.id);
+
+        // SMSで決済リンクを送信
+        const formattedPhone = formatPhoneForSMS(estimate.phone);
+        console.log(`SMS送信先: ${formattedPhone}`);
+
+        await twilioClient.messages.create({
+            body: `【ハコ坊】お支払いはこちら: ${session.url}`,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: formattedPhone,
+        });
+
+        console.log('SMS送信成功');
+
+        // LINEにも通知（決済リンクはSMSで送った旨を伝える）
+        if (estimate.line_user_id && lineClient) {
+            const message = buildPaymentFlexMessage(estimate);
+            await lineClient.pushMessage({
+                to: estimate.line_user_id,
+                messages: [message],
+            });
+        }
 
         // ステータスを更新
         await updateEstimateStatus(req.params.id, 'payment_sent');
@@ -679,14 +763,14 @@ router.post('/estimates/:id/send-payment', authMiddleware, async (req, res) => {
         // 送信履歴を追加
         await addMessageLog(req.params.id, 'payment', req.adminUser.email);
 
-        // TODO: SMS送信処理（SMS_API_KEY等の設定が必要）
-
-        res.json({ success: true, message: 'Payment request sent successfully' });
+        res.json({ success: true, message: 'Payment request sent via SMS' });
     } catch (err) {
         console.error('Error sending payment:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
+
+
 
 // =====================================================
 // クーポン管理エンドポイント

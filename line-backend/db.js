@@ -158,3 +158,24 @@ export async function updateEstimateToConsulting(estimateId) {
 }
 
 export default supabase;
+
+/**
+ * 見積もりにStripe Session IDを保存
+ */
+export async function updateEstimatePaymentSession(estimateId, sessionId) {
+  const { data, error } = await supabase
+    .from('estimates')
+    .update({
+      stripe_session_id: sessionId,
+    })
+    .eq('id', estimateId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating payment session:', error);
+    throw error;
+  }
+
+  return data;
+}

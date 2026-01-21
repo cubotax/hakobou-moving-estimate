@@ -479,6 +479,28 @@ export default function ApplyForm() {
                                     )}
                                 </div>
                             </div>
+
+                            {/* 電話番号入力（ふりがなの下に配置） */}
+                            <div className="mt-6">
+                                <label className="block text-sm font-bold mb-1 flex items-center gap-2">
+                                    <Phone className="w-4 h-4" /> 電話番号 <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    value={formData.phone}
+                                    onChange={(e) => {
+                                        const converted = convertPhoneNumber(e.target.value);
+                                        handleInputChange('phone', converted);
+                                    }}
+                                    placeholder="例: 09012345678"
+                                    className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.phone ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
+                                />
+                                {errors.phone && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                                )}
+                                <p className="text-sm text-gray-500 mt-2">※決済リンクはSMSで送信します。</p>
+                            </div>
                         </div>
 
                         <div className="mb-8">
@@ -563,33 +585,7 @@ export default function ApplyForm() {
                             </div>
                         </div>
 
-                        <div className="mb-8">
-                            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <Phone className="w-4 h-4 text-blue-500" />
-                                </div>
-                                ご連絡先
-                            </h3>
-                            <div>
-                                <label className="block text-sm font-bold mb-1 flex items-center gap-2">
-                                    <Phone className="w-4 h-4" /> 電話番号 <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="tel"
-                                    inputMode="numeric"
-                                    value={formData.phone}
-                                    onChange={(e) => {
-                                        const converted = convertPhoneNumber(e.target.value);
-                                        handleInputChange('phone', converted);
-                                    }}
-                                    placeholder="例: 09012345678"
-                                    className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.phone ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
-                                />
-                                {errors.phone && (
-                                    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
-                                )}
-                            </div>
-                        </div>
+
 
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
