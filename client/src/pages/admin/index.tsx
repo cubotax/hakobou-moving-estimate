@@ -124,7 +124,11 @@ function AdminDashboard() {
                     disabled: false,
                 };
             case 'invite_sent':
-                return { label: '送信済み', disabled: true };
+                return {
+                    label: '決済案内を送信',
+                    action: () => setConfirmModal({ type: 'payment', estimate }),
+                    disabled: false,
+                };
             case 'applied':
                 return {
                     label: '決済案内を送信',
