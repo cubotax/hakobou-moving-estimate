@@ -604,9 +604,10 @@ export default function ApplyForm() {
                                 className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors bg-white ${errors.pickupTimeSlot ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
                             >
                                 <option value="">{timeSlotLabels['']}</option>
+                                <option value="anytime">{timeSlotLabels.anytime}</option>
                                 <option value="morning">{timeSlotLabels.morning}</option>
                                 <option value="afternoon">{timeSlotLabels.afternoon}</option>
-                                <option value="anytime">{timeSlotLabels.anytime}</option>
+
                             </select>
                             {errors.pickupTimeSlot && (
                                 <p className="text-red-500 text-sm mt-1">{errors.pickupTimeSlot}</p>
@@ -626,9 +627,10 @@ export default function ApplyForm() {
                                 className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors bg-white ${errors.deliveryTimeSlot ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
                             >
                                 <option value="">{timeSlotLabels['']}</option>
+                                <option value="anytime">{timeSlotLabels.anytime}</option>
                                 <option value="morning">{timeSlotLabels.morning}</option>
                                 <option value="afternoon">{timeSlotLabels.afternoon}</option>
-                                <option value="anytime">{timeSlotLabels.anytime}</option>
+
                             </select>
                             {errors.deliveryTimeSlot && (
                                 <p className="text-red-500 text-sm mt-1">{errors.deliveryTimeSlot}</p>

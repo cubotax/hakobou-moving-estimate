@@ -552,7 +552,7 @@ function EstimateDetail() {
 
                     {/* アクション */}
                     <Section title="アクション">
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-3">
                             <Button
                                 onClick={() => setSendModal('invite')}
                                 disabled={!estimate.line_user_id}

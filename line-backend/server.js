@@ -147,9 +147,19 @@ async function sendApplicationNotification(estimate, application) {
   const planName = estimate.plan === "helper" ? "ヘルパープラン" : estimate.plan === "omakase" ? "お任せプラン" : "未選択";
   const packingService = estimate.needs_packing ? "希望する" : "希望しない";
 
-  const subject = `【ハコボウ】申込がありました（ID: ${estimate.id}）`;
+  // 時間帯の日本語変換
+  const timeSlotLabels = {
+    'anytime': 'どちらでも',
+    'morning': '午前',
+    'afternoon': '午後',
+    '': '指定なし'
+  };
+  const pickupTimeSlot = timeSlotLabels[application.pickupTimeSlot] || application.pickupTimeSlot || '指定なし';
+  const deliveryTimeSlot = timeSlotLabels[application.deliveryTimeSlot] || application.deliveryTimeSlot || '指定なし';
+
+  const subject = `【ハコボウ】日程調整の申込依頼（ID: ${estimate.id}）`;
   const text = `━━━━━━━━━━━━━━━━━━━━━━
-🎉 新規申込のお知らせ
+🎉 日程調整申込のお知らせ
 ━━━━━━━━━━━━━━━━━━━━━━
 
 以下の内容で申込がありました。
@@ -162,19 +172,19 @@ async function sendApplicationNotification(estimate, application) {
 フリガナ: ${fullNameKana}
 電話番号: ${application.phone || '未入力'}
 
-【集荷先】
-${pickupFull}
-${floorPickup}階 / エレベーター：${elevatorPickup}
-希望時間帯: ${application.pickupTimeSlot || '指定なし'}
-
-【お届け先】
-${deliveryFull}
-${floorDelivery}階 / エレベーター：${elevatorDelivery}
-希望時間帯: ${application.deliveryTimeSlot || '指定なし'}
-
-【日程】
+【集荷】
+住所: ${pickupFull}
+階数: ${floorPickup}階
+エレベーター: ${elevatorPickup}
 集荷日: ${pickupDate}
+希望時間帯: ${pickupTimeSlot}
+
+【お届け】
+住所: ${deliveryFull}
+階数: ${floorDelivery}階
+エレベーター: ${elevatorDelivery}
 お届け日: ${deliveryDate}
+希望時間帯: ${deliveryTimeSlot}
 
 【プラン】
 ${planName} / 梱包サービス：${packingService}
@@ -183,9 +193,12 @@ ${planName} / 梱包サービス：${packingService}
 ${application.notes || 'なし'}
 
 ━━━━━━━━━━━━━━━━━━━━━━
+管理者は日程調整後にユーザーに決済案内を送信して下さい。
+━━━━━━━━━━━━━━━━━━━━━━
+
 管理画面で確認:
 https://mitsumori.hakobou.com/admin
-━━━━━━━━━━━━━━━━━━━━━━`;
+`;
 
   try {
     await resend.emails.send({ from: "ハコボウ通知 <onboarding@resend.dev>", to: notificationEmail, subject: subject, text: text });

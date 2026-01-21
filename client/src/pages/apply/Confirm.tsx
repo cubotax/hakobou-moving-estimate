@@ -302,7 +302,7 @@ export default function Confirm() {
                             <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                                 <p className="font-medium">
                                     {estimate.pickupPrefecture}{estimate.pickupCity}{estimate.pickupTown}
-                                    <span className="text-[oklch(0.5_0.2_250)] font-bold"> {formData.pickupAddressDetail}</span>
+                                    <span className="font-bold"> {formData.pickupAddressDetail}</span>
                                 </p>
                                 {formData.pickupBuilding && (
                                     <p className="text-gray-600">{formData.pickupBuilding}</p>
@@ -319,7 +319,7 @@ export default function Confirm() {
                             <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                                 <p className="font-medium">
                                     {estimate.deliveryPrefecture}{estimate.deliveryCity}{estimate.deliveryTown}
-                                    <span className="text-[oklch(0.5_0.2_250)] font-bold"> {formData.deliveryAddressDetail}</span>
+                                    <span className="font-bold"> {formData.deliveryAddressDetail}</span>
                                 </p>
                                 {formData.deliveryBuilding && (
                                     <p className="text-gray-600">{formData.deliveryBuilding}</p>
