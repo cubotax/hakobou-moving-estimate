@@ -44,11 +44,11 @@ function formatCurrency(amount: number): string {
     return `¥${amount.toLocaleString()}`;
 }
 
-// 電話番号バリデーション
+// 電話番号バリデーション（ハイフンなし、10〜11桁の数字のみ）
 function isValidPhone(phone: string): boolean {
-    if (!phone) return true; // 空の場合はtrue（他でチェック）
-    const phoneRegex = /^[0-9\-]{10,14}$/;
-    return phoneRegex.test(phone.replace(/[\s\u3000]/g, ''));
+    if (!phone) return true;
+    const phoneRegex = /^[0-9]{10,11}$/;
+    return phoneRegex.test(phone);
 }
 
 // ひらがなのみバリデーション
@@ -64,6 +64,13 @@ function convertFullWidthToHalfWidth(text: string): string {
         .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
         .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
         .replace(/[ー−―‐]/g, '-');
+}
+
+// 電話番号用変換（全角数字→半角、ハイフン削除）
+function convertPhoneNumber(text: string): string {
+    return text
+        .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+        .replace(/[-ー−―‐\s\u3000]/g, '');
 }
 
 // プラン名の表示
@@ -149,7 +156,6 @@ export default function ApplyForm() {
     // フォーム入力ハンドラ
     const handleInputChange = (field: keyof ApplyFormData, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        // 入力時にエラーをクリア
         if (errors[field as keyof FormErrors]) {
             setErrors(prev => ({ ...prev, [field]: undefined }));
         }
@@ -172,7 +178,6 @@ export default function ApplyForm() {
     const validate = (): boolean => {
         const newErrors: FormErrors = {};
 
-        // 名前バリデーション
         if (!formData.lastName.trim()) {
             newErrors.lastName = '姓を入力してください';
         }
@@ -190,7 +195,6 @@ export default function ApplyForm() {
             newErrors.firstNameKana = 'ひらがなで入力してください';
         }
 
-        // 番地以降は必須
         if (!formData.pickupAddressDetail.trim()) {
             newErrors.pickupAddressDetail = '番地以降を入力してください';
         }
@@ -198,14 +202,12 @@ export default function ApplyForm() {
             newErrors.deliveryAddressDetail = '番地以降を入力してください';
         }
 
-        // 電話番号は必須
         if (!formData.phone.trim()) {
             newErrors.phone = '電話番号を入力してください';
         } else if (!isValidPhone(formData.phone)) {
-            newErrors.phone = '正しい電話番号を入力してください';
+            newErrors.phone = '正しい電話番号を入力してください（ハイフンなし10〜11桁）';
         }
 
-        // 希望時間帯は必須
         if (!formData.pickupTimeSlot) {
             newErrors.pickupTimeSlot = '集荷希望時間帯を選択してください';
         }
@@ -232,11 +234,8 @@ export default function ApplyForm() {
     // 確認画面へ
     const handleSubmit = () => {
         if (!validate()) return;
-
-        // sessionStorageにデータ保存して確認画面へ
         sessionStorage.setItem('applyFormData', JSON.stringify(formData));
         sessionStorage.setItem('estimateSummary', JSON.stringify(estimate));
-        // クーポン情報も保存
         if (appliedCoupon) {
             sessionStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
         } else {
@@ -284,7 +283,6 @@ export default function ApplyForm() {
     return (
         <div className="min-h-screen bg-white">
             <div className="container py-6 sm:py-10">
-                {/* ヘッダー */}
                 <header className="text-center mb-6">
                     <h1 className="text-3xl sm:text-4xl font-black text-black mb-2">
                         お申込みフォーム
@@ -294,7 +292,6 @@ export default function ApplyForm() {
                     </p>
                 </header>
 
-                {/* ステップインジケーター */}
                 <div className="flex justify-center items-center gap-4 mb-8">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-[oklch(0.92_0.16_95)] border-2 border-black flex items-center justify-center font-bold">1</div>
@@ -313,23 +310,19 @@ export default function ApplyForm() {
                 </div>
 
                 <div className="max-w-2xl mx-auto space-y-6">
-                    {/* 概算見積サマリー */}
                     <div className="pop-card bg-[oklch(0.92_0.16_95)] p-6">
                         <h2 className="text-xl font-black mb-4 flex items-center gap-2">
                             <FileText className="w-6 h-6" />
                             概算見積のサマリー
                         </h2>
 
-                        {/* 金額 */}
                         <div className="text-center py-4 mb-4 bg-white rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <p className="text-sm text-gray-600 font-bold mb-1">お見積もり金額</p>
                             <p className="text-4xl font-black">{formatCurrency(estimate?.totalFee || 0)}</p>
                         </div>
 
-                        {/* 料金内訳 */}
                         <div className="bg-white/60 rounded-xl p-4 mb-4">
                             <div className="space-y-3">
-                                {/* 基本料金 */}
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className="font-bold text-gray-800">基本料金</p>
@@ -338,7 +331,6 @@ export default function ApplyForm() {
                                     <p className="font-bold text-gray-800">¥ 19,800</p>
                                 </div>
                                 <div className="border-t border-dashed border-gray-300" />
-                                {/* 距離加算料金 */}
                                 {(estimate?.distanceKm || 0) > 30 && (
                                     <>
                                         <div className="flex justify-between items-start">
@@ -354,7 +346,6 @@ export default function ApplyForm() {
                             </div>
                         </div>
 
-                        {/* 詳細情報 */}
                         <div className="space-y-3 text-sm">
                             <div className="flex items-start gap-3 bg-white/60 rounded-lg p-3">
                                 <MapPin className="w-5 h-5 text-pink-500 shrink-0 mt-0.5" />
@@ -380,7 +371,6 @@ export default function ApplyForm() {
                                     <p>お届け: {formatDate(estimate?.deliveryDate || '')}</p>
                                 </div>
                             </div>
-                            {/* プラン・梱包サービス */}
                             <div className="flex items-start gap-3 bg-white/60 rounded-lg p-3">
                                 <Package className="w-5 h-5 text-purple-500 shrink-0 mt-0.5" />
                                 <div>
@@ -391,7 +381,6 @@ export default function ApplyForm() {
                             </div>
                         </div>
 
-                        {/* クーポンコード */}
                         <div className="mt-6">
                             <h3 className="font-bold text-sm mb-3">クーポンコード</h3>
                             <CouponInput
@@ -405,7 +394,6 @@ export default function ApplyForm() {
                             />
                         </div>
 
-                        {/* 支払い金額サマリー */}
                         <div className="mt-6">
                             <h3 className="font-bold text-sm mb-3">お支払い金額</h3>
                             <PaymentSummary
@@ -417,11 +405,9 @@ export default function ApplyForm() {
                         </div>
                     </div>
 
-                    {/* 不足情報入力フォーム */}
                     <div className="pop-card p-6">
                         <h2 className="text-xl font-black mb-6">追加情報の入力</h2>
 
-                        {/* お名前 */}
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -429,7 +415,6 @@ export default function ApplyForm() {
                                 </div>
                                 お名前
                             </h3>
-                            {/* 姓・名 */}
                             <div className="flex gap-4 mb-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-bold mb-1">
@@ -440,8 +425,7 @@ export default function ApplyForm() {
                                         value={formData.lastName}
                                         onChange={(e) => handleInputChange('lastName', e.target.value)}
                                         placeholder="例: 山田"
-                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.lastName ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                            }`}
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.lastName ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
                                     />
                                     {errors.lastName && (
                                         <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
@@ -456,15 +440,13 @@ export default function ApplyForm() {
                                         value={formData.firstName}
                                         onChange={(e) => handleInputChange('firstName', e.target.value)}
                                         placeholder="例: 太郎"
-                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.firstName ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                            }`}
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.firstName ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
                                     />
                                     {errors.firstName && (
                                         <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
                                     )}
                                 </div>
                             </div>
-                            {/* せい・めい */}
                             <div className="flex gap-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-bold mb-1">
@@ -475,8 +457,7 @@ export default function ApplyForm() {
                                         value={formData.lastNameKana}
                                         onChange={(e) => handleInputChange('lastNameKana', e.target.value)}
                                         placeholder="例: やまだ"
-                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.lastNameKana ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                            }`}
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.lastNameKana ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
                                     />
                                     {errors.lastNameKana && (
                                         <p className="text-red-500 text-sm mt-1">{errors.lastNameKana}</p>
@@ -491,8 +472,7 @@ export default function ApplyForm() {
                                         value={formData.firstNameKana}
                                         onChange={(e) => handleInputChange('firstNameKana', e.target.value)}
                                         placeholder="例: たろう"
-                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.firstNameKana ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                            }`}
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.firstNameKana ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
                                     />
                                     {errors.firstNameKana && (
                                         <p className="text-red-500 text-sm mt-1">{errors.firstNameKana}</p>
@@ -501,7 +481,6 @@ export default function ApplyForm() {
                             </div>
                         </div>
 
-                        {/* 集荷先詳細 */}
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
@@ -523,8 +502,7 @@ export default function ApplyForm() {
                                         onChange={(e) => handleInputChange('pickupAddressDetail', e.target.value)}
                                         onBlur={() => handleBlurWithConversion('pickupAddressDetail')}
                                         placeholder="例: 1-2-3"
-                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.pickupAddressDetail ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                            }`}
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.pickupAddressDetail ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
                                     />
                                     {errors.pickupAddressDetail && (
                                         <p className="text-red-500 text-sm mt-1">{errors.pickupAddressDetail}</p>
@@ -544,7 +522,6 @@ export default function ApplyForm() {
                             </div>
                         </div>
 
-                        {/* お届け先詳細 */}
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
@@ -566,8 +543,7 @@ export default function ApplyForm() {
                                         onChange={(e) => handleInputChange('deliveryAddressDetail', e.target.value)}
                                         onBlur={() => handleBlurWithConversion('deliveryAddressDetail')}
                                         placeholder="例: 4-5-6"
-                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.deliveryAddressDetail ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                            }`}
+                                        className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.deliveryAddressDetail ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
                                     />
                                     {errors.deliveryAddressDetail && (
                                         <p className="text-red-500 text-sm mt-1">{errors.deliveryAddressDetail}</p>
@@ -587,7 +563,6 @@ export default function ApplyForm() {
                             </div>
                         </div>
 
-                        {/* 連絡先 */}
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -595,7 +570,6 @@ export default function ApplyForm() {
                                 </div>
                                 ご連絡先
                             </h3>
-
                             <div>
                                 <label className="block text-sm font-bold mb-1 flex items-center gap-2">
                                     <Phone className="w-4 h-4" /> 電話番号 <span className="text-red-500">*</span>
@@ -604,11 +578,12 @@ export default function ApplyForm() {
                                     type="tel"
                                     inputMode="numeric"
                                     value={formData.phone}
-                                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                                    onBlur={() => handleBlurWithConversion('phone')}
-                                    placeholder="例: 090-1234-5678"
-                                    className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.phone ? 'border-red-500' : 'border-gray-300 focus:border-black'
-                                        }`}
+                                    onChange={(e) => {
+                                        const converted = convertPhoneNumber(e.target.value);
+                                        handleInputChange('phone', converted);
+                                    }}
+                                    placeholder="例: 09012345678"
+                                    className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors ${errors.phone ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
                                 />
                                 {errors.phone && (
                                     <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
@@ -616,7 +591,6 @@ export default function ApplyForm() {
                             </div>
                         </div>
 
-                        {/* 集荷希望時間帯 */}
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
@@ -639,7 +613,6 @@ export default function ApplyForm() {
                             )}
                         </div>
 
-                        {/* お届け希望時間帯 */}
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
@@ -662,7 +635,6 @@ export default function ApplyForm() {
                             )}
                         </div>
 
-                        {/* 備考 */}
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                                 <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -680,7 +652,6 @@ export default function ApplyForm() {
                         </div>
                     </div>
 
-                    {/* ボタン */}
                     <div className="flex flex-col gap-4">
                         <Button
                             onClick={handleSubmit}
