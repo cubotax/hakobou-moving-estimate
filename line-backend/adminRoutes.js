@@ -543,6 +543,7 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                         text: 'お支払い金額',
                         size: 'sm',
                         color: '#555555',
+                        align: 'center',  // 追加
                     },
                     {
                         type: 'text',
@@ -551,6 +552,7 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                         size: '3xl',
                         color: '#1DB446',
                         margin: 'sm',
+                        align: 'center',  // 追加
                     },
                     discountAmount > 0 ? {
                         type: 'text',
@@ -558,6 +560,8 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                         size: 'xs',
                         color: '#888888',
                         margin: 'sm',
+                        align: 'center',  // 追加
+
                     } : null,
                     {
                         type: 'separator',
