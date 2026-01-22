@@ -65,6 +65,8 @@ function Field({ label, id, value, onChange, type = 'number', placeholder, prefi
                     type={type}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                    min={type === 'number' ? '0' : undefined}
                     placeholder={placeholder}
                     className="w-full border border-gray-300 rounded-md py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />

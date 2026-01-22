@@ -145,6 +145,9 @@ ${conditions.floorDelivery || 1}階 / エレベーター：${elevatorDelivery}
 ${planName} / 梱包サービス：${packingService}
 
 ━━━━━━━━━━━━━━━━━━━━━━
+日程調整が完了したらお客様に申込案内を送信してください
+━━━━━━━━━━━━━━━━━━━━━━
+
 管理画面で確認:
 https://mitsumori.hakobou.com/admin
 ━━━━━━━━━━━━━━━━━━━━━━`;
