@@ -116,9 +116,11 @@ export function DateForm() {
     handleSubmit,
     setValue,
     watch,
+    trigger,
     formState,
   } = useForm<DateFormData>({
     resolver: zodResolver(dateFormSchema),
+    mode: 'onChange',
     defaultValues: {
       dates: {
         pickupDate: sessionDates?.pickupDate || today,
@@ -203,7 +205,10 @@ export function DateForm() {
             <DatePickerField
               id="pickup-date"
               value={pickupDate}
-              onChange={(value) => setValue('dates.pickupDate', value, { shouldDirty: true })}
+              onChange={(value) => {
+                setValue('dates.pickupDate', value, { shouldDirty: true });
+                trigger('dates.pickupDate');
+              }}
               error={!!formState.errors.dates?.pickupDate}
             />
             {formState.errors.dates?.pickupDate && (

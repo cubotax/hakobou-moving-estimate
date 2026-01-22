@@ -173,16 +173,6 @@ export function EstimateResult() {
             </div>
           )}
 
-          {/* 土日祝バッジ */}
-          {!!estimateResult.isWeekendOrHoliday && (
-            <div
-              className="inline-flex items-center gap-2 mt-4 ml-2 px-4 py-2 bg-[oklch(0.95_0.1_250)] rounded-full border-2 border-[oklch(0.7_0.15_250)]"
-            >
-              <AlertCircle className="w-4 h-4 text-[oklch(0.5_0.15_250)]" />
-              <span className="text-sm font-bold text-[oklch(0.4_0.1_250)]">土日祝料金適用中</span>
-            </div>
-          )}
-
           <p className="text-black/60 text-sm mt-4 whitespace-pre-line font-bold">
             この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
           </p>
@@ -401,18 +391,6 @@ export function EstimateResult() {
               <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
               <span>
                 繁忙期（{BUSY_SEASON_CONFIG.startDate.replace('-', '/')}〜{BUSY_SEASON_CONFIG.endDate.replace('-', '/')}）のため、基本料金が{BUSY_SEASON_CONFIG.surchargeRate * 100}%増しとなっております。
-              </span>
-            </p>
-          </div>
-        )}
-
-        {/* 土日祝メッセージ */}
-        {(isWeekendOrHoliday(step1Data.dates.pickupDate) || isWeekendOrHoliday(step1Data.dates.deliveryDate)) && (
-          <div className="mt-4 p-4 bg-[oklch(0.95_0.1_250)] border-2 border-[oklch(0.7_0.15_250)] rounded-xl">
-            <p className="text-sm font-bold text-[oklch(0.4_0.1_250)] flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-              <span>
-                土日・祝日のため、基本料金が{WEEKEND_HOLIDAY_CONFIG.surchargeRate * 100}%増しとなっております。
               </span>
             </p>
           </div>
