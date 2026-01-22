@@ -45,6 +45,12 @@ import { Resend } from "resend";
 console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
+// Stripe初期化
+import Stripe from 'stripe';
+console.log("STRIPE_SECRET_KEY exists:", !!process.env.STRIPE_SECRET_KEY);
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+
+
 // 見積もり有効期限（日数）
 const ESTIMATE_EXPIRY_DAYS = 3;
 
