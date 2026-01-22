@@ -6,8 +6,6 @@ import { useState, useEffect } from 'react';
 import { RequireAuth } from '@/contexts/AdminAuthContext';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Loader2, Save } from 'lucide-react';
 import { API_CONFIG } from '@/lib/config';
@@ -41,6 +39,40 @@ const defaultSettings: PricingSettings = {
     omakase_base_fee: '8000',
     omakase_additional_fee: '4000',
 };
+
+// 入力フィールドコンポーネント
+interface FieldProps {
+    label: string;
+    id: string;
+    value: string;
+    onChange: (value: string) => void;
+    type?: 'number' | 'text';
+    placeholder?: string;
+    prefix?: string;
+    suffix?: string;
+}
+
+function Field({ label, id, value, onChange, type = 'number', placeholder, prefix, suffix }: FieldProps) {
+    return (
+        <div className="mb-6">
+            <label htmlFor={id} className="text-sm text-gray-600 mb-2 block">
+                {label}
+            </label>
+            <div className="flex items-center gap-2">
+                {prefix && <span className="text-gray-500 text-base">{prefix}</span>}
+                <input
+                    id={id}
+                    type={type}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full border border-gray-300 rounded-md py-3 px-4 text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                {suffix && <span className="text-gray-500 text-base whitespace-nowrap">{suffix}</span>}
+            </div>
+        </div>
+    );
+}
 
 function PricingSettingsPage() {
     const [settings, setSettings] = useState<PricingSettings>(defaultSettings);
@@ -129,203 +161,141 @@ function PricingSettingsPage() {
     return (
         <RequireAuth>
             <AdminLayout>
-                <div className="space-y-6">
-                    {/* ヘッダー */}
-                    <div className="flex justify-between items-center">
-                        <h1 className="text-2xl font-bold">料金設定</h1>
-                        <Button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="bg-green-600 hover:bg-green-700"
-                        >
-                            {saving ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    保存中...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="w-4 h-4 mr-2" />
-                                    保存
-                                </>
-                            )}
-                        </Button>
-                    </div>
+                <div className="max-w-2xl mx-auto pb-28">
+                    {/* ページタイトル */}
+                    <h1 className="text-2xl font-bold mb-6">料金設定</h1>
 
                     {/* ヘルパープラン設定 */}
-                    <div className="bg-white rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-6">
-                        <h2 className="text-lg font-bold mb-6 pb-2 border-b border-gray-200">
+                    <div className="bg-white rounded-lg shadow p-6 mb-6">
+                        <h2 className="text-lg font-bold mb-4 pb-2 border-b border-gray-200">
                             ヘルパープラン設定
                         </h2>
 
-                        <div className="grid gap-6 md:grid-cols-2">
-                            {/* 基本料金 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="base_fee">基本料金（30kmまで）</Label>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-gray-500">¥</span>
-                                    <Input
-                                        id="base_fee"
-                                        type="number"
-                                        value={settings.base_fee}
-                                        onChange={(e) => handleChange('base_fee', e.target.value)}
-                                    />
-                                </div>
-                            </div>
+                        <Field
+                            label="基本料金（30kmまで）"
+                            id="base_fee"
+                            value={settings.base_fee}
+                            onChange={(v) => handleChange('base_fee', v)}
+                            prefix="¥"
+                        />
 
-                            {/* 繁忙期加算率 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="busy_season_rate">繁忙期加算率</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        id="busy_season_rate"
-                                        type="number"
-                                        value={rateToPercent(settings.busy_season_rate)}
-                                        onChange={(e) => handleChange('busy_season_rate', percentToRate(e.target.value))}
-                                    />
-                                    <span className="text-gray-500">%</span>
-                                </div>
-                            </div>
+                        <Field
+                            label="繁忙期加算率"
+                            id="busy_season_rate"
+                            value={rateToPercent(settings.busy_season_rate)}
+                            onChange={(v) => handleChange('busy_season_rate', percentToRate(v))}
+                            suffix="%"
+                        />
 
-                            {/* 繁忙期開始日 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="busy_season_start">繁忙期開始日（MM-DD）</Label>
-                                <Input
-                                    id="busy_season_start"
-                                    type="text"
-                                    placeholder="03-01"
-                                    value={settings.busy_season_start}
-                                    onChange={(e) => handleChange('busy_season_start', e.target.value)}
-                                />
-                            </div>
+                        <Field
+                            label="繁忙期開始日（MM-DD）"
+                            id="busy_season_start"
+                            value={settings.busy_season_start}
+                            onChange={(v) => handleChange('busy_season_start', v)}
+                            type="text"
+                            placeholder="03-01"
+                        />
 
-                            {/* 繁忙期終了日 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="busy_season_end">繁忙期終了日（MM-DD）</Label>
-                                <Input
-                                    id="busy_season_end"
-                                    type="text"
-                                    placeholder="04-10"
-                                    value={settings.busy_season_end}
-                                    onChange={(e) => handleChange('busy_season_end', e.target.value)}
-                                />
-                            </div>
+                        <Field
+                            label="繁忙期終了日（MM-DD）"
+                            id="busy_season_end"
+                            value={settings.busy_season_end}
+                            onChange={(v) => handleChange('busy_season_end', v)}
+                            type="text"
+                            placeholder="04-10"
+                        />
 
-                            {/* 土日祝加算率 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="weekend_holiday_rate">土日祝加算率</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        id="weekend_holiday_rate"
-                                        type="number"
-                                        value={rateToPercent(settings.weekend_holiday_rate)}
-                                        onChange={(e) => handleChange('weekend_holiday_rate', percentToRate(e.target.value))}
-                                    />
-                                    <span className="text-gray-500">%</span>
-                                </div>
-                            </div>
+                        <Field
+                            label="土日祝加算率"
+                            id="weekend_holiday_rate"
+                            value={rateToPercent(settings.weekend_holiday_rate)}
+                            onChange={(v) => handleChange('weekend_holiday_rate', percentToRate(v))}
+                            suffix="%"
+                        />
 
-                            {/* 積み置き料金 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="storage_fee_per_day">積み置き料金（1日あたり）</Label>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-gray-500">¥</span>
-                                    <Input
-                                        id="storage_fee_per_day"
-                                        type="number"
-                                        value={settings.storage_fee_per_day}
-                                        onChange={(e) => handleChange('storage_fee_per_day', e.target.value)}
-                                    />
-                                </div>
-                            </div>
+                        <Field
+                            label="積み置き料金（1日あたり）"
+                            id="storage_fee_per_day"
+                            value={settings.storage_fee_per_day}
+                            onChange={(v) => handleChange('storage_fee_per_day', v)}
+                            prefix="¥"
+                        />
 
-                            {/* 梱包サービス料金 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="packing_fee">梱包サービス料金</Label>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-gray-500">¥</span>
-                                    <Input
-                                        id="packing_fee"
-                                        type="number"
-                                        value={settings.packing_fee}
-                                        onChange={(e) => handleChange('packing_fee', e.target.value)}
-                                    />
-                                </div>
-                            </div>
+                        <Field
+                            label="梱包サービス料金"
+                            id="packing_fee"
+                            value={settings.packing_fee}
+                            onChange={(v) => handleChange('packing_fee', v)}
+                            prefix="¥"
+                        />
 
-                            {/* 階段作業料金 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="floor_fee">階段作業料金（1階あたり）</Label>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-gray-500">¥</span>
-                                    <Input
-                                        id="floor_fee"
-                                        type="number"
-                                        value={settings.floor_fee}
-                                        onChange={(e) => handleChange('floor_fee', e.target.value)}
-                                    />
-                                </div>
-                            </div>
+                        <Field
+                            label="階段作業料金（1階あたり）"
+                            id="floor_fee"
+                            value={settings.floor_fee}
+                            onChange={(v) => handleChange('floor_fee', v)}
+                            prefix="¥"
+                        />
 
-                            {/* 階段作業無料階数 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="free_floor_limit">階段作業無料階数</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        id="free_floor_limit"
-                                        type="number"
-                                        value={settings.free_floor_limit}
-                                        onChange={(e) => handleChange('free_floor_limit', e.target.value)}
-                                    />
-                                    <span className="text-gray-500">階まで無料</span>
-                                </div>
-                            </div>
-                        </div>
+                        <Field
+                            label="階段作業無料階数"
+                            id="free_floor_limit"
+                            value={settings.free_floor_limit}
+                            onChange={(v) => handleChange('free_floor_limit', v)}
+                            suffix="階まで無料"
+                        />
                     </div>
 
                     {/* お任せプラン設定 */}
-                    <div className="bg-white rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-6">
-                        <h2 className="text-lg font-bold mb-6 pb-2 border-b border-gray-200">
+                    <div className="bg-white rounded-lg shadow p-6 mb-6">
+                        <h2 className="text-lg font-bold mb-4 pb-2 border-b border-gray-200">
                             お任せプラン設定
                         </h2>
 
-                        <div className="grid gap-6 md:grid-cols-2">
-                            {/* お任せプラン基本料金 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="omakase_base_fee">基本料金（50kmまで）</Label>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-gray-500">¥</span>
-                                    <Input
-                                        id="omakase_base_fee"
-                                        type="number"
-                                        value={settings.omakase_base_fee}
-                                        onChange={(e) => handleChange('omakase_base_fee', e.target.value)}
-                                    />
-                                </div>
-                            </div>
+                        <Field
+                            label="基本料金（50kmまで）"
+                            id="omakase_base_fee"
+                            value={settings.omakase_base_fee}
+                            onChange={(v) => handleChange('omakase_base_fee', v)}
+                            prefix="¥"
+                        />
 
-                            {/* お任せプラン距離加算料金 */}
-                            <div className="space-y-2">
-                                <Label htmlFor="omakase_additional_fee">距離追加料金（50kmごと）</Label>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-gray-500">¥</span>
-                                    <Input
-                                        id="omakase_additional_fee"
-                                        type="number"
-                                        value={settings.omakase_additional_fee}
-                                        onChange={(e) => handleChange('omakase_additional_fee', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                        <Field
+                            label="距離追加料金（50kmごと）"
+                            id="omakase_additional_fee"
+                            value={settings.omakase_additional_fee}
+                            onChange={(v) => handleChange('omakase_additional_fee', v)}
+                            prefix="¥"
+                        />
                     </div>
 
                     {/* 注意事項 */}
-                    <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <p className="text-sm text-yellow-800">
                             ※ 設定を変更すると、次回以降の新規見積もりに反映されます。既存の見積もりには影響しません。
                         </p>
                     </div>
+                </div>
+
+                {/* フローティング保存ボタン */}
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+                    <Button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-green-600 hover:bg-green-700 shadow-lg px-8 py-6 text-lg rounded-full"
+                    >
+                        {saving ? (
+                            <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                保存中...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="w-5 h-5 mr-2" />
+                                保存
+                            </>
+                        )}
+                    </Button>
                 </div>
             </AdminLayout>
         </RequireAuth>

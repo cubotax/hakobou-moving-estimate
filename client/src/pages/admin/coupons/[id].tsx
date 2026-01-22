@@ -7,18 +7,7 @@ import { useRoute, Link } from 'wouter';
 import { RequireAuth } from '@/contexts/AdminAuthContext';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useCoupons, Coupon, CouponUsage } from '@/hooks/useAdminApi';
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Edit } from 'lucide-react';
 
 // クーポンステータス判定
@@ -82,29 +71,13 @@ function formatDiscount(coupon: Coupon) {
     return `${coupon.discount_value}% OFF`;
 }
 
-// 初期フォームデータ
-const initialFormData = {
-    code: '',
-    discountType: 'fixed' as 'fixed' | 'percentage',
-    discountValue: '',
-    minAmount: '',
-    periodType: 'always' as 'always' | 'period',
-    startDate: '',
-    endDate: '',
-    usageLimit: '',
-    oncePerUser: true,
-    isActive: true,
-};
-
 function CouponDetail() {
     const [, params] = useRoute('/admin/coupons/:id');
     const couponId = params?.id;
 
-    const { getCoupon, getCouponUsages, updateCoupon, loading } = useCoupons();
+    const { getCoupon, getCouponUsages, loading } = useCoupons();
     const [coupon, setCoupon] = useState<Coupon | null>(null);
     const [usages, setUsages] = useState<CouponUsage[]>([]);
-    const [editModal, setEditModal] = useState(false);
-    const [formData, setFormData] = useState(initialFormData);
 
     // データ取得
     const fetchData = async () => {
@@ -122,47 +95,6 @@ function CouponDetail() {
     useEffect(() => {
         fetchData();
     }, [couponId]);
-
-    // 編集モーダルを開く
-    const openEditModal = () => {
-        if (!coupon) return;
-        setFormData({
-            code: coupon.code,
-            discountType: coupon.discount_type,
-            discountValue: coupon.discount_value.toString(),
-            minAmount: coupon.min_amount.toString(),
-            periodType: coupon.start_date || coupon.end_date ? 'period' : 'always',
-            startDate: coupon.start_date || '',
-            endDate: coupon.end_date || '',
-            usageLimit: coupon.usage_limit?.toString() || '',
-            oncePerUser: coupon.once_per_user,
-            isActive: coupon.is_active,
-        });
-        setEditModal(true);
-    };
-
-    // 保存処理
-    const handleSubmit = async () => {
-        if (!couponId) return;
-
-        const couponData = {
-            code: formData.code.toUpperCase(),
-            discountType: formData.discountType,
-            discountValue: parseInt(formData.discountValue) || 0,
-            minAmount: parseInt(formData.minAmount) || 0,
-            startDate: formData.periodType === 'period' && formData.startDate ? formData.startDate : null,
-            endDate: formData.periodType === 'period' && formData.endDate ? formData.endDate : null,
-            usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : null,
-            oncePerUser: formData.oncePerUser,
-            isActive: formData.isActive,
-        };
-
-        const success = await updateCoupon(couponId, couponData);
-        if (success) {
-            setEditModal(false);
-            fetchData();
-        }
-    };
 
     if (loading && !coupon) {
         return (
@@ -203,10 +135,12 @@ function CouponDetail() {
                             <ArrowLeft size={18} />
                             一覧に戻る
                         </Link>
-                        <Button onClick={openEditModal} variant="outline">
-                            <Edit size={16} className="mr-2" />
-                            編集
-                        </Button>
+                        <Link href={`/admin/coupons/${couponId}/edit`}>
+                            <Button variant="outline">
+                                <Edit size={16} className="mr-2" />
+                                編集
+                            </Button>
+                        </Link>
                     </div>
 
                     {/* クーポン情報 */}
@@ -307,175 +241,6 @@ function CouponDetail() {
                         )}
                     </div>
                 </div>
-
-                {/* 編集モーダル */}
-                <Dialog open={editModal} onOpenChange={setEditModal}>
-                    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>クーポンを編集</DialogTitle>
-                        </DialogHeader>
-
-                        <div className="space-y-4 py-4">
-                            {/* クーポンコード */}
-                            <div className="space-y-2">
-                                <Label>クーポンコード *</Label>
-                                <Input
-                                    value={formData.code}
-                                    onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                                    placeholder="WELCOME2026"
-                                />
-                            </div>
-
-                            {/* 割引タイプ */}
-                            <div className="space-y-2">
-                                <Label>割引タイプ *</Label>
-                                <RadioGroup
-                                    value={formData.discountType}
-                                    onValueChange={(value: 'fixed' | 'percentage') =>
-                                        setFormData({ ...formData, discountType: value })
-                                    }
-                                    className="flex gap-4"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="fixed" id="fixed" />
-                                        <Label htmlFor="fixed">定額割引（円）</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="percentage" id="percentage" />
-                                        <Label htmlFor="percentage">割合割引（%）</Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-
-                            {/* 割引値 */}
-                            <div className="space-y-2">
-                                <Label>割引値 *</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        type="number"
-                                        value={formData.discountValue}
-                                        onChange={(e) => setFormData({ ...formData, discountValue: e.target.value })}
-                                        className="flex-1"
-                                    />
-                                    <span>{formData.discountType === 'fixed' ? '円' : '%'}</span>
-                                </div>
-                            </div>
-
-                            {/* 最低利用金額 */}
-                            <div className="space-y-2">
-                                <Label>最低利用金額 *</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        type="number"
-                                        value={formData.minAmount}
-                                        onChange={(e) => setFormData({ ...formData, minAmount: e.target.value })}
-                                        className="flex-1"
-                                    />
-                                    <span>円以上で利用可能</span>
-                                </div>
-                            </div>
-
-                            {/* 有効期間 */}
-                            <div className="space-y-2">
-                                <Label>有効期間 *</Label>
-                                <RadioGroup
-                                    value={formData.periodType}
-                                    onValueChange={(value: 'always' | 'period') =>
-                                        setFormData({ ...formData, periodType: value })
-                                    }
-                                    className="flex gap-4"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="period" id="period" />
-                                        <Label htmlFor="period">期間を設定</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="always" id="always" />
-                                        <Label htmlFor="always">常時有効</Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-
-                            {formData.periodType === 'period' && (
-                                <>
-                                    <div className="space-y-2">
-                                        <Label>開始日</Label>
-                                        <Input
-                                            type="date"
-                                            value={formData.startDate}
-                                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>終了日</Label>
-                                        <Input
-                                            type="date"
-                                            value={formData.endDate}
-                                            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                        />
-                                    </div>
-                                </>
-                            )}
-
-                            {/* 利用回数上限 */}
-                            <div className="space-y-2">
-                                <Label>利用回数上限</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        type="number"
-                                        value={formData.usageLimit}
-                                        onChange={(e) => setFormData({ ...formData, usageLimit: e.target.value })}
-                                        placeholder="空欄で無制限"
-                                        className="flex-1"
-                                    />
-                                    <span>回</span>
-                                </div>
-                            </div>
-
-                            {/* 1人1回制限 */}
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="oncePerUser"
-                                    checked={formData.oncePerUser}
-                                    onCheckedChange={(checked) =>
-                                        setFormData({ ...formData, oncePerUser: checked as boolean })
-                                    }
-                                />
-                                <Label htmlFor="oncePerUser">1人1回まで（LINE IDで判定）</Label>
-                            </div>
-
-                            {/* ステータス */}
-                            <div className="space-y-2">
-                                <Label>ステータス</Label>
-                                <RadioGroup
-                                    value={formData.isActive ? 'active' : 'inactive'}
-                                    onValueChange={(value) =>
-                                        setFormData({ ...formData, isActive: value === 'active' })
-                                    }
-                                    className="flex gap-4"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="active" id="active" />
-                                        <Label htmlFor="active">有効</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="inactive" id="inactive" />
-                                        <Label htmlFor="inactive">無効</Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-                        </div>
-
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => setEditModal(false)}>
-                                キャンセル
-                            </Button>
-                            <Button onClick={handleSubmit} disabled={loading}>
-                                保存する
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
             </AdminLayout>
         </RequireAuth>
     );

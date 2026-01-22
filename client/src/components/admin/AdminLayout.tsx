@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* ヘッダー */}
-            <header className="bg-white border-b-2 border-black shadow-sm">
+            <header className="bg-[#FFE355] border-b-2 border-black shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         {/* ロゴ */}
@@ -126,8 +126,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                                         href={item.href}
                                         onClick={handleNavClick}
                                         className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive
-                                                ? 'bg-yellow-100 text-black border-2 border-yellow-400'
-                                                : 'text-gray-600 hover:bg-gray-100'
+                                            ? 'bg-yellow-100 text-black border-2 border-yellow-400'
+                                            : 'text-gray-600 hover:bg-gray-100'
                                             }`}
                                     >
                                         <Icon size={20} />

@@ -948,7 +948,7 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
               type: "postback",
               label: "このプランで相談する",
               data: `action=consult&estimateId=${estimate.id}`,
-              displayText: "このプランで相談したいです",
+              displayText: "このプランで相談したい",
             },
             color: "#06C755",
             margin: "md",

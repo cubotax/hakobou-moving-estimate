@@ -20,6 +20,7 @@ import AdminDashboard from "./pages/admin/index";
 import AdminEstimateDetail from "./pages/admin/estimates/[id]";
 import AdminCoupons from "./pages/admin/coupons/index";
 import AdminCouponDetail from "./pages/admin/coupons/[id]";
+import AdminCouponEdit from "./pages/admin/coupons/edit";
 import AdminPricingSettings from "./pages/admin/pricing-settings";
 
 /**
@@ -47,6 +48,8 @@ function Router() {
       {/* 管理画面 */}
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/estimates/:id" component={AdminEstimateDetail} />
+      <Route path="/admin/coupons/new" component={AdminCouponEdit} />
+      <Route path="/admin/coupons/:id/edit" component={AdminCouponEdit} />
       <Route path="/admin/coupons/:id" component={AdminCouponDetail} />
       <Route path="/admin/coupons" component={AdminCoupons} />
       <Route path="/admin/pricing-settings" component={AdminPricingSettings} />
