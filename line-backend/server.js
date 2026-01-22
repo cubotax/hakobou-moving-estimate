@@ -583,7 +583,7 @@ async function handlePostbackEvent(event) {
         messages: [
           {
             type: "text",
-            text: "ご相談ありがとうございます📅\n日程を確認し、担当より折り返しご連絡いたします😊\n\n調整がつかない場合は、代替日程をご提案させていただきます✨\n\n返信まで今しばらくお待ちください！",
+            text: "ご相談ありがとうございます！\n\n日程を確認し、担当より折り返しご連絡いたします😊\n\n調整がつかない場合は、代替日程をご提案させていただきます✨\n\n返信まで今しばらくお待ちください！",
           },
         ],
       });
@@ -622,7 +622,7 @@ async function handlePostbackEvent(event) {
         messages: [
           {
             type: "text",
-            text: "オンライン面談のご要望ありがとうございます！\n\n担当者より折り返しご連絡いたしますので、しばらくお待ちください。",
+            text: "LINE写真診断のご要望ありがとうございます！\n\nこのトーク画面より引越しで運ぶ荷物が全てわかるように写真を送信して下さい。\n\n写真を確認後に担当者から折り返しご連絡いたします。",
           },
         ],
       });
@@ -1013,11 +1013,19 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
           },
           {
             type: "text",
-            text: "現在のトラック台数で積みきれるかご不安な場合はオンライン面談でお部屋の状況を確認することも可能です。",
+            text: "📷 LINE写真診断のご案内",
+            size: "md",
+            weight: "bold",
+            color: "#333333",
+            margin: "lg",
+          },
+          {
+            type: "text",
+            text: "現在のプランで荷物を積みきれるか不安な方は、LINEで写真を送るだけの【写真診断】をご利用ください。お部屋の状況から最適なプランをご案内します。",
             size: "xs",
             color: "#666666",
             wrap: true,
-            margin: "lg",
+            margin: "sm",
           },
           {
             type: "button",
@@ -1025,9 +1033,9 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
             height: "md",
             action: {
               type: "postback",
-              label: "オンライン面談希望",
+              label: "LINE写真診断を希望する",
               data: `action=online_meeting&estimateId=${estimate.id}`,
-              displayText: "オンライン面談を希望します",
+              displayText: "LINE写真診断を希望します",
             },
             color: "#06C755",
             margin: "md",
