@@ -134,6 +134,8 @@ export interface EstimateResult {
   storageFee: number;
   /** 繁忙期割増料金（円） */
   busySeasonFee: number;
+  /** 土日祝割増料金（円） */
+  weekendHolidayFee: number;
   /** 合計見積金額（円） */
   totalFee: number;
   /** 料金内訳 */
@@ -144,6 +146,8 @@ export interface EstimateResult {
   isInterPrefecture: boolean;
   /** 繁忙期かどうか */
   isBusySeason: boolean;
+  /** 土日祝かどうか */
+  isWeekendOrHoliday: boolean;
   /** 積み置き日数 */
   storageDays: number;
 }

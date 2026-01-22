@@ -57,16 +57,35 @@ export const movingDatesSchema = z.object({
   deliveryTimeSlot: z
     .string()
     .min(1, 'お届け希望時間帯を選択してください'),
-}).refine(
-  (data) => {
-    if (!data.pickupDate || !data.deliveryDate) return true;
-    return new Date(data.deliveryDate) >= new Date(data.pickupDate);
-  },
-  {
-    message: 'お届け日は集荷日以降の日付を選択してください',
-    path: ['deliveryDate'],
+}).superRefine((data, ctx) => {
+  // 今日の日付を取得（時刻部分を削除）
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 集荷日が過去の日付かチェック
+  if (data.pickupDate) {
+    const pickupDate = new Date(data.pickupDate);
+    pickupDate.setHours(0, 0, 0, 0);
+    if (pickupDate < today) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: '集荷日は今日以降の日付を選択してください',
+        path: ['pickupDate'],
+      });
+    }
   }
-);
+
+  // お届け日が集荷日より前かチェック
+  if (data.pickupDate && data.deliveryDate) {
+    if (new Date(data.deliveryDate) < new Date(data.pickupDate)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'お届け日は集荷日以降の日付を選択してください',
+        path: ['deliveryDate'],
+      });
+    }
+  }
+});
 
 // ============================================
 // Step0: 日付入力スキーマ（DateForm用）
