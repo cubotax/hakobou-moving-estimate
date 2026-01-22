@@ -80,11 +80,28 @@ async function sendEstimateNotification(estimate) {
     return;
   }
 
-  // データ構造に対応
-  const pickupAddress = estimate.pickupAddress || {};
-  const deliveryAddress = estimate.deliveryAddress || {};
-  const dates = estimate.dates || {};
-  const conditions = estimate.conditions || {};
+  // データ構造に対応（DBから取得した場合とフロントから送信された場合の両方に対応）
+  const pickupAddress = estimate.pickupAddress || {
+    prefecture: estimate.pickup_prefecture,
+    city: estimate.pickup_city,
+    town: estimate.pickup_town,
+  };
+  const deliveryAddress = estimate.deliveryAddress || {
+    prefecture: estimate.delivery_prefecture,
+    city: estimate.delivery_city,
+    town: estimate.delivery_town,
+  };
+  const dates = estimate.dates || {
+    pickupDate: estimate.pickup_date,
+    deliveryDate: estimate.delivery_date,
+  };
+  const conditions = estimate.conditions || {
+    floorPickup: estimate.floor_pickup,
+    hasElevatorPickup: estimate.has_elevator_pickup,
+    floorDelivery: estimate.floor_delivery,
+    hasElevatorDelivery: estimate.has_elevator_delivery,
+    needsPacking: estimate.needs_packing,
+  };
 
   const planName = estimate.plan === "helper" ? "ヘルパープラン" : estimate.plan === "omakase" ? "お任せプラン" : "未選択";
   const packingService = conditions.needsPacking ? "希望する" : "希望しない";
@@ -94,6 +111,8 @@ async function sendEstimateNotification(estimate) {
   const pickupAddressStr = `${pickupAddress.prefecture || ''}${pickupAddress.city || ''}${pickupAddress.town || ''}`;
   const deliveryAddressStr = `${deliveryAddress.prefecture || ''}${deliveryAddress.city || ''}${deliveryAddress.town || ''}`;
 
+  const totalFee = estimate.totalFee || estimate.total_fee || 0;
+
   const subject = `【ハコボウ】概算見積通知（ID: ${estimate.id}）`;
   const text = `━━━━━━━━━━━━━━━━━━━━━━
 新規見積もりのお知らせ
@@ -102,7 +121,7 @@ async function sendEstimateNotification(estimate) {
 以下の内容で見積もりが作成されました。
 
 ■ 見積もりID: ${estimate.id}
-■ 見積もり金額: ¥${(estimate.totalFee || 0).toLocaleString()}
+■ 見積もり金額: ¥${(totalFee).toLocaleString()}
 
 【集荷先】
 ${pickupAddressStr}
@@ -272,18 +291,13 @@ app.get("/health", (req, res) => {
 // ========= API (JSON) =========
 app.use("/api", express.json());
 
-// 見積もり作成（async対応）
+// 見積もり作成（async対応）- メール通知はLINE連携時に送信
 app.post("/api/estimates", async (req, res) => {
   try {
     const estimateId = nanoid(12);
     const estimateData = { id: estimateId, ...req.body };
 
     await insertEstimate(estimateData);
-
-    // メール通知を送信（バックグラウンド）
-    sendEstimateNotification(estimateData).catch(err => {
-      console.error("メール通知エラー:", err);
-    });
 
     const liffUrl = LIFF_ID
       ? `https://liff.line.me/${LIFF_ID}?estimateId=${estimateId}`
@@ -338,6 +352,11 @@ app.post("/api/link", async (req, res) => {
         messages,
       });
     }
+
+    // メール通知を送信（バックグラウンド）
+    sendEstimateNotification(estimate).catch(err => {
+      console.error("メール通知エラー:", err);
+    });
 
     res.json({ success: true, message: "Linked and message sent successfully" });
   } catch (error) {

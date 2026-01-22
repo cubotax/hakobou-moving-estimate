@@ -678,6 +678,59 @@ export async function validateCoupon(code, estimateId, lineUserId) {
         finalAmount,
     };
 }
+// =====================================================
+// 料金設定管理
+// =====================================================
+
+/**
+ * 料金設定一覧を取得
+ */
+export async function getPricingSettings() {
+    const supabase = requireSupabase();
+    const { data, error } = await supabase
+        .from('pricing_settings')
+        .select('*')
+        .order('key');
+
+    if (error) {
+        console.error('Error getting pricing settings:', error);
+        throw error;
+    }
+
+    // key-value形式に変換
+    const settings = {};
+    for (const row of data || []) {
+        settings[row.key] = row.value;
+    }
+
+    return settings;
+}
+
+/**
+ * 料金設定を更新
+ */
+export async function updatePricingSettings(updates) {
+    const supabase = requireSupabase();
+
+    for (const [key, value] of Object.entries(updates)) {
+        const { error } = await supabase
+            .from('pricing_settings')
+            .upsert({
+                key,
+                value: String(value),
+                updated_at: new Date().toISOString(),
+            }, {
+                onConflict: 'key',
+            });
+
+        if (error) {
+            console.error(`Error updating pricing setting ${key}:`, error);
+            throw error;
+        }
+    }
+
+    return true;
+}
 
 export { getSupabase };
 export { updateEstimatePaymentSession } from "./db.js";

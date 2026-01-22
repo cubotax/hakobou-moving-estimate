@@ -33,6 +33,8 @@ import {
     validateCoupon,
     updateEstimatePaymentSession,
     recordCouponUsage,
+    getPricingSettings,
+    updatePricingSettings,
 } from './adminDb.js';
 
 const router = express.Router();
@@ -804,6 +806,36 @@ router.get('/coupons/:id/usages', authMiddleware, async (req, res) => {
         res.json({ success: true, usages });
     } catch (err) {
         console.error('Error getting coupon usages:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// =====================================================
+// 料金設定エンドポイント
+// =====================================================
+
+/**
+ * 料金設定取得
+ */
+router.get('/pricing-settings', authMiddleware, async (req, res) => {
+    try {
+        const settings = await getPricingSettings();
+        res.json({ success: true, settings });
+    } catch (err) {
+        console.error('Error getting pricing settings:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * 料金設定更新
+ */
+router.put('/pricing-settings', authMiddleware, async (req, res) => {
+    try {
+        await updatePricingSettings(req.body);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error updating pricing settings:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
