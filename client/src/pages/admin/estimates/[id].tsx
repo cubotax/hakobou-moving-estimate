@@ -375,7 +375,7 @@ function EstimateDetail() {
                             <Button
                                 onClick={() => setSendModal('invite')}
                                 disabled={!estimate.line_user_id}
-                                className="bg-blue-600 hover:bg-blue-700"
+                                className="bg-[#FF6DA9] hover:bg-[#E85A96]"
                             >
                                 <Send size={16} className="mr-2" />
                                 申込案内を送信
@@ -383,7 +383,7 @@ function EstimateDetail() {
                             <Button
                                 onClick={() => setSendModal('payment')}
                                 disabled={!estimate.line_user_id}
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-[#46CD55] hover:bg-[#3BB84A]"
                             >
                                 <Send size={16} className="mr-2" />
                                 決済案内を送信
