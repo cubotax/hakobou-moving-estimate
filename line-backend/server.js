@@ -586,9 +586,57 @@ async function handlePostbackEvent(event) {
       return null;
     }
   }
+  // オンライン面談アクション
+  if (action === "online_meeting" && estimateId) {
+    try {
+      // 見積もりを取得
+      const estimate = await getEstimateById(estimateId);
+
+      // 見積もりが存在しない場合
+      if (!estimate) {
+        console.log("Estimate not found:", estimateId);
+        return client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [
+            {
+              type: "text",
+              text: "申し訳ございません。\n\nこの見積もりは見つかりませんでした。\n新しくお見積もりを作成してください。\n\n▼ お見積もりはこちら\nhttps://mitsumori.hakobou.com/",
+            },
+          ],
+        });
+      }
+
+      // ステータスを「相談中」に更新
+      await updateEstimateToConsulting(estimateId);
+      console.log("Updated estimate to online_meeting:", estimateId);
+
+      // ユーザーへ返信
+      return client.replyMessage({
+        replyToken: event.replyToken,
+        messages: [
+          {
+            type: "text",
+            text: "オンライン面談のご要望ありがとうございます！\n\n担当者より折り返しご連絡いたしますので、しばらくお待ちください。",
+          },
+        ],
+      });
+    } catch (error) {
+      console.error("Error handling online_meeting postback:", error);
+      return null;
+    }
+  }
 
   return null;
 }
+
+
+
+
+
+
+
+
+
 
 // フォローイベント処理（async対応）
 async function handleFollowEvent(event) {
@@ -1060,6 +1108,91 @@ app.use(express.static(distPath));
 app.get("*", (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
+
+// Stripe Webhook
+app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET not configured");
+    return res.status(500).send("Webhook secret not configured");
+  }
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // 決済完了イベント
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const estimateId = session.metadata?.estimateId;
+
+    console.log("Payment completed for estimate:", estimateId);
+
+    if (estimateId) {
+      try {
+        // ステータスを「paid」に更新
+        await updateEstimateStatus(estimateId, 'paid');
+
+        // 見積もり情報を取得
+        const estimate = await getEstimateById(estimateId);
+
+        if (estimate) {
+          // LINE通知を送信
+          if (estimate.line_user_id && client) {
+            await client.pushMessage({
+              to: estimate.line_user_id,
+              messages: [{
+                type: 'text',
+                text: `お支払いありがとうございます！\n\n見積もりID: ${estimateId}\n金額: ¥${estimate.total_fee?.toLocaleString()}\n\nご予約が確定しました。当日よろしくお願いいたします。`
+              }]
+            });
+          }
+
+          // 管理者メール通知
+          await sendPaymentNotification(estimate);
+        }
+      } catch (error) {
+        console.error("Error processing payment:", error);
+      }
+    }
+  }
+
+  res.json({ received: true });
+});
+
+// 決済完了メール通知
+async function sendPaymentNotification(estimate) {
+  const notificationEmail = process.env.NOTIFICATION_EMAIL;
+  if (!notificationEmail || !resend) {
+    console.log("メール通知設定がありません");
+    return;
+  }
+
+  try {
+    await resend.emails.send({
+      from: 'ハコボウ見積もり <noreply@and-and-and.com>',
+      to: notificationEmail,
+      subject: `【決済完了】見積もりID: ${estimate.id}`,
+      html: `
+        <h2>決済が完了しました</h2>
+        <p><strong>見積もりID:</strong> ${estimate.id}</p>
+        <p><strong>金額:</strong> ¥${estimate.total_fee?.toLocaleString()}</p>
+        <p><strong>集荷先:</strong> ${estimate.pickup_address}</p>
+        <p><strong>お届け先:</strong> ${estimate.delivery_address}</p>
+        <p><a href="https://mitsumori.hakobou.com/admin/estimates/${estimate.id}">管理画面で確認</a></p>
+      `
+    });
+    console.log("決済完了メール送信成功");
+  } catch (error) {
+    console.error("決済完了メール送信エラー:", error);
+  }
+}
 
 // ========= START =========
 app.listen(PORT, "0.0.0.0", () => {
