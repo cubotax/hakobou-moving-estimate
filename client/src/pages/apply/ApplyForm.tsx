@@ -25,8 +25,8 @@ import { API_CONFIG } from '@/lib/config';
 import CouponInput from '@/components/apply/CouponInput';
 import PaymentSummary from '@/components/apply/PaymentSummary';
 import { useCouponValidation } from '@/hooks/useCouponValidation';
-import type { EstimateSummary, ApplyFormData, FormErrors, TimeSlot } from './types';
-import { initialFormData, timeSlotLabels } from './types';
+import type { EstimateSummary, ApplyFormData, FormErrors } from './types';
+import { initialFormData } from './types';
 
 // 日付フォーマット
 function formatDate(dateStr: string): string {
@@ -169,11 +169,6 @@ export default function ApplyForm() {
         }
     };
 
-    // 時間帯選択ハンドラ
-    const handleTimeSlotChange = (field: 'pickupTimeSlot' | 'deliveryTimeSlot', value: TimeSlot) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
     // バリデーション
     const validate = (): boolean => {
         const newErrors: FormErrors = {};
@@ -206,13 +201,6 @@ export default function ApplyForm() {
             newErrors.phone = '電話番号を入力してください';
         } else if (!isValidPhone(formData.phone)) {
             newErrors.phone = '正しい電話番号を入力してください（ハイフンなし10〜11桁）';
-        }
-
-        if (!formData.pickupTimeSlot) {
-            newErrors.pickupTimeSlot = '集荷希望時間帯を選択してください';
-        }
-        if (!formData.deliveryTimeSlot) {
-            newErrors.deliveryTimeSlot = 'お届け希望時間帯を選択してください';
         }
 
         setErrors(newErrors);
@@ -583,54 +571,6 @@ export default function ApplyForm() {
                                     />
                                 </div>
                             </div>
-                        </div>
-
-
-
-                        <div className="mb-8">
-                            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-                                    <Clock className="w-4 h-4 text-orange-500" />
-                                </div>
-                                集荷希望時間帯 <span className="text-red-500">*</span>
-                            </h3>
-                            <select
-                                value={formData.pickupTimeSlot}
-                                onChange={(e) => handleTimeSlotChange('pickupTimeSlot', e.target.value as TimeSlot)}
-                                className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors bg-white ${errors.pickupTimeSlot ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
-                            >
-                                <option value="">{timeSlotLabels['']}</option>
-                                <option value="anytime">{timeSlotLabels.anytime}</option>
-                                <option value="morning">{timeSlotLabels.morning}</option>
-                                <option value="afternoon">{timeSlotLabels.afternoon}</option>
-
-                            </select>
-                            {errors.pickupTimeSlot && (
-                                <p className="text-red-500 text-sm mt-1">{errors.pickupTimeSlot}</p>
-                            )}
-                        </div>
-
-                        <div className="mb-8">
-                            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-                                    <Clock className="w-4 h-4 text-teal-500" />
-                                </div>
-                                お届け希望時間帯 <span className="text-red-500">*</span>
-                            </h3>
-                            <select
-                                value={formData.deliveryTimeSlot}
-                                onChange={(e) => handleTimeSlotChange('deliveryTimeSlot', e.target.value as TimeSlot)}
-                                className={`w-full h-12 px-4 border-2 rounded-xl font-medium transition-colors bg-white ${errors.deliveryTimeSlot ? 'border-red-500' : 'border-gray-300 focus:border-black'}`}
-                            >
-                                <option value="">{timeSlotLabels['']}</option>
-                                <option value="anytime">{timeSlotLabels.anytime}</option>
-                                <option value="morning">{timeSlotLabels.morning}</option>
-                                <option value="afternoon">{timeSlotLabels.afternoon}</option>
-
-                            </select>
-                            {errors.deliveryTimeSlot && (
-                                <p className="text-red-500 text-sm mt-1">{errors.deliveryTimeSlot}</p>
-                            )}
                         </div>
 
                         <div className="mb-8">

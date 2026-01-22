@@ -40,7 +40,7 @@ export default function Step0() {
         <div className="max-w-2xl mx-auto">
           <DateForm />
         </div>
-        
+
         {/* フッター装飾 */}
         <div className="text-center mt-12 text-gray-400">
           <span className="text-sm">見積もりは無料です</span>

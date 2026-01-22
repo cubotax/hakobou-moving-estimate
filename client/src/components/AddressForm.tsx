@@ -325,8 +325,8 @@ export function AddressForm() {
     <>
       <form onSubmit={handleFormSubmit} className="space-y-6 animate-fade-in">
         {/* 説明文 */}
-        <p className="text-center text-gray-600 font-bold text-sm">
-          郵便番号を入力してください
+        <p className="text-center text-gray-600 font-bold text-base">
+          次に郵便番号を入力して住所を取得してください！
         </p>
 
         {/* 入力方法の切り替えタブ */}

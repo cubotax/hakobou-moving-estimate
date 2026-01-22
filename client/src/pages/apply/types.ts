@@ -45,10 +45,6 @@ export interface ApplyFormData {
   // 連絡先
   phone: string;
 
-  // 希望時間帯
-  pickupTimeSlot: TimeSlot;
-  deliveryTimeSlot: TimeSlot;
-
   // 備考
   notes: string;
 }
@@ -62,8 +58,6 @@ export interface FormErrors {
   pickupAddressDetail?: string;
   deliveryAddressDetail?: string;
   phone?: string;
-  pickupTimeSlot?: string;
-  deliveryTimeSlot?: string;
 }
 
 /** 申込フォーム初期値 */
@@ -77,15 +71,7 @@ export const initialFormData: ApplyFormData = {
   deliveryAddressDetail: '',
   deliveryBuilding: '',
   phone: '',
-  pickupTimeSlot: '',
-  deliveryTimeSlot: '',
   notes: '',
 };
 
-/** 時間帯の表示ラベル */
-export const timeSlotLabels: Record<TimeSlot, string> = {
-  '': '選択してください',
-  morning: '午前',
-  afternoon: '午後',
-  anytime: 'どちらでも',
-};
+// 時間帯のラベルはschema.tsからインポートして使用してください

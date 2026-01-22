@@ -28,6 +28,19 @@ export const addressSchema = z.object({
 });
 
 // ============================================
+// 時間帯タイプ
+// ============================================
+
+export type TimeSlot = 'morning' | 'afternoon' | 'anytime' | '';
+
+export const timeSlotLabels: Record<TimeSlot, string> = {
+  '': '選択してください',
+  morning: '午前',
+  afternoon: '午後',
+  anytime: 'どちらでも',
+};
+
+// ============================================
 // 日付スキーマ
 // ============================================
 
@@ -38,6 +51,12 @@ export const movingDatesSchema = z.object({
   deliveryDate: z
     .string()
     .min(1, 'お届け日を選択してください'),
+  pickupTimeSlot: z
+    .string()
+    .min(1, '集荷希望時間帯を選択してください'),
+  deliveryTimeSlot: z
+    .string()
+    .min(1, 'お届け希望時間帯を選択してください'),
 }).refine(
   (data) => {
     if (!data.pickupDate || !data.deliveryDate) return true;
@@ -117,6 +136,8 @@ export const defaultStep1Values: Step1FormData = {
   dates: {
     pickupDate: today,
     deliveryDate: today,
+    pickupTimeSlot: '',
+    deliveryTimeSlot: '',
   },
 };
 

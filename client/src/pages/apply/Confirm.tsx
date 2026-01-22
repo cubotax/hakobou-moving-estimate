@@ -23,7 +23,8 @@ import { Button } from '@/components/ui/button';
 import { API_CONFIG } from '@/lib/config';
 import PaymentSummary from '@/components/apply/PaymentSummary';
 import type { EstimateSummary, ApplyFormData } from './types';
-import { timeSlotLabels } from './types';
+import { timeSlotLabels, type TimeSlot } from '@/lib/schema';
+import { getStep1Data } from '@/lib/store';
 import type { AppliedCoupon } from '@/hooks/useCouponValidation';
 
 // 日付フォーマット
@@ -81,6 +82,11 @@ export default function Confirm() {
             navigate('/');
         }
     }, [navigate]);
+
+    // Step1の日程データから時間帯を取得
+    const step1Data = getStep1Data();
+    const pickupTimeSlot = (step1Data?.dates?.pickupTimeSlot || '') as TimeSlot;
+    const deliveryTimeSlot = (step1Data?.dates?.deliveryTimeSlot || '') as TimeSlot;
 
     // 申込確定
     const handleSubmit = async () => {
@@ -348,8 +354,8 @@ export default function Confirm() {
                                 ご希望時間帯
                             </h3>
                             <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-                                <p className="font-medium">集荷: {timeSlotLabels[formData.pickupTimeSlot]}</p>
-                                <p className="font-medium">お届け: {timeSlotLabels[formData.deliveryTimeSlot]}</p>
+                                <p className="font-medium">集荷: {timeSlotLabels[pickupTimeSlot] || '未選択'}</p>
+                                <p className="font-medium">お届け: {timeSlotLabels[deliveryTimeSlot] || '未選択'}</p>
                             </div>
                         </div>
 
