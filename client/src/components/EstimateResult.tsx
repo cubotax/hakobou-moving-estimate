@@ -233,14 +233,14 @@ export function EstimateResult() {
             <p className="text-sm text-gray-500 font-medium mb-1">集荷日</p>
             <p className="font-bold text-lg">{formatDate(step1Data.dates.pickupDate)}</p>
             <p className="text-sm font-bold text-gray-600 mt-1">
-              {timeSlotLabels[step1Data.dates.pickupTimeSlot as TimeSlot] || ''}
+              {timeSlotLabels[step1Data.dates.pickupTimeSlot as TimeSlot] ? `希望時間帯：${timeSlotLabels[step1Data.dates.pickupTimeSlot as TimeSlot]}` : ''}
             </p>
           </div>
           <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
             <p className="text-sm text-gray-500 font-medium mb-1">お届け日</p>
             <p className="font-bold text-lg">{formatDate(step1Data.dates.deliveryDate)}</p>
             <p className="text-sm font-bold text-gray-600 mt-1">
-              {timeSlotLabels[step1Data.dates.deliveryTimeSlot as TimeSlot] || ''}
+              {timeSlotLabels[step1Data.dates.deliveryTimeSlot as TimeSlot] ? `希望時間帯：${timeSlotLabels[step1Data.dates.deliveryTimeSlot as TimeSlot]}` : ''}
             </p>
           </div>
         </div>
