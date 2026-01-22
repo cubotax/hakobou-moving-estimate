@@ -4,9 +4,48 @@
  * Design Philosophy: ポップ＆カジュアル
  */
 
+import { useState, useEffect } from 'react';
 import { ConditionForm } from '@/components/ConditionForm';
 import { StepIndicator, ESTIMATE_STEPS } from '@/components/StepIndicator';
 import { Settings, Sparkles } from 'lucide-react';
+
+// タイピングアニメーションコンポーネント（改行対応）
+const AnimatedText = ({ lines }: { lines: string[] }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+
+  const fullText = lines.join('\n');
+
+  useEffect(() => {
+    let index = 0;
+    setDisplayedText('');
+    setIsComplete(false);
+
+    const timer = setInterval(() => {
+      if (index < fullText.length) {
+        setDisplayedText(fullText.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(timer);
+        setIsComplete(true);
+      }
+    }, 80);
+
+    return () => clearInterval(timer);
+  }, [fullText]);
+
+  return (
+    <span>
+      {displayedText.split('\n').map((line, i) => (
+        <span key={i}>
+          {line}
+          {i < displayedText.split('\n').length - 1 && <br />}
+        </span>
+      ))}
+      {!isComplete && <span className="typing-cursor">|</span>}
+    </span>
+  );
+};
 
 export default function Step2() {
   return (
@@ -24,9 +63,6 @@ export default function Step2() {
             </div>
             <Settings className="inline-block w-10 h-10 mt-2 text-[oklch(0.8_0.18_60)]" />
           </h1>
-          <p className="text-gray-600 text-base sm:text-lg px-4">
-            引越しプランと条件を教えてください！
-          </p>
         </header>
 
         {/* ステップインジケーター */}
@@ -38,13 +74,14 @@ export default function Step2() {
         <div className="max-w-2xl mx-auto">
           <ConditionForm />
         </div>
-
-        {/* フッター装飾 */}
-        <div className="text-center mt-12 text-gray-400">
-          <Sparkles className="inline-block w-5 h-5 mr-2" />
-          <span className="text-sm">あと少しで完了です</span>
-          <Sparkles className="inline-block w-5 h-5 ml-2" />
-        </div>
+        {/* フッター */}
+        <footer className="text-center mt-12 pb-8">
+          <p className="text-gray-400 text-sm flex items-center justify-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            あと少しで完了です
+            <Sparkles className="w-4 h-4" />
+          </p>
+        </footer>
       </div>
     </div>
   );

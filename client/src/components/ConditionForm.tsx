@@ -43,6 +43,45 @@ import {
   getStep1Data,
   setEstimateResult
 } from '@/lib/store';
+
+// タイピングアニメーションコンポーネント（改行対応）
+const AnimatedText = ({ lines }: { lines: string[] }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+
+  const fullText = lines.join('\n');
+
+  useEffect(() => {
+    let index = 0;
+    setDisplayedText('');
+    setIsComplete(false);
+
+    const timer = setInterval(() => {
+      if (index < fullText.length) {
+        setDisplayedText(fullText.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(timer);
+        setIsComplete(true);
+      }
+    }, 80);
+
+    return () => clearInterval(timer);
+  }, [fullText]);
+
+  return (
+    <span>
+      {displayedText.split('\n').map((line, i) => (
+        <span key={i}>
+          {line}
+          {i < displayedText.split('\n').length - 1 && <br />}
+        </span>
+      ))}
+      {!isComplete && <span className="typing-cursor">|</span>}
+    </span>
+  );
+};
+
 import { calculateEstimate } from '@/lib/pricing';
 import type { EstimateOptions, MovingDates } from '@/lib/types';
 import { toast } from 'sonner';
@@ -182,6 +221,11 @@ export function ConditionForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
+      {/* 説明文 */}
+      <p className="text-center text-gray-600 font-bold text-base">
+        <AnimatedText lines={["引越しプランと条件を教えてください！"]} />
+      </p>
+
       {/* プランの選択 */}
       <div className="pop-card p-6">
         <div className="flex items-center gap-3 mb-6">

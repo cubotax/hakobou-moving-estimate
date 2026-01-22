@@ -37,6 +37,45 @@ import {
   getEstimateResult,
   clearAllData
 } from '@/lib/store';
+
+// タイピングアニメーションコンポーネント（改行対応）
+const AnimatedText = ({ lines }: { lines: string[] }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+
+  const fullText = lines.join('\n');
+
+  useEffect(() => {
+    let index = 0;
+    setDisplayedText('');
+    setIsComplete(false);
+
+    const timer = setInterval(() => {
+      if (index < fullText.length) {
+        setDisplayedText(fullText.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(timer);
+        setIsComplete(true);
+      }
+    }, 80);
+
+    return () => clearInterval(timer);
+  }, [fullText]);
+
+  return (
+    <span>
+      {displayedText.split('\n').map((line, i) => (
+        <span key={i}>
+          {line}
+          {i < displayedText.split('\n').length - 1 && <br />}
+        </span>
+      ))}
+      {!isComplete && <span className="typing-cursor">|</span>}
+    </span>
+  );
+};
+
 import { formatCurrency, formatDistance, isBusySeason, isWeekendOrHoliday } from '@/lib/pricing';
 import { UI_DISPLAY_CONFIG, BUSY_SEASON_CONFIG, WEEKEND_HOLIDAY_CONFIG } from '@/lib/config';
 import { timeSlotLabels, type TimeSlot } from '@/lib/schema';
@@ -126,6 +165,10 @@ export function EstimateResult() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* 説明文 */}
+      <p className="text-center text-gray-600 font-bold text-base">
+        <AnimatedText lines={["お見積り結果はこちら！", "気になったらLINEでそのまま相談できます♫"]} />
+      </p>
       {/* 見積もり結果ヘッダー */}
       <div className="pop-card bg-[oklch(0.92_0.16_95)] p-8 text-center relative overflow-hidden">
         {/* 背景装飾イラスト */}
@@ -185,7 +228,7 @@ export function EstimateResult() {
       </div>
 
       {/* ご入力内容セクション */}
-      <div className="px-6 py-8 text-center relative">
+      <div className="px-6 pt-14 pb-1 text-center relative">
         <div className="absolute top-4 left-8 opacity-30">
           <Sparkles className="w-6 h-6 text-[oklch(0.92_0.16_95)]" />
         </div>

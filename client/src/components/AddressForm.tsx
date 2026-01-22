@@ -28,6 +28,45 @@ import { setStep1Data, setDistanceData, getStep1Data } from '@/lib/store';
 import { getDistanceProvider } from '@/lib/distance';
 import { getAddressByPostalCode, isValidPostalCode, validateAddress } from '@/lib/postal';
 import { OUT_OF_AREA_ERROR_MESSAGE } from '@/lib/allowedAreas';
+
+// タイピングアニメーションコンポーネント（改行対応）
+const AnimatedText = ({ lines }: { lines: string[] }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isComplete, setIsComplete] = useState(false);
+
+  const fullText = lines.join('\n');
+
+  useEffect(() => {
+    let index = 0;
+    setDisplayedText('');
+    setIsComplete(false);
+
+    const timer = setInterval(() => {
+      if (index < fullText.length) {
+        setDisplayedText(fullText.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(timer);
+        setIsComplete(true);
+      }
+    }, 80);
+
+    return () => clearInterval(timer);
+  }, [fullText]);
+
+  return (
+    <span>
+      {displayedText.split('\n').map((line, i) => (
+        <span key={i}>
+          {line}
+          {i < displayedText.split('\n').length - 1 && <br />}
+        </span>
+      ))}
+      {!isComplete && <span className="typing-cursor">|</span>}
+    </span>
+  );
+};
+
 import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
 import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
 import { toHalfWidth, formatPostalCode, cn } from '@/lib/utils';
@@ -326,8 +365,9 @@ export function AddressForm() {
       <form onSubmit={handleFormSubmit} className="space-y-6 animate-fade-in">
         {/* 説明文 */}
         <p className="text-center text-gray-600 font-bold text-base">
-          次に郵便番号を入力して住所を取得してください！
+          <AnimatedText lines={["次に郵便番号を入力して", "住所を取得してください！"]} />
         </p>
+
 
         {/* 入力方法の切り替えタブ */}
         <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as InputMode)} className="w-full">
