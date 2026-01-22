@@ -14,7 +14,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowDown, AlertCircle, Calendar, Clock } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,36 @@ import { dateFormSchema, type DateFormData, type Step1FormData, type TimeSlot, d
 import { setStep1Data, getStep1Data } from '@/lib/store';
 import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
 import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
+
+// タイピングアニメーションコンポーネント
+const AnimatedText = ({ text }: { text: string }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [showCursor, setShowCursor] = useState(true);
+
+  useEffect(() => {
+    let index = 0;
+    const timer = setInterval(() => {
+      if (index < text.length) {
+        setDisplayedText(text.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(timer);
+        // タイピング完了後、カーソルを非表示
+        setTimeout(() => setShowCursor(false), 500);
+      }
+    }, 80);
+
+    return () => clearInterval(timer);
+  }, [text]);
+
+  return (
+    <span>
+      {displayedText}
+      {showCursor && <span className="typing-cursor">|</span>}
+    </span>
+  );
+};
+
 
 /** ✅ ローカル日付で「今日」を作る（UTCズレ回避） */
 const getTodayYMD = () => {
@@ -182,13 +212,13 @@ export function DateForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
       {/* 説明文 */}
       <p className="text-center text-gray-600 font-bold text-base">
-        まずは引越し予定日を教えてください！
+        <AnimatedText text="まずは引越し予定日を教えてください！" />
       </p>
       {/* 集荷日程セクション */}
       <div className="pop-card p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[oklch(0.85_0.15_350)] flex items-center justify-center border-[2px] border-black">
+            <div className="w-10 h-10 rounded-full bg-[#FF6DA9] flex items-center justify-center border-[2px] border-black">
               <Calendar className="w-5 h-5 text-white" />
             </div>
             <h3 className="text-xl font-black">集荷日程</h3>
@@ -255,7 +285,7 @@ export function DateForm() {
       <div className="pop-card p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[oklch(0.75_0.2_145)] flex items-center justify-center border-[2px] border-black">
+            <div className="w-10 h-10 rounded-full bg-[#5BB661] flex items-center justify-center border-[2px] border-black">
               <Calendar className="w-5 h-5 text-white" />
             </div>
             <h3 className="text-xl font-black">お届け日程</h3>
