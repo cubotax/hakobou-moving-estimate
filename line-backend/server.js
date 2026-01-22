@@ -577,7 +577,7 @@ async function handlePostbackEvent(event) {
         messages: [
           {
             type: "text",
-            text: "ご相談ありがとうございます！\n\n担当者より折り返しご連絡いたします。\nしばらくお待ちくださいませ。",
+            text: "ご相談ありがとうございます📅\n日程を確認し、担当より折り返しご連絡いたします😊\n\n調整がつかない場合は、代替日程をご提案させていただきます✨\n\n返信まで今しばらくお待ちください！",
           },
         ],
       });
@@ -954,6 +954,31 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
             margin: "md",
           },
           {
+            type: "separator",
+            margin: "lg",
+          },
+          {
+            type: "text",
+            text: "現在のトラック台数で積みきれるかご不安な場合はオンライン面談でお部屋の状況を確認することも可能です。",
+            size: "xs",
+            color: "#666666",
+            wrap: true,
+            margin: "lg",
+          },
+          {
+            type: "button",
+            style: "primary",
+            height: "md",
+            action: {
+              type: "postback",
+              label: "オンライン面談希望",
+              data: `action=online_meeting&estimateId=${estimate.id}`,
+              displayText: "オンライン面談を希望します",
+            },
+            color: "#06C755",
+            margin: "md",
+          },
+          {
             type: "text",
             text: "ご不明点はお気軽にメッセージください！",
             size: "xs",
@@ -965,6 +990,7 @@ function buildEstimateFlexMessage(estimate, detailUrl = null) {
         ],
         paddingAll: "16px",
       },
+
     },
   };
 }
