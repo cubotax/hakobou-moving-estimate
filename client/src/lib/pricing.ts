@@ -13,10 +13,82 @@ import type {
   FeeBreakdownItem,
   MovingDates
 } from './types';
-import { PRICING_CONFIG, HIGHWAY_FEE_CONFIG, BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG, WEEKEND_HOLIDAY_CONFIG } from './config';
+import { PRICING_CONFIG, HIGHWAY_FEE_CONFIG, BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG, WEEKEND_HOLIDAY_CONFIG, OMAKASE_PLAN_CONFIG } from './config';
 
 /**
- * 距離料金を計算（累進課金方式）
+ * お任せプランの料金を計算
+ * - 50kmまで：8,000円（基本料金）
+ * - 50km超過：50kmごとに4,000円追加
+ */
+function calculateOmakasePlanFee(distanceKm: number, dates: MovingDates): {
+  fee: number;
+  breakdown: FeeBreakdownItem[];
+  baseFee: number;
+} {
+  const { baseFee, baseDistance, additionalFee, distanceUnit } = OMAKASE_PLAN_CONFIG;
+
+  // 集荷日またはお届け日のどちらかが繁忙期なら繁忙期料金を適用
+  const isBusy = isBusySeason(dates.pickupDate) || isBusySeason(dates.deliveryDate);
+
+  // 集荷日またはお届け日のどちらかが土日祝なら土日祝料金を適用
+  const isWeekendHoliday = isWeekendOrHoliday(dates.pickupDate) || isWeekendOrHoliday(dates.deliveryDate);
+
+  const busySeasonSurcharge = isBusy ? Math.floor((baseFee * BUSY_SEASON_CONFIG.surchargeRate) / 100) * 100 : 0;
+  const weekendHolidaySurcharge = isWeekendHoliday ? Math.floor((baseFee * WEEKEND_HOLIDAY_CONFIG.surchargeRate) / 100) * 100 : 0;
+
+  const breakdown: FeeBreakdownItem[] = [];
+  let totalFee = baseFee;
+
+  // お任せプラン基本料金
+  breakdown.push({
+    name: 'お任せプラン基本料金',
+    amount: baseFee,
+    note: `${baseDistance}kmまで`,
+  });
+
+  // 繁忙期加算
+  if (isBusy) {
+    breakdown.push({
+      name: BUSY_SEASON_CONFIG.label,
+      amount: busySeasonSurcharge,
+      note: `(¥${baseFee.toLocaleString()} × ${BUSY_SEASON_CONFIG.surchargeRate * 100}%)`,
+    });
+    totalFee += busySeasonSurcharge;
+  }
+
+  // 土日祝加算
+  if (isWeekendHoliday) {
+    breakdown.push({
+      name: WEEKEND_HOLIDAY_CONFIG.label,
+      amount: weekendHolidaySurcharge,
+      note: `(¥${baseFee.toLocaleString()} × ${WEEKEND_HOLIDAY_CONFIG.surchargeRate * 100}%)`,
+    });
+    totalFee += weekendHolidaySurcharge;
+  }
+
+  // 距離追加料金（50km超過分）
+  if (distanceKm > baseDistance) {
+    const excessDistance = distanceKm - baseDistance;
+    const additionalUnits = Math.ceil(excessDistance / distanceUnit);
+    const additionalTotal = additionalFee * additionalUnits;
+
+    breakdown.push({
+      name: '距離追加料金',
+      amount: additionalTotal,
+      note: `${baseDistance}km超過分（${additionalUnits}×${distanceUnit}km）`,
+    });
+    totalFee += additionalTotal;
+  }
+
+  return {
+    fee: totalFee,
+    breakdown,
+    baseFee: baseFee + busySeasonSurcharge + weekendHolidaySurcharge,
+  };
+}
+
+/**
+ * 距離料金を計算（累進課金方式）- ヘルパープラン用
  */
 function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
   fee: number;
@@ -341,12 +413,14 @@ function calculateStorageFee(dates: MovingDates): {
  * @param distance - 距離計算結果
  * @param options - 見積もりオプション
  * @param dates - 引越し日程（オプション）
+ * @param plan - プラン種別（オプション）: 'helper' | 'full'
  * @returns 見積もり結果
  */
 export function calculateEstimate(
   distance: DistanceResult,
   options: EstimateOptions,
-  dates?: MovingDates
+  dates?: MovingDates,
+  plan: 'helper' | 'full' = 'helper'
 ): EstimateResult {
   const breakdown: FeeBreakdownItem[] = [];
 
@@ -356,8 +430,10 @@ export function calculateEstimate(
     deliveryDate: new Date().toISOString().split('T')[0],
   };
 
-  // 1. 距離料金（基本料金含む累進課金 ＋ 繁忙期加算 ＋ 土日祝加算）
-  const distanceFeeResult = calculateDistanceFee(distance.distanceKm, movingDates);
+  // 1. プラン別の距離料金計算
+  const distanceFeeResult = plan === 'full'
+    ? calculateOmakasePlanFee(distance.distanceKm, movingDates)
+    : calculateDistanceFee(distance.distanceKm, movingDates);
   breakdown.push(...distanceFeeResult.breakdown);
 
   // 2. 階数料金

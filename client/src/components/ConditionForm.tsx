@@ -110,7 +110,7 @@ export function ConditionForm() {
         deliveryDate: step1Data.dates.deliveryDate,
       } : undefined;
 
-      const result = calculateEstimate(distanceData, options, dates);
+      const result = calculateEstimate(distanceData, options, dates, data.plan);
 
       // トラック台数で料金を掛け算した結果を保存
       const finalResult = {
@@ -522,13 +522,6 @@ export function ConditionForm() {
               </div>
             )}
           />
-
-          {truckCount > 1 && (
-            <p className="text-sm text-[oklch(0.6_0.15_300)] font-medium flex items-center gap-1">
-              <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.6_0.15_300)]"></span>
-              料金が{truckCount}倍になります
-            </p>
-          )}
 
           <p className="text-sm text-gray-600">
             トラック1台分の積み込み目安は

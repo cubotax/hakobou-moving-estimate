@@ -162,17 +162,6 @@ export function EstimateResult() {
             {formatCurrency(estimateResult.totalFee)}
           </p>
 
-          {/* 繁忙期バッジ */}
-          {!!estimateResult.isBusySeason && (
-            <div
-              className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[oklch(0.95_0.15_20)] rounded-full border-2"
-              style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
-            >
-              <AlertCircle className="w-4 h-4 text-[oklch(0.5_0.2_20)]" />
-              <span className="text-sm font-bold text-[oklch(0.4_0.15_20)]">繁忙期料金適用中</span>
-            </div>
-          )}
-
           <p className="text-black/60 text-sm mt-4 whitespace-pre-line font-bold">
             この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
           </p>
