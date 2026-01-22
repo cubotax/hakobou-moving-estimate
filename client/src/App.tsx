@@ -47,6 +47,7 @@ function Router() {
 
       {/* 管理画面 */}
       <Route path="/admin/login" component={AdminLogin} />
+      <Route path="/admin/estimates" component={AdminDashboard} />
       <Route path="/admin/estimates/:id" component={AdminEstimateDetail} />
       <Route path="/admin/coupons/new" component={AdminCouponEdit} />
       <Route path="/admin/coupons/:id/edit" component={AdminCouponEdit} />
