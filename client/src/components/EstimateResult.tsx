@@ -420,21 +420,6 @@ export function EstimateResult() {
           </div>
         </div>
 
-        {/* 繁忙期メッセージ */}
-        {isBusySeason(step1Data.dates.pickupDate) && (
-          <div
-            className="mt-4 p-4 bg-[oklch(0.95_0.15_20)] border-2 rounded-xl"
-            style={{ borderColor: BUSY_SEASON_CONFIG.busySeasonLabelBorderColor }}
-          >
-            <p className="text-sm font-bold text-[oklch(0.4_0.15_20)] flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
-              <span>
-                繁忙期（{BUSY_SEASON_CONFIG.startDate.replace('-', '/')}〜{BUSY_SEASON_CONFIG.endDate.replace('-', '/')}）のため、基本料金が{BUSY_SEASON_CONFIG.surchargeRate * 100}%増しとなっております。
-              </span>
-            </p>
-          </div>
-        )}
-
         {/* 積み置き料金メッセージ (表示フラグ制御) */}
         {UI_DISPLAY_CONFIG.SHOW_TSUMIOKI_MESSAGE && (
           <div className="mt-4 p-4 bg-[oklch(0.95_0.05_95)] border-2 border-[oklch(0.8_0.18_60)] rounded-xl">

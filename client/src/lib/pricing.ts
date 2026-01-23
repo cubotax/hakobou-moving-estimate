@@ -146,28 +146,6 @@ function calculateFloorFees(options: EstimateOptions): {
 /**
  * オプション料金を計算
  */
-function calculateOptionFees(options: EstimateOptions): {
-  totalFee: number;
-  breakdown: FeeBreakdownItem[]
-} {
-  const settings = getSettings();
-  const breakdown: FeeBreakdownItem[] = [];
-  let totalFee = 0;
-
-  if (options.needsPacking) {
-    breakdown.push({
-      name: '梱包サービス',
-      amount: settings.packing_fee,
-    });
-    totalFee += settings.packing_fee;
-  }
-
-  return { totalFee, breakdown };
-}
-
-/**
- * 時間指定料金を計算
- */
 function calculateTimeSlotFees(dates: MovingDates): {
   totalFee: number;
   breakdown: FeeBreakdownItem[]
@@ -176,22 +154,38 @@ function calculateTimeSlotFees(dates: MovingDates): {
   const breakdown: FeeBreakdownItem[] = [];
   let totalFee = 0;
 
-  if (dates.pickupTimeSlot && dates.pickupTimeSlot !== 'anytime') {
-    const timeLabel = dates.pickupTimeSlot === 'morning' ? '午前' : '午後';
-    breakdown.push({
-      name: `集荷 時間指定（${timeLabel}）`,
-      amount: settings.time_slot_fee,
-    });
-    totalFee += settings.time_slot_fee;
-  }
+  const pickupSpecified = dates.pickupTimeSlot && dates.pickupTimeSlot !== 'anytime';
+  const deliverySpecified = dates.deliveryTimeSlot && dates.deliveryTimeSlot !== 'anytime';
 
-  if (dates.deliveryTimeSlot && dates.deliveryTimeSlot !== 'anytime') {
-    const timeLabel = dates.deliveryTimeSlot === 'morning' ? '午前' : '午後';
+  if (pickupSpecified || deliverySpecified) {
+    let timeLabel = '';
+    let fee = 0;
+
+    if (pickupSpecified && deliverySpecified) {
+      // 両方指定
+      const pickupLabel = dates.pickupTimeSlot === 'morning' ? '午前' : '午後';
+      const deliveryLabel = dates.deliveryTimeSlot === 'morning' ? '午前' : '午後';
+      if (pickupLabel === deliveryLabel) {
+        timeLabel = pickupLabel;
+      } else {
+        timeLabel = '午前・午後';
+      }
+      fee = settings.time_slot_fee * 2;
+    } else if (pickupSpecified) {
+      // 集荷のみ
+      timeLabel = dates.pickupTimeSlot === 'morning' ? '午前' : '午後';
+      fee = settings.time_slot_fee;
+    } else if (deliverySpecified) {
+      // 配達のみ
+      timeLabel = dates.deliveryTimeSlot === 'morning' ? '午前' : '午後';
+      fee = settings.time_slot_fee;
+    }
+
     breakdown.push({
-      name: `配達 時間指定（${timeLabel}）`,
-      amount: settings.time_slot_fee,
+      name: `時間指定（${timeLabel}）`,
+      amount: fee,
     });
-    totalFee += settings.time_slot_fee;
+    totalFee = fee;
   }
 
   return { totalFee, breakdown };
