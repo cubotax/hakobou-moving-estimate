@@ -477,6 +477,7 @@ app.post("/api/apply", async (req, res) => {
 // ========= 管理画面API =========
 app.use("/api/admin", adminRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api", couponRoutes);
 
 // ========= WEBHOOK =========
 if (isLineConfigured) {
