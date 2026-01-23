@@ -1,12 +1,11 @@
 /**
  * 距離計算サービス
  * 
- * プロバイダ差し替え可能な設計
- * - Google Maps Routes API（デフォルト）
- * - 将来的にNAVITIME APIなどに差し替え可能
+ * NAVITIME API経由でバックエンドから距離を取得
  */
 
 import type { Address, DistanceResult } from './types';
+import { API_CONFIG } from './config';
 
 // ============================================
 // プロバイダインターフェース
@@ -20,141 +19,82 @@ export interface DistanceProvider {
 }
 
 // ============================================
-// Google Maps プロバイダ
+// NAVITIME API プロバイダ（バックエンド経由）
 // ============================================
 
 /**
- * Google Maps APIを使用した距離計算プロバイダ
- * 
- * Manusプロキシを通じてGoogle Maps APIにアクセスします。
- * APIキーは自動的に処理されます。
+ * NAVITIME APIを使用した距離計算プロバイダ
+ * バックエンドの /api/distance エンドポイントを呼び出す
  */
-export class GoogleMapsDistanceProvider implements DistanceProvider {
-  private geocoder: google.maps.Geocoder | null = null;
-  private directionsService: google.maps.DirectionsService | null = null;
-
-  constructor() {
-    // Google Maps APIが読み込まれている場合に初期化
-    if (typeof google !== 'undefined' && google.maps) {
-      this.geocoder = new google.maps.Geocoder();
-      this.directionsService = new google.maps.DirectionsService();
-    }
-  }
-
-  /**
-   * 住所を座標に変換
-   * 町名がある場合は町名まで含めて検索し、より正確な位置を取得
-   */
-  private async geocodeAddress(address: Address): Promise<google.maps.LatLng> {
-    if (!this.geocoder) {
-      throw new Error('Geocoder not initialized');
-    }
-
-    // 町名がある場合は町名まで含めて検索
-    const fullAddress = address.town 
-      ? `${address.prefecture}${address.city}${address.town}`
-      : `${address.prefecture}${address.city}`;
-    
-    return new Promise((resolve, reject) => {
-      this.geocoder!.geocode(
-        { address: fullAddress, region: 'jp' },
-        (results, status) => {
-          if (status === 'OK' && results && results[0]) {
-            resolve(results[0].geometry.location);
-          } else {
-            reject(new Error(`Geocoding failed: ${status}`));
-          }
-        }
-      );
-    });
-  }
-
-  /**
-   * 2地点間のルートを取得
-   */
-  private async getRoute(
-    origin: google.maps.LatLng,
-    destination: google.maps.LatLng
-  ): Promise<google.maps.DirectionsResult> {
-    if (!this.directionsService) {
-      throw new Error('DirectionsService not initialized');
-    }
-
-    return new Promise((resolve, reject) => {
-      this.directionsService!.route(
-        {
-          origin,
-          destination,
-          travelMode: google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === 'OK' && result) {
-            resolve(result);
-          } else {
-            reject(new Error(`Directions request failed: ${status}`));
-          }
-        }
-      );
-    });
-  }
-
+export class NavitimeDistanceProvider implements DistanceProvider {
   async getDistance(origin: Address, destination: Address): Promise<DistanceResult> {
     try {
-      // 住所を座標に変換
-      const [originLatLng, destLatLng] = await Promise.all([
-        this.geocodeAddress(origin),
-        this.geocodeAddress(destination),
-      ]);
+      // 郵便番号を使ってバックエンドAPIを呼び出す
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/distance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          originPostalCode: origin.postalCode,
+          destinationPostalCode: destination.postalCode,
+        }),
+      });
 
-      // ルートを取得
-      const result = await this.getRoute(originLatLng, destLatLng);
-      
-      // 距離を取得（メートル→キロメートル）
-      const leg = result.routes[0]?.legs[0];
-      if (!leg || !leg.distance) {
-        throw new Error('Distance not found in response');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `API error: ${response.status}`);
       }
 
-      const distanceKm = leg.distance.value / 1000;
-      const isInterPrefecture = origin.prefecture !== destination.prefecture;
+      const data = await response.json();
 
-      // 高速料金は Google Directions API では直接取得できないため、
-      // Routes API を使用するか、null を返す
-      // MVPでは null を返し、UIで「取得不可」と表示
+      if (!data.success) {
+        throw new Error(data.error || '距離の取得に失敗しました');
+      }
+
       return {
-        distanceKm,
-        highwayFee: null, // Routes API での実装が必要
-        isInterPrefecture,
+        distanceKm: data.distanceKm,
+        highwayFee: data.highwayFee,
+        isInterPrefecture: data.isInterPrefecture,
       };
     } catch (error) {
-      console.error('Distance calculation failed:', error);
+      console.error('NAVITIME distance calculation failed:', error);
       throw error;
     }
   }
 }
 
 // ============================================
-// モックプロバイダ（開発/テスト用）
+// モックプロバイダ（開発/テスト用・フォールバック）
 // ============================================
 
 /**
  * モックの距離計算プロバイダ
- * 開発時やAPIが利用できない場合に使用
+ * APIが利用できない場合のフォールバック
  */
 export class MockDistanceProvider implements DistanceProvider {
   async getDistance(origin: Address, destination: Address): Promise<DistanceResult> {
     // シミュレーション用の遅延
     await new Promise(resolve => setTimeout(resolve, 500));
 
+    // 同じ住所の場合は0kmを返す
+    if (origin.postalCode === destination.postalCode) {
+      return {
+        distanceKm: 0,
+        highwayFee: null,
+        isInterPrefecture: false,
+      };
+    }
+
     const isInterPrefecture = origin.prefecture !== destination.prefecture;
-    
+
     // 県外の場合は長距離、県内の場合は短距離をシミュレート
     const baseDistance = isInterPrefecture ? 300 : 50;
     const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 - 1.2
     const distanceKm = Math.round(baseDistance * randomFactor * 10) / 10;
 
     // 県外の場合のみ高速料金をシミュレート
-    const highwayFee = isInterPrefecture 
+    const highwayFee = isInterPrefecture
       ? Math.round(distanceKm * 25) // 約25円/km
       : null;
 
@@ -174,22 +114,16 @@ let currentProvider: DistanceProvider | null = null;
 
 /**
  * 距離計算プロバイダを取得
- * 
- * Google Maps APIが利用可能な場合はGoogleMapsDistanceProviderを、
- * そうでない場合はMockDistanceProviderを返します。
+ * NAVITIME APIプロバイダを返す
  */
 export function getDistanceProvider(): DistanceProvider {
   if (currentProvider) {
     return currentProvider;
   }
 
-  // Google Maps APIが利用可能かチェック
-  if (typeof google !== 'undefined' && google.maps) {
-    currentProvider = new GoogleMapsDistanceProvider();
-  } else {
-    console.warn('Google Maps API not available, using mock provider');
-    currentProvider = new MockDistanceProvider();
-  }
+  // NAVITIME APIプロバイダを使用
+  currentProvider = new NavitimeDistanceProvider();
+  console.log('Using NAVITIME distance provider');
 
   return currentProvider;
 }

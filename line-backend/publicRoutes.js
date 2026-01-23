@@ -63,7 +63,10 @@ async function getDistanceFromNavitime(startCoord, goalCoord) {
         throw new Error('RAPIDAPI_KEY is not configured');
     }
 
-    const url = `https://navitime-route-car.p.rapidapi.com/route_car?start=${startCoord.lat},${startCoord.lon}&goal=${goalCoord.lat},${goalCoord.lon}&datum=wgs84&coord_unit=degree`;
+    // etc=use でETC料金取得、car_type=2 で普通車、condition=toll_time で高速優先
+    const url = `https://navitime-route-car.p.rapidapi.com/route_car?start=${startCoord.lat},${startCoord.lon}&goal=${goalCoord.lat},${goalCoord.lon}&datum=wgs84&coord_unit=degree&etc=use&car_type=2&condition=toll_time`;
+
+    console.log('[NAVITIME] Request URL:', url);
 
     const response = await fetch(url, {
         method: 'GET',
@@ -80,33 +83,67 @@ async function getDistanceFromNavitime(startCoord, goalCoord) {
 
     const data = await response.json();
 
+    // デバッグ用：レスポンス構造をログ出力
+    console.log('[NAVITIME] Response keys:', Object.keys(data));
+    if (data.items && data.items[0]) {
+        console.log('[NAVITIME] Route keys:', Object.keys(data.items[0]));
+        if (data.items[0].fares) {
+            console.log('[NAVITIME] Fares:', JSON.stringify(data.items[0].fares, null, 2));
+        }
+    }
+
     // ルート情報から距離を取得
     if (!data.items || data.items.length === 0) {
         throw new Error('ルートが見つかりません');
     }
 
     const route = data.items[0];
-    const distanceMeters = route.summary?.move?.distance || 0;
-    const distanceKm = Math.round(distanceMeters / 100) / 10; // 小数点1桁
+    const summary = route.summary;
 
-    // 高速料金（faresがあれば取得、なければnull）
+    // 距離（メートル→キロメートル）
+    const distanceMeters = summary?.move?.distance || 0;
+    const distanceKm = Math.round(distanceMeters / 100) / 10;
+
+    // 所要時間（秒→分）
+    const durationSeconds = summary?.move?.time || 0;
+    const durationMinutes = Math.round(durationSeconds / 60);
+
+    // 高速料金を取得
     let highwayFee = null;
+
+    // fares配列から料金を取得
     if (route.fares && route.fares.length > 0) {
-        highwayFee = route.fares.reduce((sum, fare) => sum + (fare.fare || 0), 0);
+        highwayFee = route.fares.reduce((sum, fare) => {
+            // 様々な形式に対応
+            const amount = fare.toll || fare.fare || fare.price || fare.amount || 0;
+            return sum + amount;
+        }, 0);
     }
+
+    // summaryにtoll情報がある場合
+    if (highwayFee === null || highwayFee === 0) {
+        if (summary?.move?.toll_road_distance > 0 && summary?.move?.fare) {
+            highwayFee = summary.move.fare;
+        }
+    }
+
+    // 0の場合はnullに変換
+    if (highwayFee === 0) {
+        highwayFee = null;
+    }
+
+    console.log(`[NAVITIME] Result - Distance: ${distanceKm}km, Duration: ${durationMinutes}min, Highway: ${highwayFee}`);
 
     return {
         distanceKm,
         highwayFee,
-        durationMinutes: route.summary?.move?.time ? Math.round(route.summary.move.time / 60) : null
+        durationMinutes
     };
 }
 
 /**
  * 距離計算API
  * POST /api/distance
- * Request: { originPostalCode: "150-0001", destinationPostalCode: "160-0022" }
- * Response: { success: true, distanceKm: 12.5, highwayFee: null, isInterPrefecture: false }
  */
 router.post('/distance', async (req, res) => {
     try {
@@ -176,10 +213,6 @@ router.post('/distance', async (req, res) => {
 // クーポン検証
 // ============================================
 
-/**
- * クーポン検証
- * POST /api/coupons/validate
- */
 router.post('/validate', async (req, res) => {
     try {
         const { code, estimateId, lineUserId } = req.body;
@@ -213,10 +246,6 @@ router.post('/validate', async (req, res) => {
 // 料金設定
 // ============================================
 
-/**
- * 料金設定取得（公開API）
- * GET /api/pricing
- */
 router.get('/pricing', async (req, res) => {
     try {
         const settings = await getPricingSettings();
