@@ -213,6 +213,7 @@ export function AddressForm() {
         setValue('pickupAddress.prefecture', result.address.prefecture);
         setValue('pickupAddress.city', result.address.city);
         setValue('pickupAddress.town', result.address.town);
+        setValue('pickupAddress.postalCode', pickupPostalCode);
         setPickupPostalAddress(result.address.fullAddress);
         setPickupValidated(true);
         setPickupValidationError(null);
@@ -243,6 +244,7 @@ export function AddressForm() {
         setValue('deliveryAddress.prefecture', result.address.prefecture);
         setValue('deliveryAddress.city', result.address.city);
         setValue('deliveryAddress.town', result.address.town);
+        setValue('deliveryAddress.postalCode', deliveryPostalCode);
         setDeliveryPostalAddress(result.address.fullAddress);
         setDeliveryValidated(true);
         setDeliveryValidationError(null);
