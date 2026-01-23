@@ -127,21 +127,21 @@ export default function PricingSettingsPage() {
             <h1 className="text-xl font-bold mb-4">料金設定</h1>
             <div className="bg-white rounded-lg shadow p-4 mb-4">
                 <h2 className="text-base font-semibold mb-3 border-b pb-2">基本設定</h2>
-                <Field label="基本料金（30kmまで）" id="base_fee" value={settings.base_fee} onChange={(v: string) => handleChange('base_fee', v)} prefix="¥" />
+                <Field label="基本料金（30kmまで）" id="base_fee" value={settings.base_fee} onChange={(v: string) => handleChange('base_fee', v)} suffix="円" />
                 <Field label="繁忙期加算率" id="busy_season_rate" value={rateToPercent(settings.busy_season_rate)} onChange={(v: string) => handleChange('busy_season_rate', percentToRate(v))} suffix="%" />
                 <DateSelect label="繁忙期開始日" monthValue={settings.busy_season_start_month} dayValue={settings.busy_season_start_day} onMonthChange={(v: string) => handleChange('busy_season_start_month', v)} onDayChange={(v: string) => handleChange('busy_season_start_day', v)} />
                 <DateSelect label="繁忙期終了日" monthValue={settings.busy_season_end_month} dayValue={settings.busy_season_end_day} onMonthChange={(v: string) => handleChange('busy_season_end_month', v)} onDayChange={(v: string) => handleChange('busy_season_end_day', v)} />
                 <Field label="土日祝加算率" id="weekend_holiday_rate" value={rateToPercent(settings.weekend_holiday_rate)} onChange={(v: string) => handleChange('weekend_holiday_rate', percentToRate(v))} suffix="%" />
-                <Field label="積み置き料金（1日あたり）" id="storage_fee_per_day" value={settings.storage_fee_per_day} onChange={(v: string) => handleChange('storage_fee_per_day', v)} prefix="¥" />
-                <Field label="梱包サービス料金" id="packing_fee" value={settings.packing_fee} onChange={(v: string) => handleChange('packing_fee', v)} prefix="¥" />
-                <Field label="階段作業料金（1階あたり）" id="floor_fee" value={settings.floor_fee} onChange={(v: string) => handleChange('floor_fee', v)} prefix="¥" />
+                <Field label="積み置き料金（1日あたり）" id="storage_fee_per_day" value={settings.storage_fee_per_day} onChange={(v: string) => handleChange('storage_fee_per_day', v)} suffix="円" />
+                <Field label="梱包サービス料金" id="packing_fee" value={settings.packing_fee} onChange={(v: string) => handleChange('packing_fee', v)} suffix="円" />
+                <Field label="階段作業料金（1階あたり）" id="floor_fee" value={settings.floor_fee} onChange={(v: string) => handleChange('floor_fee', v)} suffix="円" />
                 <Field label="階段作業無料階数" id="free_floor_limit" value={settings.free_floor_limit} onChange={(v: string) => handleChange('free_floor_limit', v)} suffix="階まで無料" />
-                <Field label="時間指定料金（午前・午後）" id="time_slot_fee" value={settings.time_slot_fee} onChange={(v: string) => handleChange('time_slot_fee', v)} prefix="¥" />
+                <Field label="時間指定料金（午前・午後）" id="time_slot_fee" value={settings.time_slot_fee} onChange={(v: string) => handleChange('time_slot_fee', v)} suffix="円" />
             </div>
             <div className="bg-white rounded-lg shadow p-4 mb-4">
                 <h2 className="text-base font-semibold mb-3 border-b pb-2">お任せプラン設定</h2>
-                <Field label="お任せプラン料金" id="omakase_base_fee" value={settings.omakase_base_fee} onChange={(v: string) => handleChange('omakase_base_fee', v)} prefix="¥" />
-                <Field label="追加料金（50km超過ごと）" id="omakase_additional_fee" value={settings.omakase_additional_fee} onChange={(v: string) => handleChange('omakase_additional_fee', v)} prefix="¥" />
+                <Field label="お任せプラン料金" id="omakase_base_fee" value={settings.omakase_base_fee} onChange={(v: string) => handleChange('omakase_base_fee', v)} suffix="円" />
+                <Field label="追加料金（50km超過ごと）" id="omakase_additional_fee" value={settings.omakase_additional_fee} onChange={(v: string) => handleChange('omakase_additional_fee', v)} suffix="円" />
             </div>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800"><p>※ 設定変更は次回以降の新規見積もりに反映されます。</p></div>
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
