@@ -21,6 +21,7 @@ interface PricingSettings {
     packing_fee: string;
     floor_fee: string;
     free_floor_limit: string;
+    time_slot_fee: string;
     // お任せプラン
     omakase_base_fee: string;
     omakase_additional_fee: string;
@@ -36,6 +37,7 @@ const defaultSettings: PricingSettings = {
     packing_fee: '5000',
     floor_fee: '3000',
     free_floor_limit: '2',
+    time_slot_fee: '1000',
     omakase_base_fee: '8000',
     omakase_additional_fee: '4000',
 };
@@ -245,6 +247,14 @@ function PricingSettingsPage() {
                             value={settings.free_floor_limit}
                             onChange={(v) => handleChange('free_floor_limit', v)}
                             suffix="階まで無料"
+                        />
+
+                        <Field
+                            label="時間指定料金（午前・午後指定時）"
+                            id="time_slot_fee"
+                            value={settings.time_slot_fee}
+                            onChange={(v) => handleChange('time_slot_fee', v)}
+                            prefix="¥"
                         />
                     </div>
 

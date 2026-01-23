@@ -74,6 +74,10 @@ export interface MovingDates {
   pickupDate: string;
   /** お届け日 */
   deliveryDate: string;
+  /** 集荷時間帯 */
+  pickupTimeSlot?: string;
+  /** 配達時間帯 */
+  deliveryTimeSlot?: string;
 }
 
 /** Step1: 住所入力データ */

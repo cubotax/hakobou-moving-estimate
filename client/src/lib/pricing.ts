@@ -3,7 +3,7 @@
  * 
  * Design Philosophy: ポップ＆カジュアル
  * - 拡張可能な設計
- * - 設定ファイルによる料金ルール管理
+ * - APIから料金設定を取得して動的に計算
  */
 
 import type {
@@ -13,60 +13,90 @@ import type {
   FeeBreakdownItem,
   MovingDates
 } from './types';
-import { PRICING_CONFIG, HIGHWAY_FEE_CONFIG, BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG, WEEKEND_HOLIDAY_CONFIG, OMAKASE_PLAN_CONFIG } from './config';
+import { HIGHWAY_FEE_CONFIG } from './config';
+import { fetchPricingSettings, PricingSettings } from './pricingApi';
+
+// 料金設定のキャッシュ（同期的にアクセスするため）
+let currentSettings: PricingSettings | null = null;
+
+/**
+ * 料金設定を初期化（アプリ起動時に呼び出す）
+ */
+export async function initializePricingSettings(): Promise<void> {
+  currentSettings = await fetchPricingSettings();
+}
+
+/**
+ * 現在の料金設定を取得（同期）
+ */
+function getSettings(): PricingSettings {
+  if (!currentSettings) {
+    // フォールバック
+    return {
+      base_fee: 19800,
+      busy_season_rate: 0.3,
+      busy_season_start: '03-01',
+      busy_season_end: '04-10',
+      weekend_holiday_rate: 0.1,
+      storage_fee_per_day: 3000,
+      packing_fee: 5000,
+      floor_fee: 3000,
+      free_floor_limit: 2,
+      omakase_base_fee: 8000,
+      omakase_additional_fee: 4000,
+      time_slot_fee: 1000,
+    };
+  }
+  return currentSettings;
+}
 
 /**
  * お任せプランの料金を計算
- * - 50kmまで：8,000円（基本料金）
- * - 50km超過：50kmごとに4,000円追加
  */
 function calculateOmakasePlanFee(distanceKm: number, dates: MovingDates): {
   fee: number;
   breakdown: FeeBreakdownItem[];
   baseFee: number;
 } {
-  const { baseFee, baseDistance, additionalFee, distanceUnit } = OMAKASE_PLAN_CONFIG;
+  const settings = getSettings();
+  const baseFee = settings.omakase_base_fee;
+  const baseDistance = 50;
+  const additionalFee = settings.omakase_additional_fee;
+  const distanceUnit = 50;
 
-  // 集荷日またはお届け日のどちらかが繁忙期なら繁忙期料金を適用
   const isBusy = isBusySeason(dates.pickupDate) || isBusySeason(dates.deliveryDate);
-
-  // 集荷日またはお届け日のどちらかが土日祝なら土日祝料金を適用
   const isWeekendHoliday = isWeekendOrHoliday(dates.pickupDate) || isWeekendOrHoliday(dates.deliveryDate);
 
-  const busySeasonSurcharge = isBusy ? Math.floor((baseFee * BUSY_SEASON_CONFIG.surchargeRate) / 100) * 100 : 0;
-  const weekendHolidaySurcharge = isWeekendHoliday ? Math.floor((baseFee * WEEKEND_HOLIDAY_CONFIG.surchargeRate) / 100) * 100 : 0;
+  const busySeasonSurcharge = isBusy ? Math.floor((baseFee * settings.busy_season_rate) / 100) * 100 : 0;
+  const weekendHolidaySurcharge = isWeekendHoliday ? Math.floor((baseFee * settings.weekend_holiday_rate) / 100) * 100 : 0;
 
   const breakdown: FeeBreakdownItem[] = [];
   let totalFee = baseFee;
 
-  // お任せプラン基本料金
   breakdown.push({
     name: 'お任せプラン基本料金',
     amount: baseFee,
     note: `${baseDistance}kmまで`,
   });
 
-  // 繁忙期加算
   if (isBusy) {
     breakdown.push({
-      name: BUSY_SEASON_CONFIG.label,
+      name: `繁忙期加算（基本料金${Math.round(settings.busy_season_rate * 100)}%増）`,
       amount: busySeasonSurcharge,
-      note: `(¥${baseFee.toLocaleString()} × ${BUSY_SEASON_CONFIG.surchargeRate * 100}%)`,
+      note: `(¥${baseFee.toLocaleString()} × ${settings.busy_season_rate * 100}%)`,
     });
     totalFee += busySeasonSurcharge;
   }
 
-  // 土日祝加算
   if (isWeekendHoliday) {
     breakdown.push({
-      name: WEEKEND_HOLIDAY_CONFIG.label,
+      name: `土日祝加算（基本料金${Math.round(settings.weekend_holiday_rate * 100)}%増）`,
       amount: weekendHolidaySurcharge,
-      note: `(¥${baseFee.toLocaleString()} × ${WEEKEND_HOLIDAY_CONFIG.surchargeRate * 100}%)`,
+      note: `(¥${baseFee.toLocaleString()} × ${settings.weekend_holiday_rate * 100}%)`,
     });
     totalFee += weekendHolidaySurcharge;
   }
 
-  // 距離追加料金（50km超過分）
   if (distanceKm > baseDistance) {
     const excessDistance = distanceKm - baseDistance;
     const additionalUnits = Math.ceil(excessDistance / distanceUnit);
@@ -95,49 +125,53 @@ function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
   breakdown: FeeBreakdownItem[];
   baseFee: number;
 } {
-  // 集荷日またはお届け日のどちらかが繁忙期なら繁忙期料金を適用
-  const isBusy = isBusySeason(dates.pickupDate) || isBusySeason(dates.deliveryDate);
+  const settings = getSettings();
+  const baseFee = settings.base_fee;
 
-  // 集荷日またはお届け日のどちらかが土日祝なら土日祝料金を適用
+  const isBusy = isBusySeason(dates.pickupDate) || isBusySeason(dates.deliveryDate);
   const isWeekendHoliday = isWeekendOrHoliday(dates.pickupDate) || isWeekendOrHoliday(dates.deliveryDate);
 
-  const baseFee = PRICING_CONFIG.baseFee;
-  const busySeasonSurcharge = isBusy ? Math.floor((baseFee * BUSY_SEASON_CONFIG.surchargeRate) / 100) * 100 : 0;
-  const weekendHolidaySurcharge = isWeekendHoliday ? Math.floor((baseFee * WEEKEND_HOLIDAY_CONFIG.surchargeRate) / 100) * 100 : 0;
+  const busySeasonSurcharge = isBusy ? Math.floor((baseFee * settings.busy_season_rate) / 100) * 100 : 0;
+  const weekendHolidaySurcharge = isWeekendHoliday ? Math.floor((baseFee * settings.weekend_holiday_rate) / 100) * 100 : 0;
 
   let distanceTotal = baseFee;
   const breakdown: FeeBreakdownItem[] = [];
 
-  // 基本料金の追加
   breakdown.push({
     name: '基本料金',
     amount: baseFee,
     note: '30kmまで',
   });
 
-  // 繁忙期加算の追加
   if (isBusy) {
     breakdown.push({
-      name: BUSY_SEASON_CONFIG.label,
+      name: `繁忙期加算（基本料金${Math.round(settings.busy_season_rate * 100)}%増）`,
       amount: busySeasonSurcharge,
-      note: `(¥${baseFee.toLocaleString()} × ${BUSY_SEASON_CONFIG.surchargeRate * 100}%)`,
+      note: `(¥${baseFee.toLocaleString()} × ${settings.busy_season_rate * 100}%)`,
     });
     distanceTotal += busySeasonSurcharge;
   }
 
-  // 土日祝加算の追加
   if (isWeekendHoliday) {
     breakdown.push({
-      name: WEEKEND_HOLIDAY_CONFIG.label,
+      name: `土日祝加算（基本料金${Math.round(settings.weekend_holiday_rate * 100)}%増）`,
       amount: weekendHolidaySurcharge,
-      note: `(¥${baseFee.toLocaleString()} × ${WEEKEND_HOLIDAY_CONFIG.surchargeRate * 100}%)`,
+      note: `(¥${baseFee.toLocaleString()} × ${settings.weekend_holiday_rate * 100}%)`,
     });
     distanceTotal += weekendHolidaySurcharge;
   }
 
   // 累進課金の計算（31km以降）
+  const distanceRates = [
+    { min: 0, max: 30, rate: 0 },
+    { min: 30, max: 50, rate: 200 },
+    { min: 50, max: 100, rate: 170 },
+    { min: 100, max: 150, rate: 140 },
+    { min: 150, max: Infinity, rate: 120 },
+  ];
+
   let progressiveFee = 0;
-  for (const range of PRICING_CONFIG.distanceRates) {
+  for (const range of distanceRates) {
     if (distanceKm > range.min && range.rate > 0) {
       const applicableDistance = Math.min(distanceKm, range.max) - range.min;
       if (applicableDistance > 0) {
@@ -147,7 +181,6 @@ function calculateDistanceFee(distanceKm: number, dates: MovingDates): {
     }
   }
 
-  // 100円未満切り捨て
   progressiveFee = Math.floor(progressiveFee / 100) * 100;
 
   if (progressiveFee > 0) {
@@ -173,11 +206,12 @@ function calculateFloorFees(options: EstimateOptions): {
   totalFee: number;
   breakdown: FeeBreakdownItem[]
 } {
+  const settings = getSettings();
   const breakdown: FeeBreakdownItem[] = [];
   let totalFee = 0;
-  const { freeUntilFloor, feePerFloor } = PRICING_CONFIG.floorFeeRule;
+  const freeUntilFloor = settings.free_floor_limit;
+  const feePerFloor = settings.floor_fee;
 
-  // 集荷先
   if (!options.hasElevatorPickup && options.floorPickup > freeUntilFloor) {
     const fee = (options.floorPickup - freeUntilFloor) * feePerFloor;
     breakdown.push({
@@ -188,7 +222,6 @@ function calculateFloorFees(options: EstimateOptions): {
     totalFee += fee;
   }
 
-  // お届け先
   if (!options.hasElevatorDelivery && options.floorDelivery > freeUntilFloor) {
     const fee = (options.floorDelivery - freeUntilFloor) * feePerFloor;
     breakdown.push({
@@ -209,17 +242,50 @@ function calculateOptionFees(options: EstimateOptions): {
   totalFee: number;
   breakdown: FeeBreakdownItem[]
 } {
+  const settings = getSettings();
   const breakdown: FeeBreakdownItem[] = [];
   let totalFee = 0;
 
-  for (const optionConfig of PRICING_CONFIG.optionFees) {
-    if (optionConfig.condition?.(options)) {
-      breakdown.push({
-        name: optionConfig.label,
-        amount: optionConfig.fee,
-      });
-      totalFee += optionConfig.fee;
-    }
+  if (options.needsPacking) {
+    breakdown.push({
+      name: '梱包サービス',
+      amount: settings.packing_fee,
+    });
+    totalFee += settings.packing_fee;
+  }
+
+  return { totalFee, breakdown };
+}
+
+/**
+ * 時間指定料金を計算
+ */
+function calculateTimeSlotFees(dates: MovingDates): {
+  totalFee: number;
+  breakdown: FeeBreakdownItem[]
+} {
+  const settings = getSettings();
+  const breakdown: FeeBreakdownItem[] = [];
+  let totalFee = 0;
+
+  // 集荷の時間指定
+  if (dates.pickupTimeSlot && dates.pickupTimeSlot !== 'anytime') {
+    const timeLabel = dates.pickupTimeSlot === 'morning' ? '午前' : '午後';
+    breakdown.push({
+      name: `集荷 時間指定（${timeLabel}）`,
+      amount: settings.time_slot_fee,
+    });
+    totalFee += settings.time_slot_fee;
+  }
+
+  // 配達の時間指定
+  if (dates.deliveryTimeSlot && dates.deliveryTimeSlot !== 'anytime') {
+    const timeLabel = dates.deliveryTimeSlot === 'morning' ? '午前' : '午後';
+    breakdown.push({
+      name: `配達 時間指定（${timeLabel}）`,
+      amount: settings.time_slot_fee,
+    });
+    totalFee += settings.time_slot_fee;
   }
 
   return { totalFee, breakdown };
@@ -235,14 +301,11 @@ function processHighwayFee(distance: DistanceResult): {
 } {
   const { isInterPrefecture, highwayFee } = distance;
 
-  // 県内移動の場合は高速料金なし
   if (!isInterPrefecture && HIGHWAY_FEE_CONFIG.onlyInterPrefecture) {
     return { fee: 0, breakdown: null };
   }
 
-  // 高速料金が取得できた場合
   if (highwayFee !== null && highwayFee > 0) {
-    // 100円未満切り捨て
     const roundedHighwayFee = Math.floor(highwayFee / 100) * 100;
 
     return {
@@ -255,7 +318,6 @@ function processHighwayFee(distance: DistanceResult): {
     };
   }
 
-  // 高速料金が取得できなかった場合
   if (HIGHWAY_FEE_CONFIG.treatUnavailableAsZero) {
     return {
       fee: 0,
@@ -276,39 +338,33 @@ function processHighwayFee(distance: DistanceResult): {
 }
 
 /**
- * 日本の祝日を取得（簡易版：主要な祝日のみ）
+ * 日本の祝日を取得（簡易版）
  */
 function getJapaneseHolidays(year: number): Date[] {
   const holidays: Date[] = [];
 
-  // 固定祝日
-  holidays.push(new Date(year, 0, 1));   // 元日
-  holidays.push(new Date(year, 1, 11));  // 建国記念の日
-  holidays.push(new Date(year, 1, 23));  // 天皇誕生日
-  holidays.push(new Date(year, 3, 29));  // 昭和の日
-  holidays.push(new Date(year, 4, 3));   // 憲法記念日
-  holidays.push(new Date(year, 4, 4));   // みどりの日
-  holidays.push(new Date(year, 4, 5));   // こどもの日
-  holidays.push(new Date(year, 7, 11));  // 山の日
-  holidays.push(new Date(year, 10, 3));  // 文化の日
-  holidays.push(new Date(year, 10, 23)); // 勤労感謝の日
+  holidays.push(new Date(year, 0, 1));
+  holidays.push(new Date(year, 1, 11));
+  holidays.push(new Date(year, 1, 23));
+  holidays.push(new Date(year, 3, 29));
+  holidays.push(new Date(year, 4, 3));
+  holidays.push(new Date(year, 4, 4));
+  holidays.push(new Date(year, 4, 5));
+  holidays.push(new Date(year, 7, 11));
+  holidays.push(new Date(year, 10, 3));
+  holidays.push(new Date(year, 10, 23));
 
-  // ハッピーマンデー（第2月曜など）
-  holidays.push(getNthWeekday(year, 0, 1, 2));  // 成人の日（1月第2月曜）
-  holidays.push(getNthWeekday(year, 6, 1, 3));  // 海の日（7月第3月曜）
-  holidays.push(getNthWeekday(year, 8, 1, 3));  // 敬老の日（9月第3月曜）
-  holidays.push(getNthWeekday(year, 9, 1, 2));  // スポーツの日（10月第2月曜）
+  holidays.push(getNthWeekday(year, 0, 1, 2));
+  holidays.push(getNthWeekday(year, 6, 1, 3));
+  holidays.push(getNthWeekday(year, 8, 1, 3));
+  holidays.push(getNthWeekday(year, 9, 1, 2));
 
-  // 春分の日・秋分の日（概算）
-  holidays.push(new Date(year, 2, 20));  // 春分の日（概算）
-  holidays.push(new Date(year, 8, 23));  // 秋分の日（概算）
+  holidays.push(new Date(year, 2, 20));
+  holidays.push(new Date(year, 8, 23));
 
   return holidays;
 }
 
-/**
- * 第N週の特定曜日を取得
- */
 function getNthWeekday(year: number, month: number, weekday: number, n: number): Date {
   const firstDay = new Date(year, month, 1);
   const firstWeekday = firstDay.getDay();
@@ -325,12 +381,10 @@ export function isWeekendOrHoliday(date: string | Date): boolean {
   const targetDate = typeof date === 'string' ? new Date(date) : date;
   const dayOfWeek = targetDate.getDay();
 
-  // 土曜(6)または日曜(0)
   if (dayOfWeek === 0 || dayOfWeek === 6) {
     return true;
   }
 
-  // 祝日チェック
   const year = targetDate.getFullYear();
   const holidays = getJapaneseHolidays(year);
 
@@ -347,18 +401,19 @@ export function isWeekendOrHoliday(date: string | Date): boolean {
 export function isBusySeason(date: string | Date): boolean {
   if (!date) return false;
 
+  const settings = getSettings();
   const targetDate = typeof date === 'string' ? new Date(date) : date;
   const year = targetDate.getFullYear();
   const month = targetDate.getMonth();
   const day = targetDate.getDate();
 
-  // 時刻を 00:00:00 にリセットした比較用の日付オブジェクトを作成
   const moveDate = new Date(year, month, day, 0, 0, 0, 0);
 
-  // 3/1 00:00:00
-  const start = new Date(year, 2, 1, 0, 0, 0, 0);
-  // 4/10 23:59:59 (日付比較なので 4/10 00:00:00 でも可だが、仕様に合わせる)
-  const end = new Date(year, 3, 10, 0, 0, 0, 0);
+  const [startMonth, startDay] = settings.busy_season_start.split('-').map(Number);
+  const [endMonth, endDay] = settings.busy_season_end.split('-').map(Number);
+
+  const start = new Date(year, startMonth - 1, startDay, 0, 0, 0, 0);
+  const end = new Date(year, endMonth - 1, endDay, 0, 0, 0, 0);
 
   return moveDate >= start && moveDate <= end;
 }
@@ -372,11 +427,9 @@ export function calculateStorageDays(dates: MovingDates): number {
   const pickup = new Date(dates.pickupDate);
   const delivery = new Date(dates.deliveryDate);
 
-  // 日数差を計算（同日は0日）
   const diffTime = delivery.getTime() - pickup.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  // 同日配送は積み置きなし
   return Math.max(0, diffDays);
 }
 
@@ -388,20 +441,21 @@ function calculateStorageFee(dates: MovingDates): {
   breakdown: FeeBreakdownItem | null;
   days: number
 } {
+  const settings = getSettings();
   const days = calculateStorageDays(dates);
 
   if (days <= 0) {
     return { fee: 0, breakdown: null, days: 0 };
   }
 
-  const fee = days * STORAGE_FEE_CONFIG.perDayFee;
+  const fee = days * settings.storage_fee_per_day;
 
   return {
     fee,
     breakdown: {
-      name: STORAGE_FEE_CONFIG.label,
+      name: '積み置き料金',
       amount: fee,
-      note: `${days}日 × ${formatCurrency(STORAGE_FEE_CONFIG.perDayFee)}/日`,
+      note: `${days}日 × ${formatCurrency(settings.storage_fee_per_day)}/日`,
     },
     days,
   };
@@ -409,12 +463,6 @@ function calculateStorageFee(dates: MovingDates): {
 
 /**
  * 見積もりを計算
- * 
- * @param distance - 距離計算結果
- * @param options - 見積もりオプション
- * @param dates - 引越し日程（オプション）
- * @param plan - プラン種別（オプション）: 'helper' | 'full'
- * @returns 見積もり結果
  */
 export function calculateEstimate(
   distance: DistanceResult,
@@ -422,59 +470,58 @@ export function calculateEstimate(
   dates?: MovingDates,
   plan: 'helper' | 'full' = 'helper'
 ): EstimateResult {
+  const settings = getSettings();
   const breakdown: FeeBreakdownItem[] = [];
 
-  // デフォルトの日付（今日）
   const movingDates: MovingDates = dates || {
     pickupDate: new Date().toISOString().split('T')[0],
     deliveryDate: new Date().toISOString().split('T')[0],
   };
 
-  // 1. プラン別の距離料金計算
   const distanceFeeResult = plan === 'full'
     ? calculateOmakasePlanFee(distance.distanceKm, movingDates)
     : calculateDistanceFee(distance.distanceKm, movingDates);
   breakdown.push(...distanceFeeResult.breakdown);
 
-  // 2. 階数料金
   const floorFeeResult = calculateFloorFees(options);
   breakdown.push(...floorFeeResult.breakdown);
 
-  // 3. オプション料金（梱包など）
   const optionFeeResult = calculateOptionFees(options);
   breakdown.push(...optionFeeResult.breakdown);
 
-  // 4. 高速料金
+  // 時間指定料金を追加
+  const timeSlotFeeResult = calculateTimeSlotFees(movingDates);
+  breakdown.push(...timeSlotFeeResult.breakdown);
+
   const highwayFeeResult = processHighwayFee(distance);
   if (highwayFeeResult.breakdown) {
     breakdown.push(highwayFeeResult.breakdown);
   }
 
-  // 5. 積み置き料金
   const storageFeeResult = calculateStorageFee(movingDates);
   if (storageFeeResult.breakdown) {
     breakdown.push(storageFeeResult.breakdown);
   }
 
-  // 合計計算
   const totalFee =
     distanceFeeResult.fee +
     floorFeeResult.totalFee +
     optionFeeResult.totalFee +
+    timeSlotFeeResult.totalFee +
     highwayFeeResult.fee +
     storageFeeResult.fee;
 
-  // 土日祝判定
   const isWeekendHoliday = isWeekendOrHoliday(movingDates.pickupDate) || isWeekendOrHoliday(movingDates.deliveryDate);
+  const baseFeeForCalc = plan === 'full' ? settings.omakase_base_fee : settings.base_fee;
 
   return {
     distanceKm: distance.distanceKm,
     baseFee: distanceFeeResult.baseFee,
-    optionFee: optionFeeResult.totalFee + floorFeeResult.totalFee,
+    optionFee: optionFeeResult.totalFee + floorFeeResult.totalFee + timeSlotFeeResult.totalFee,
     highwayFee: highwayFeeResult.fee,
     storageFee: storageFeeResult.fee,
-    busySeasonFee: (isBusySeason(movingDates.pickupDate) || isBusySeason(movingDates.deliveryDate)) ? Math.round(PRICING_CONFIG.baseFee * BUSY_SEASON_CONFIG.surchargeRate) : 0,
-    weekendHolidayFee: isWeekendHoliday ? Math.round(PRICING_CONFIG.baseFee * WEEKEND_HOLIDAY_CONFIG.surchargeRate) : 0,
+    busySeasonFee: (isBusySeason(movingDates.pickupDate) || isBusySeason(movingDates.deliveryDate)) ? Math.round(baseFeeForCalc * settings.busy_season_rate) : 0,
+    weekendHolidayFee: isWeekendHoliday ? Math.round(baseFeeForCalc * settings.weekend_holiday_rate) : 0,
     totalFee,
     breakdown,
     highwayFeeNote: highwayFeeResult.note,
