@@ -146,6 +146,33 @@ function calculateFloorFees(options: EstimateOptions): {
 /**
  * オプション料金を計算
  */
+function calculateOptionFees(options: EstimateOptions): {
+  totalFee: number;
+  breakdown: FeeBreakdownItem[];
+} {
+  const settings = getSettings();
+  const breakdown: FeeBreakdownItem[] = [];
+  let totalFee = 0;
+
+  // 梱包サービス
+  if (options.needsPacking) {
+    const fee = settings.packing_fee || 0;
+    breakdown.push({
+      name: '梱包サービス',
+      amount: fee,
+    });
+    totalFee += fee;
+  }
+
+  // 今後、ExtendedOptions の他の項目（ピアノ搬送など）に応じた
+  // オプション料金をここに追加していく
+
+  return { totalFee, breakdown };
+}
+
+/**
+ * 時間指定料金を計算
+ */
 function calculateTimeSlotFees(dates: MovingDates): {
   totalFee: number;
   breakdown: FeeBreakdownItem[]
