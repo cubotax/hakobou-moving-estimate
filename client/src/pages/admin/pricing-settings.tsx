@@ -222,7 +222,7 @@ export default function PricingSettingsPage() {
             <h1 className="text-2xl font-bold mb-6">料金設定</h1>
 
             <div className="bg-white rounded-lg shadow p-6 mb-6">
-                <h2 className="text-lg font-semibold mb-4 border-b pb-2">ヘルパープラン設定</h2>
+                <h2 className="text-lg font-semibold mb-4 border-b pb-2">基本設定</h2>
 
                 <Field
                     label="基本料金（30kmまで）"
