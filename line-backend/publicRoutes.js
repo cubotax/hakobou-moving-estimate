@@ -4,7 +4,7 @@
  */
 
 import express from 'express';
-import { validateCoupon } from './adminDb.js';
+import { validateCoupon, getPricingSettings } from './adminDb.js';
 
 const router = express.Router();
 
@@ -40,6 +40,24 @@ router.post('/validate', async (req, res) => {
         res.status(500).json({
             valid: false,
             error: 'クーポンの検証中にエラーが発生しました'
+        });
+    }
+});
+
+/**
+ * 料金設定取得（公開API）
+ * GET /api/pricing
+ * Response: { success: true, settings: { base_fee: "19800", ... } }
+ */
+router.get('/pricing', async (req, res) => {
+    try {
+        const settings = await getPricingSettings();
+        res.json({ success: true, settings });
+    } catch (err) {
+        console.error('Error fetching pricing settings:', err);
+        res.status(500).json({
+            success: false,
+            error: '料金設定の取得に失敗しました'
         });
     }
 });
