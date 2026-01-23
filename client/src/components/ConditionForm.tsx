@@ -147,7 +147,10 @@ export function ConditionForm() {
       const dates: MovingDates | undefined = step1Data?.dates ? {
         pickupDate: step1Data.dates.pickupDate,
         deliveryDate: step1Data.dates.deliveryDate,
+        pickupTimeSlot: step1Data.dates.pickupTimeSlot,
+        deliveryTimeSlot: step1Data.dates.deliveryTimeSlot,
       } : undefined;
+
 
       const result = calculateEstimate(distanceData, options, dates, data.plan);
 
