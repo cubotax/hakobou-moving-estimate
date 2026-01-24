@@ -927,4 +927,244 @@ router.get('/stats/monthly', authMiddleware, async (req, res) => {
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
+
+// ========================================
+// 提案（再見積もり）関連API
+// ========================================
+
+// 提案一覧を取得
+router.get('/estimates/:id/proposals', authenticateAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { data, error } = await supabase
+            .from('estimate_proposals')
+            .select('*')
+            .eq('estimate_id', id)
+            .order('proposal_number', { ascending: true });
+
+        if (error) throw error;
+        res.json({ success: true, proposals: data || [] });
+    } catch (err) {
+        console.error('Error fetching proposals:', err);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
+// 新規提案を作成
+router.post('/estimates/:id/proposals', authenticateAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const proposalData = req.body;
+
+        // 現在の提案数を取得
+        const { data: existing } = await supabase
+            .from('estimate_proposals')
+            .select('proposal_number')
+            .eq('estimate_id', id)
+            .order('proposal_number', { ascending: false })
+            .limit(1);
+
+        const nextNumber = existing && existing.length > 0 ? existing[0].proposal_number + 1 : 1;
+
+        // 提案を作成
+        const { data, error } = await supabase
+            .from('estimate_proposals')
+            .insert({
+                id: `prop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                estimate_id: id,
+                proposal_number: nextNumber,
+                pickup_date: proposalData.pickupDate,
+                delivery_date: proposalData.deliveryDate,
+                pickup_time_slot: proposalData.pickupTimeSlot,
+                delivery_time_slot: proposalData.deliveryTimeSlot,
+                floor_pickup: proposalData.floorPickup,
+                has_elevator_pickup: proposalData.hasElevatorPickup,
+                floor_delivery: proposalData.floorDelivery,
+                has_elevator_delivery: proposalData.hasElevatorDelivery,
+                plan: proposalData.plan,
+                needs_packing: proposalData.needsPacking,
+                total_fee: proposalData.totalFee,
+                expressway_fee: proposalData.expresswayFee || 0,
+                message: proposalData.message || '',
+                status: 'pending',
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, proposal: data });
+    } catch (err) {
+        console.error('Error creating proposal:', err);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
+// 提案をLINEで送信
+router.post('/estimates/:id/proposals/:proposalId/send', authenticateAdmin, async (req, res) => {
+    try {
+        const { id, proposalId } = req.params;
+
+        // 見積もりと提案を取得
+        const { data: estimate } = await supabase
+            .from('estimates')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        const { data: proposal } = await supabase
+            .from('estimate_proposals')
+            .select('*')
+            .eq('id', proposalId)
+            .single();
+
+        if (!estimate || !proposal) {
+            return res.status(404).json({ success: false, error: 'Not found' });
+        }
+
+        if (!estimate.line_user_id) {
+            return res.status(400).json({ success: false, error: 'LINE未連携' });
+        }
+
+        // LINE Flex Messageを送信
+        const flexMessage = {
+            type: 'flex',
+            altText: '新しいお見積もりのご提案',
+            contents: {
+                type: 'bubble',
+                header: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'text',
+                            text: '📋 新しいお見積もり',
+                            weight: 'bold',
+                            size: 'lg',
+                            color: '#ffffff',
+                        },
+                    ],
+                    backgroundColor: '#FF6B35',
+                    paddingAll: 'lg',
+                },
+                body: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'text',
+                            text: `提案 #${proposal.proposal_number}`,
+                            weight: 'bold',
+                            size: 'md',
+                            margin: 'md',
+                        },
+                        {
+                            type: 'separator',
+                            margin: 'lg',
+                        },
+                        {
+                            type: 'box',
+                            layout: 'vertical',
+                            margin: 'lg',
+                            contents: [
+                                {
+                                    type: 'box',
+                                    layout: 'horizontal',
+                                    contents: [
+                                        { type: 'text', text: 'お見積もり金額', size: 'sm', color: '#555555', flex: 1 },
+                                        { type: 'text', text: `¥${proposal.total_fee.toLocaleString()}`, size: 'lg', weight: 'bold', color: '#FF6B35', flex: 1, align: 'end' },
+                                    ],
+                                },
+                                {
+                                    type: 'box',
+                                    layout: 'horizontal',
+                                    margin: 'md',
+                                    contents: [
+                                        { type: 'text', text: 'プラン', size: 'sm', color: '#555555', flex: 1 },
+                                        { type: 'text', text: proposal.plan === 'full' ? 'お任せプラン' : 'ヘルパープラン', size: 'sm', flex: 1, align: 'end' },
+                                    ],
+                                },
+                                {
+                                    type: 'box',
+                                    layout: 'horizontal',
+                                    margin: 'md',
+                                    contents: [
+                                        { type: 'text', text: '集荷日', size: 'sm', color: '#555555', flex: 1 },
+                                        { type: 'text', text: proposal.pickup_date || '-', size: 'sm', flex: 1, align: 'end' },
+                                    ],
+                                },
+                                {
+                                    type: 'box',
+                                    layout: 'horizontal',
+                                    margin: 'md',
+                                    contents: [
+                                        { type: 'text', text: 'お届け日', size: 'sm', color: '#555555', flex: 1 },
+                                        { type: 'text', text: proposal.delivery_date || '-', size: 'sm', flex: 1, align: 'end' },
+                                    ],
+                                },
+                            ],
+                        },
+                        proposal.message ? {
+                            type: 'box',
+                            layout: 'vertical',
+                            margin: 'lg',
+                            contents: [
+                                { type: 'text', text: 'メッセージ', size: 'sm', color: '#555555' },
+                                { type: 'text', text: proposal.message, size: 'sm', wrap: true, margin: 'sm' },
+                            ],
+                        } : null,
+                    ].filter(Boolean),
+                },
+                footer: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {
+                            type: 'button',
+                            style: 'primary',
+                            color: '#FF6B35',
+                            action: {
+                                type: 'postback',
+                                label: 'この内容で申し込む',
+                                data: `action=accept_proposal&proposalId=${proposalId}&estimateId=${id}`,
+                            },
+                        },
+                    ],
+                    paddingAll: 'lg',
+                },
+            },
+        };
+
+        // LINE API呼び出し
+        const lineResponse = await fetch('https://api.line.me/v2/bot/message/push', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
+            },
+            body: JSON.stringify({
+                to: estimate.line_user_id,
+                messages: [flexMessage],
+            }),
+        });
+
+        if (!lineResponse.ok) {
+            throw new Error('LINE送信エラー');
+        }
+
+        // 送信履歴を記録
+        await supabase.from('message_logs').insert({
+            id: `log_${Date.now()}`,
+            estimate_id: id,
+            message_type: 'proposal',
+            details: `提案 #${proposal.proposal_number} を送信`,
+            sent_at: new Date().toISOString(),
+        });
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error sending proposal:', err);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
 export default router;

@@ -619,3 +619,104 @@ export function useCoupons() {
         getCouponUsages,
     };
 }
+
+
+// 提案関連のフック
+export function useProposals() {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const getProposals = useCallback(async (estimateId: string) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authFetch(`${API_BASE_URL}/api/admin/estimates/${estimateId}/proposals`);
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to fetch proposals');
+            }
+
+            return data.proposals;
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'エラーが発生しました';
+            setError(message);
+            return [];
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const createProposal = useCallback(async (estimateId: string, proposalData: {
+        pickupDate?: string;
+        deliveryDate?: string;
+        pickupTimeSlot?: string;
+        deliveryTimeSlot?: string;
+        floorPickup?: number;
+        hasElevatorPickup?: boolean;
+        floorDelivery?: number;
+        hasElevatorDelivery?: boolean;
+        plan?: string;
+        needsPacking?: boolean;
+        totalFee: number;
+        expresswayFee?: number;
+        message?: string;
+    }) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authFetch(`${API_BASE_URL}/api/admin/estimates/${estimateId}/proposals`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(proposalData),
+            });
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to create proposal');
+            }
+
+            return data.proposal;
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'エラーが発生しました';
+            setError(message);
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const sendProposal = useCallback(async (estimateId: string, proposalId: string) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authFetch(`${API_BASE_URL}/api/admin/estimates/${estimateId}/proposals/${proposalId}/send`, {
+                method: 'POST',
+            });
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to send proposal');
+            }
+
+            return true;
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'エラーが発生しました';
+            setError(message);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return {
+        loading,
+        error,
+        getProposals,
+        createProposal,
+        sendProposal,
+    };
+}

@@ -148,7 +148,7 @@ function calculateBaseFee(dates: MovingDates, plan: 'helper' | 'full'): {
   // 繁忙期加算
   if (isBusy) {
     breakdown.push({
-      name: `繁忙期加算（${Math.round(settings.busy_season_rate * 100)}%）`,
+      name: '繁忙期加算料金',
       amount: busySeasonSurcharge,
     });
     totalFee += busySeasonSurcharge;
@@ -157,7 +157,7 @@ function calculateBaseFee(dates: MovingDates, plan: 'helper' | 'full'): {
   // 土日祝加算
   if (isWeekendHoliday) {
     breakdown.push({
-      name: `土日祝加算（${Math.round(settings.weekend_holiday_rate * 100)}%）`,
+      name: '土日祝加算料金',
       amount: weekendHolidaySurcharge,
     });
     totalFee += weekendHolidaySurcharge;
