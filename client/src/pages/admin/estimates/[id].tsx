@@ -662,6 +662,150 @@ function EstimateDetail() {
                         )}
                     </Section>
 
+                    {/* 顧客情報カルテ */}
+                    <Section title="顧客情報カルテ">
+                        <div className="space-y-6">
+                            {/* お客様情報 */}
+                            <div className="space-y-2">
+                                <h4 className="font-medium text-gray-700 border-b pb-1">【お客様情報】</h4>
+                                <div className="space-y-1 pl-2">
+                                    <InfoRow
+                                        label="お名前"
+                                        value={estimate.last_name && estimate.first_name
+                                            ? `${estimate.last_name} ${estimate.first_name}`
+                                            : null}
+                                    />
+                                    <InfoRow
+                                        label="ふりがな"
+                                        value={estimate.last_name_kana && estimate.first_name_kana
+                                            ? `${estimate.last_name_kana} ${estimate.first_name_kana}`
+                                            : null}
+                                    />
+                                    <div className="flex justify-between py-2">
+                                        <span className="text-gray-500">電話番号:</span>
+                                        {estimate.phone ? (
+                                            <a
+                                                href={`tel:${estimate.phone}`}
+                                                className="text-blue-600 hover:underline"
+                                            >
+                                                {estimate.phone}
+                                            </a>
+                                        ) : (
+                                            <span className="text-gray-400">未登録</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 集荷先情報 */}
+                            <div className="space-y-2">
+                                <h4 className="font-medium text-gray-700 border-b pb-1">【集荷先情報】</h4>
+                                <div className="space-y-1 pl-2">
+                                    <InfoRow
+                                        label="住所（市区町村まで）"
+                                        value={`${estimate.pickup_prefecture || ''}${estimate.pickup_city || ''}${estimate.pickup_town || ''}`}
+                                    />
+                                    <InfoRow
+                                        label="番地以降"
+                                        value={estimate.pickup_address_detail || null}
+                                    />
+                                    <InfoRow
+                                        label="建物名・部屋番号"
+                                        value={estimate.pickup_building || null}
+                                    />
+                                    <InfoRow
+                                        label="階数"
+                                        value={`${estimate.floor_pickup || 1}階`}
+                                    />
+                                    <InfoRow
+                                        label="エレベーター"
+                                        value={estimate.has_elevator_pickup ? 'あり' : 'なし'}
+                                    />
+                                    <InfoRow
+                                        label="希望日"
+                                        value={formatDate(estimate.pickup_date)}
+                                    />
+                                    <InfoRow
+                                        label="希望時間帯"
+                                        value={estimate.pickup_time_slot
+                                            ? (timeSlotLabels[estimate.pickup_time_slot] || estimate.pickup_time_slot)
+                                            : null}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 配達先情報 */}
+                            <div className="space-y-2">
+                                <h4 className="font-medium text-gray-700 border-b pb-1">【配達先情報】</h4>
+                                <div className="space-y-1 pl-2">
+                                    <InfoRow
+                                        label="住所（市区町村まで）"
+                                        value={`${estimate.delivery_prefecture || ''}${estimate.delivery_city || ''}${estimate.delivery_town || ''}`}
+                                    />
+                                    <InfoRow
+                                        label="番地以降"
+                                        value={estimate.delivery_address_detail || null}
+                                    />
+                                    <InfoRow
+                                        label="建物名・部屋番号"
+                                        value={estimate.delivery_building || null}
+                                    />
+                                    <InfoRow
+                                        label="階数"
+                                        value={`${estimate.floor_delivery || 1}階`}
+                                    />
+                                    <InfoRow
+                                        label="エレベーター"
+                                        value={estimate.has_elevator_delivery ? 'あり' : 'なし'}
+                                    />
+                                    <InfoRow
+                                        label="希望日"
+                                        value={formatDate(estimate.delivery_date)}
+                                    />
+                                    <InfoRow
+                                        label="希望時間帯"
+                                        value={estimate.delivery_time_slot
+                                            ? (timeSlotLabels[estimate.delivery_time_slot] || estimate.delivery_time_slot)
+                                            : null}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 見積条件 */}
+                            <div className="space-y-2">
+                                <h4 className="font-medium text-gray-700 border-b pb-1">【見積条件】</h4>
+                                <div className="space-y-1 pl-2">
+                                    <InfoRow
+                                        label="プラン"
+                                        value={planLabels[estimate.plan || ''] || '未選択'}
+                                    />
+                                    <InfoRow
+                                        label="梱包サービス"
+                                        value={estimate.needs_packing ? '希望する' : '希望しない'}
+                                    />
+                                    <InfoRow
+                                        label="距離"
+                                        value={estimate.distance_km ? `${estimate.distance_km} km` : '-'}
+                                    />
+                                    <InfoRow
+                                        label="見積金額"
+                                        value={formatFee(estimate.total_fee)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 備考 */}
+                            <div className="space-y-2">
+                                <h4 className="font-medium text-gray-700 border-b pb-1">【備考】</h4>
+                                <div className="pl-2">
+                                    <p className="text-gray-700 whitespace-pre-wrap">
+                                        {estimate.notes || <span className="text-gray-400">なし</span>}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </Section>
+
                     {/* ユーザーから送信された情報 */}
                     <Section title="ユーザーから送信された情報">
                         {userEvents.length === 0 ? (
@@ -1052,9 +1196,13 @@ function InfoRow({
     return (
         <div className="flex justify-between py-2">
             <span className="text-gray-500">{label}:</span>
-            <span className={`${mono ? 'font-mono' : ''} ${bold ? 'font-bold text-lg' : ''}`}>
-                {value || '-'}
-            </span>
+            {value ? (
+                <span className={`${mono ? 'font-mono' : ''} ${bold ? 'font-bold text-lg' : ''}`}>
+                    {value}
+                </span>
+            ) : (
+                <span className="text-gray-400">未登録</span>
+            )}
         </div>
     );
 }
