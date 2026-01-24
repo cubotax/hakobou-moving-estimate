@@ -314,11 +314,7 @@ function processHighwayFee(distance: DistanceResult): {
   if (HIGHWAY_FEE_CONFIG.treatUnavailableAsZero) {
     return {
       fee: 0,
-      breakdown: {
-        name: '高速道路料金',
-        amount: 0,
-        note: HIGHWAY_FEE_CONFIG.unavailableText,
-      },
+      breakdown: null,
       note: HIGHWAY_FEE_CONFIG.unavailableText,
     };
   }

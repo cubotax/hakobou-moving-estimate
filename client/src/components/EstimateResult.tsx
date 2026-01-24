@@ -439,15 +439,6 @@ export function EstimateResult() {
             </p>
           </div>
         )}
-
-        {!!estimateResult.highwayFeeNote && (
-          <div className="mt-4 p-4 bg-[oklch(0.95_0.05_95)] border-2 border-[oklch(0.8_0.18_60)] rounded-xl">
-            <p className="text-sm font-medium text-[oklch(0.5_0.1_60)] flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" />
-              高速道路料金: {estimateResult.highwayFeeNote}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* ナビゲーションボタン */}
