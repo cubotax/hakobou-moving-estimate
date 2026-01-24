@@ -269,6 +269,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(cors()); // CORS許可
 app.use(cookieParser()); // Cookie解析
+// 本番ドメインへのリダイレクト（SEO対策：重複コンテンツ防止）
+app.use((req, res, next) => {
+  const host = req.get('host');
+  if (host === 'hakobou-mitsumori.fly.dev') {
+    return res.redirect(301, `https://mitsumori.hakobou.com${req.originalUrl}`);
+  }
+  next();
+});
 
 const PORT = Number(process.env.PORT || 3000);
 

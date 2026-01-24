@@ -207,5 +207,5 @@ export const DISTANCE_PROVIDER_CONFIG = {
 export const API_CONFIG = {
   // 環境変数 VITE_API_URL があればそれを使い、なければ固定値（開発用/本番用を適切に切り替え）
   // 本番環境（Vercel）ではバックエンドは別ホスト（Fly.io）にあるため、完全なURLが必要
-  BASE_URL: import.meta.env.VITE_API_URL || 'https://hakobou-mitsumori.fly.dev',
+  BASE_URL: import.meta.env.VITE_API_URL || 'https://mitsumori.hakobou.com',
 };

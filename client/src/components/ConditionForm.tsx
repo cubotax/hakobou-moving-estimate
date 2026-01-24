@@ -7,6 +7,7 @@
  * - 親しみやすいチェックボックス
  */
 
+import { getBrowserId } from '@/lib/browserId';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocation } from 'wouter';
@@ -151,7 +152,6 @@ export function ConditionForm() {
         deliveryTimeSlot: step1Data.dates.deliveryTimeSlot,
       } : undefined;
 
-
       const result = calculateEstimate(distanceData, options, dates, data.plan);
 
       // トラック台数で料金を掛け算した結果を保存
@@ -173,6 +173,7 @@ export function ConditionForm() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            browserId: getBrowserId(),
             pickupAddress: step1Data.pickupAddress,
             deliveryAddress: step1Data.deliveryAddress,
             dates: step1Data.dates,

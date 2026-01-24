@@ -29,6 +29,7 @@ function getSettings(): PricingSettings {
   if (!currentSettings) {
     return {
       base_fee: 19800,
+      base_distance: 30,
       busy_season_rate: 0.3,
       busy_season_start: '03-01',
       busy_season_end: '04-10',
@@ -40,9 +41,80 @@ function getSettings(): PricingSettings {
       omakase_base_fee: 8000,
       omakase_additional_fee: 4000,
       time_slot_fee: 1000,
+      distance_rate_to_50: 220,
+      distance_rate_to_100: 170,
+      distance_rate_to_150: 140,
+      distance_rate_over_150: 120,
     };
   }
   return currentSettings;
+}
+
+/**
+ * 距離超過料金を計算
+ */
+function calculateDistanceFee(distanceKm: number): {
+  fee: number;
+  breakdown: FeeBreakdownItem | null;
+} {
+  const settings = getSettings();
+  const baseDistance = settings.base_distance || 30;
+
+  // 基本距離以内なら追加料金なし
+  if (distanceKm <= baseDistance) {
+    return { fee: 0, breakdown: null };
+  }
+
+  let totalFee = 0;
+  let currentDistance = baseDistance;
+  const details: string[] = [];
+
+  // 基本距離〜50kmまで
+  if (distanceKm > currentDistance && currentDistance < 50) {
+    const km = Math.min(distanceKm, 50) - currentDistance;
+    const fee = km * settings.distance_rate_to_50;
+    totalFee += fee;
+    details.push(`${currentDistance + 1}〜50km: ${km}km × ${settings.distance_rate_to_50}円`);
+    currentDistance = 50;
+  }
+
+  // 51km〜100kmまで
+  if (distanceKm > currentDistance && currentDistance < 100) {
+    const km = Math.min(distanceKm, 100) - currentDistance;
+    const fee = km * settings.distance_rate_to_100;
+    totalFee += fee;
+    details.push(`51〜100km: ${km}km × ${settings.distance_rate_to_100}円`);
+    currentDistance = 100;
+  }
+
+  // 101km〜150kmまで
+  if (distanceKm > currentDistance && currentDistance < 150) {
+    const km = Math.min(distanceKm, 150) - currentDistance;
+    const fee = km * settings.distance_rate_to_150;
+    totalFee += fee;
+    details.push(`101〜150km: ${km}km × ${settings.distance_rate_to_150}円`);
+    currentDistance = 150;
+  }
+
+  // 151km以上
+  if (distanceKm > currentDistance) {
+    const km = distanceKm - currentDistance;
+    const fee = km * settings.distance_rate_over_150;
+    totalFee += fee;
+    details.push(`151km〜: ${km}km × ${settings.distance_rate_over_150}円`);
+  }
+
+  // 100円単位で切り捨て
+  totalFee = Math.floor(totalFee / 100) * 100;
+
+  return {
+    fee: totalFee,
+    breakdown: {
+      name: '距離超過料金',
+      amount: totalFee,
+      note: `${Math.round(distanceKm)}km（${baseDistance}km超過分）`,
+    },
+  };
 }
 
 /**
@@ -55,6 +127,7 @@ function calculateBaseFee(dates: MovingDates, plan: 'helper' | 'full'): {
 } {
   const settings = getSettings();
   const baseFee = settings.base_fee;
+  const baseDistance = settings.base_distance || 30;
 
   const isBusy = isBusySeason(dates.pickupDate) || isBusySeason(dates.deliveryDate);
   const isWeekendHoliday = isWeekendOrHoliday(dates.pickupDate) || isWeekendOrHoliday(dates.deliveryDate);
@@ -69,7 +142,7 @@ function calculateBaseFee(dates: MovingDates, plan: 'helper' | 'full'): {
   breakdown.push({
     name: '基本料金',
     amount: baseFee,
-    note: '30kmまで',
+    note: `${baseDistance}kmまで`,
   });
 
   // 繁忙期加算
@@ -164,9 +237,6 @@ function calculateOptionFees(options: EstimateOptions): {
     totalFee += fee;
   }
 
-  // 今後、ExtendedOptions の他の項目（ピアノ搬送など）に応じた
-  // オプション料金をここに追加していく
-
   return { totalFee, breakdown };
 }
 
@@ -189,7 +259,6 @@ function calculateTimeSlotFees(dates: MovingDates): {
     let fee = 0;
 
     if (pickupSpecified && deliverySpecified) {
-      // 両方指定
       const pickupLabel = dates.pickupTimeSlot === 'morning' ? '午前' : '午後';
       const deliveryLabel = dates.deliveryTimeSlot === 'morning' ? '午前' : '午後';
       if (pickupLabel === deliveryLabel) {
@@ -199,11 +268,9 @@ function calculateTimeSlotFees(dates: MovingDates): {
       }
       fee = settings.time_slot_fee * 2;
     } else if (pickupSpecified) {
-      // 集荷のみ
       timeLabel = dates.pickupTimeSlot === 'morning' ? '午前' : '午後';
       fee = settings.time_slot_fee;
     } else if (deliverySpecified) {
-      // 配達のみ
       timeLabel = dates.deliveryTimeSlot === 'morning' ? '午前' : '午後';
       fee = settings.time_slot_fee;
     }
@@ -381,25 +448,31 @@ export function calculateEstimate(
   const baseFeeResult = calculateBaseFee(movingDates, plan);
   breakdown.push(...baseFeeResult.breakdown);
 
-  // 2. 階数料金
+  // 2. 距離超過料金（新規追加）
+  const distanceFeeResult = calculateDistanceFee(distance.distanceKm);
+  if (distanceFeeResult.breakdown) {
+    breakdown.push(distanceFeeResult.breakdown);
+  }
+
+  // 3. 階数料金
   const floorFeeResult = calculateFloorFees(options);
   breakdown.push(...floorFeeResult.breakdown);
 
-  // 3. オプション料金
+  // 4. オプション料金
   const optionFeeResult = calculateOptionFees(options);
   breakdown.push(...optionFeeResult.breakdown);
 
-  // 4. 時間指定料金
+  // 5. 時間指定料金
   const timeSlotFeeResult = calculateTimeSlotFees(movingDates);
   breakdown.push(...timeSlotFeeResult.breakdown);
 
-  // 5. 高速料金
+  // 6. 高速料金
   const highwayFeeResult = processHighwayFee(distance);
   if (highwayFeeResult.breakdown) {
     breakdown.push(highwayFeeResult.breakdown);
   }
 
-  // 6. 積み置き料金
+  // 7. 積み置き料金
   const storageFeeResult = calculateStorageFee(movingDates);
   if (storageFeeResult.breakdown) {
     breakdown.push(storageFeeResult.breakdown);
@@ -408,6 +481,7 @@ export function calculateEstimate(
   // 合計計算
   const totalFee =
     baseFeeResult.fee +
+    distanceFeeResult.fee +
     floorFeeResult.totalFee +
     optionFeeResult.totalFee +
     timeSlotFeeResult.totalFee +
@@ -419,7 +493,7 @@ export function calculateEstimate(
   return {
     distanceKm: distance.distanceKm,
     baseFee: baseFeeResult.baseFee,
-    optionFee: optionFeeResult.totalFee + floorFeeResult.totalFee + timeSlotFeeResult.totalFee,
+    optionFee: optionFeeResult.totalFee + floorFeeResult.totalFee + timeSlotFeeResult.totalFee + distanceFeeResult.fee,
     highwayFee: highwayFeeResult.fee,
     storageFee: storageFeeResult.fee,
     busySeasonFee: (isBusySeason(movingDates.pickupDate) || isBusySeason(movingDates.deliveryDate)) ? Math.round(settings.base_fee * settings.busy_season_rate) : 0,

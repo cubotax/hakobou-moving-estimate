@@ -18,6 +18,7 @@ export async function insertEstimate(estimate) {
     .from('estimates')
     .insert({
       id: estimate.id,
+      browser_id: estimate.browserId || null,
       pickup_prefecture: estimate.pickupAddress?.prefecture || '',
       pickup_city: estimate.pickupAddress?.city || '',
       pickup_town: estimate.pickupAddress?.town || '',
@@ -159,8 +160,6 @@ export async function updateEstimateToConsulting(estimateId) {
   return data;
 }
 
-export default supabase;
-
 /**
  * 見積もりにStripe Session IDを保存
  */
@@ -181,3 +180,5 @@ export async function updateEstimatePaymentSession(estimateId, sessionId) {
 
   return data;
 }
+
+export default supabase;

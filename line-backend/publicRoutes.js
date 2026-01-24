@@ -83,15 +83,6 @@ async function getDistanceFromNavitime(startCoord, goalCoord) {
 
     const data = await response.json();
 
-    // デバッグ用：レスポンス構造をログ出力
-    console.log('[NAVITIME] Response keys:', Object.keys(data));
-    if (data.items && data.items[0]) {
-        console.log('[NAVITIME] Route keys:', Object.keys(data.items[0]));
-        if (data.items[0].fares) {
-            console.log('[NAVITIME] Fares:', JSON.stringify(data.items[0].fares, null, 2));
-        }
-    }
-
     // ルート情報から距離を取得
     if (!data.items || data.items.length === 0) {
         throw new Error('ルートが見つかりません');
@@ -108,19 +99,24 @@ async function getDistanceFromNavitime(startCoord, goalCoord) {
     const durationSeconds = summary?.move?.time || 0;
     const durationMinutes = Math.round(durationSeconds / 60);
 
-    // 高速料金を取得
+    // 高速料金を取得（軽自動車ETC: unit_1064_1 または unit_1025_1）
     let highwayFee = null;
 
-    // fares配列から料金を取得
     if (route.fares && route.fares.length > 0) {
-        highwayFee = route.fares.reduce((sum, fare) => {
-            // 様々な形式に対応
-            const amount = fare.toll || fare.fare || fare.price || fare.amount || 0;
-            return sum + amount;
-        }, 0);
+        for (const fare of route.fares) {
+            // type="move" のエントリから料金を取得
+            if (fare.type === 'move' && fare.detail?.fare) {
+                const fareData = fare.detail.fare;
+                // 軽自動車ETC料金を優先（unit_1064_1 または unit_1025_1）
+                const amount = fareData.unit_1064_1 || fareData.unit_1025_1 || 0;
+                if (amount > 0) {
+                    highwayFee = (highwayFee || 0) + amount;
+                }
+            }
+        }
     }
 
-    // summaryにtoll情報がある場合
+    // summaryにtoll情報がある場合（フォールバック）
     if (highwayFee === null || highwayFee === 0) {
         if (summary?.move?.toll_road_distance > 0 && summary?.move?.fare) {
             highwayFee = summary.move.fare;

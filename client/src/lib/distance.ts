@@ -29,16 +29,26 @@ export interface DistanceProvider {
 export class NavitimeDistanceProvider implements DistanceProvider {
   async getDistance(origin: Address, destination: Address): Promise<DistanceResult> {
     try {
-      // 郵便番号を使ってバックエンドAPIを呼び出す
+      // デバッグログ
+      console.log('=== NAVITIME Distance Provider ===');
+      console.log('Origin:', origin);
+      console.log('Destination:', destination);
+      console.log('Origin postalCode:', origin?.postalCode);
+      console.log('Destination postalCode:', destination?.postalCode);
+
+      const requestBody = {
+        originPostalCode: origin?.postalCode || '',
+        destinationPostalCode: destination?.postalCode || '',
+      };
+
+      console.log('Request body:', requestBody);
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/distance`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          originPostalCode: origin.postalCode,
-          destinationPostalCode: destination.postalCode,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -68,17 +78,11 @@ export class NavitimeDistanceProvider implements DistanceProvider {
 // モックプロバイダ（開発/テスト用・フォールバック）
 // ============================================
 
-/**
- * モックの距離計算プロバイダ
- * APIが利用できない場合のフォールバック
- */
 export class MockDistanceProvider implements DistanceProvider {
   async getDistance(origin: Address, destination: Address): Promise<DistanceResult> {
-    // シミュレーション用の遅延
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // 同じ住所の場合は0kmを返す
-    if (origin.postalCode === destination.postalCode) {
+    if (origin?.postalCode === destination?.postalCode) {
       return {
         distanceKm: 0,
         highwayFee: null,
@@ -86,17 +90,11 @@ export class MockDistanceProvider implements DistanceProvider {
       };
     }
 
-    const isInterPrefecture = origin.prefecture !== destination.prefecture;
-
-    // 県外の場合は長距離、県内の場合は短距離をシミュレート
+    const isInterPrefecture = origin?.prefecture !== destination?.prefecture;
     const baseDistance = isInterPrefecture ? 300 : 50;
-    const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 - 1.2
+    const randomFactor = 0.8 + Math.random() * 0.4;
     const distanceKm = Math.round(baseDistance * randomFactor * 10) / 10;
-
-    // 県外の場合のみ高速料金をシミュレート
-    const highwayFee = isInterPrefecture
-      ? Math.round(distanceKm * 25) // 約25円/km
-      : null;
+    const highwayFee = isInterPrefecture ? Math.round(distanceKm * 25) : null;
 
     return {
       distanceKm,
@@ -112,32 +110,19 @@ export class MockDistanceProvider implements DistanceProvider {
 
 let currentProvider: DistanceProvider | null = null;
 
-/**
- * 距離計算プロバイダを取得
- * NAVITIME APIプロバイダを返す
- */
 export function getDistanceProvider(): DistanceProvider {
   if (currentProvider) {
     return currentProvider;
   }
-
-  // NAVITIME APIプロバイダを使用
   currentProvider = new NavitimeDistanceProvider();
   console.log('Using NAVITIME distance provider');
-
   return currentProvider;
 }
 
-/**
- * プロバイダを設定（テスト用）
- */
 export function setDistanceProvider(provider: DistanceProvider): void {
   currentProvider = provider;
 }
 
-/**
- * プロバイダをリセット
- */
 export function resetDistanceProvider(): void {
   currentProvider = null;
 }

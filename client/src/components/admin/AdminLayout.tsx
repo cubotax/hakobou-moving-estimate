@@ -5,7 +5,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
-import { Menu, X, FileText, Ticket, Settings, LogOut } from 'lucide-react';
+import { Menu, X, FileText, Ticket, Settings, LogOut, BarChart3 } from 'lucide-react';
 
 interface AdminLayoutProps {
     children: ReactNode;
@@ -23,9 +23,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     const navItems = [
         { href: '/admin', label: '見積もり一覧', icon: FileText },
+        { href: '/admin/stats', label: '統計', icon: BarChart3 },
         { href: '/admin/coupons', label: 'クーポン管理', icon: Ticket },
         { href: '/admin/pricing-settings', label: '料金設定', icon: Settings },
     ];
+
 
     const isActiveRoute = (href: string) => {
         if (href === '/admin') {

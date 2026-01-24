@@ -8,6 +8,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 
 interface PricingSettings {
     base_fee: string;
+    base_distance: string;
     busy_season_rate: string;
     busy_season_start_month: string;
     busy_season_start_day: string;
@@ -21,10 +22,15 @@ interface PricingSettings {
     time_slot_fee: string;
     omakase_base_fee: string;
     omakase_additional_fee: string;
+    distance_rate_to_50: string;
+    distance_rate_to_100: string;
+    distance_rate_to_150: string;
+    distance_rate_over_150: string;
 }
 
 const defaultSettings: PricingSettings = {
     base_fee: '19800',
+    base_distance: '30',
     busy_season_rate: '0.3',
     busy_season_start_month: '3',
     busy_season_start_day: '1',
@@ -38,20 +44,34 @@ const defaultSettings: PricingSettings = {
     time_slot_fee: '1000',
     omakase_base_fee: '8000',
     omakase_additional_fee: '4000',
+    distance_rate_to_50: '220',
+    distance_rate_to_100: '170',
+    distance_rate_to_150: '140',
+    distance_rate_over_150: '120',
 };
 
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
 const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-function Field({ label, id, value, onChange, type = 'number', prefix, suffix }: any) {
+function Field({ label, id, value, onChange, type = 'number', prefix, suffix, note, placeholder }: any) {
     return (
         <div className="mb-4">
             <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
             <div className="flex items-center gap-2">
                 {prefix && <span className="text-gray-500 shrink-0">{prefix}</span>}
-                <input type={type} id={id} value={value} onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()} min={type === 'number' ? '0' : undefined} className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right" />
+                <input
+                    type={type}
+                    id={id}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                    min={type === 'number' ? '0' : undefined}
+                    placeholder={placeholder}
+                    className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right placeholder:text-gray-400"
+                />
                 {suffix && <span className="text-gray-500 shrink-0">{suffix}</span>}
             </div>
+            {note && <p className="text-xs text-gray-500 mt-1 ml-1">{note}</p>}
         </div>
     );
 }
@@ -98,7 +118,14 @@ export default function PricingSettingsPage() {
                 if (data.success && data.settings) {
                     const startParts = (data.settings.busy_season_start || '03-01').split('-');
                     const endParts = (data.settings.busy_season_end || '04-10').split('-');
-                    setSettings({ ...defaultSettings, ...data.settings, busy_season_start_month: String(parseInt(startParts[0] || '3')), busy_season_start_day: String(parseInt(startParts[1] || '1')), busy_season_end_month: String(parseInt(endParts[0] || '4')), busy_season_end_day: String(parseInt(endParts[1] || '10')) });
+                    setSettings({
+                        ...defaultSettings,
+                        ...data.settings,
+                        busy_season_start_month: String(parseInt(startParts[0] || '3')),
+                        busy_season_start_day: String(parseInt(startParts[1] || '1')),
+                        busy_season_end_month: String(parseInt(endParts[0] || '4')),
+                        busy_season_end_day: String(parseInt(endParts[1] || '10'))
+                    });
                 }
             } catch (err) { console.error('Failed to fetch pricing settings:', err); }
             finally { setLoading(false); }
@@ -135,14 +162,48 @@ export default function PricingSettingsPage() {
                 {/* 基本設定 */}
                 <div className="bg-white rounded-lg shadow p-4 mb-4">
                     <h2 className="text-base font-semibold mb-3 border-b pb-2">基本設定</h2>
-                    <Field label="基本料金（30kmまで）" id="base_fee" value={settings.base_fee} onChange={(v: string) => handleChange('base_fee', v)} suffix="円" />
-                    <Field label="土日祝加算率" id="weekend_holiday_rate" value={rateToPercent(settings.weekend_holiday_rate)} onChange={(v: string) => handleChange('weekend_holiday_rate', percentToRate(v))} suffix="%" />
-                    <p className="text-xs text-gray-500 -mt-3 mb-4 ml-1">（基本料金 × {rateToPercent(settings.weekend_holiday_rate)}%）</p>
-                    <Field label="積み置き料金（1日あたり）" id="storage_fee_per_day" value={settings.storage_fee_per_day} onChange={(v: string) => handleChange('storage_fee_per_day', v)} suffix="円" />
-                    <Field label="梱包サービス料金" id="packing_fee" value={settings.packing_fee} onChange={(v: string) => handleChange('packing_fee', v)} suffix="円" />
-                    <Field label="階段作業料金（1階あたり）" id="floor_fee" value={settings.floor_fee} onChange={(v: string) => handleChange('floor_fee', v)} suffix="円" />
-                    <Field label="階段作業無料階数" id="free_floor_limit" value={settings.free_floor_limit} onChange={(v: string) => handleChange('free_floor_limit', v)} suffix="階まで無料" />
-                    <Field label="時間指定料金（午前・午後）" id="time_slot_fee" value={settings.time_slot_fee} onChange={(v: string) => handleChange('time_slot_fee', v)} suffix="円" />
+                    <Field label="基本料金" id="base_fee" value={settings.base_fee} onChange={(v: string) => handleChange('base_fee', v)} suffix="円" />
+                    <Field label="基本料金に含まれる距離" id="base_distance" value={settings.base_distance} onChange={(v: string) => handleChange('base_distance', v)} suffix="km" />
+                </div>
+
+                {/* 距離別設定 */}
+                <div className="bg-white rounded-lg shadow p-4 mb-4">
+                    <h2 className="text-base font-semibold mb-3 border-b pb-2">距離別設定</h2>
+                    {Number(settings.base_distance || 30) < 50 && (
+                        <Field
+                            label={`${settings.base_distance || 30}km〜50kmまで`}
+                            id="distance_rate_to_50"
+                            value={settings.distance_rate_to_50}
+                            onChange={(v: string) =>
+                                handleChange('distance_rate_to_50', v)}
+                            suffix="円/km"
+                            placeholder="220円"
+                        />
+                    )}
+                    <Field
+                        label="51km〜100kmまで"
+                        id="distance_rate_to_100"
+                        value={settings.distance_rate_to_100}
+                        onChange={(v: string) => handleChange('distance_rate_to_100', v)}
+                        suffix="円/km"
+                        placeholder="170円"
+                    />
+                    <Field
+                        label="101km〜150kmまで"
+                        id="distance_rate_to_150"
+                        value={settings.distance_rate_to_150}
+                        onChange={(v: string) => handleChange('distance_rate_to_150', v)}
+                        suffix="円/km"
+                        placeholder="140円"
+                    />
+                    <Field
+                        label="151km以上"
+                        id="distance_rate_over_150"
+                        value={settings.distance_rate_over_150}
+                        onChange={(v: string) => handleChange('distance_rate_over_150', v)}
+                        suffix="円/km"
+                        placeholder="120円"
+                    />
                 </div>
 
                 {/* お任せプラン設定 */}
@@ -157,8 +218,18 @@ export default function PricingSettingsPage() {
                     <h2 className="text-base font-semibold mb-3 border-b pb-2">繁忙期料金</h2>
                     <DateSelect label="繁忙期開始日" monthValue={settings.busy_season_start_month} dayValue={settings.busy_season_start_day} onMonthChange={(v: string) => handleChange('busy_season_start_month', v)} onDayChange={(v: string) => handleChange('busy_season_start_day', v)} />
                     <DateSelect label="繁忙期終了日" monthValue={settings.busy_season_end_month} dayValue={settings.busy_season_end_day} onMonthChange={(v: string) => handleChange('busy_season_end_month', v)} onDayChange={(v: string) => handleChange('busy_season_end_day', v)} />
-                    <Field label="繁忙期加算率" id="busy_season_rate" value={rateToPercent(settings.busy_season_rate)} onChange={(v: string) => handleChange('busy_season_rate', percentToRate(v))} suffix="%" />
-                    <p className="text-xs text-gray-500 -mt-3 mb-4 ml-1">（基本料金 × {rateToPercent(settings.busy_season_rate)}%）</p>
+                    <Field label="繁忙期加算率" id="busy_season_rate" value={rateToPercent(settings.busy_season_rate)} onChange={(v: string) => handleChange('busy_season_rate', percentToRate(v))} suffix="%" note={`（基本料金 × ${rateToPercent(settings.busy_season_rate)}%）`} />
+                </div>
+
+                {/* その他設定 */}
+                <div className="bg-white rounded-lg shadow p-4 mb-4">
+                    <h2 className="text-base font-semibold mb-3 border-b pb-2">その他設定</h2>
+                    <Field label="土日祝加算率" id="weekend_holiday_rate" value={rateToPercent(settings.weekend_holiday_rate)} onChange={(v: string) => handleChange('weekend_holiday_rate', percentToRate(v))} suffix="%" note={`（基本料金 × ${rateToPercent(settings.weekend_holiday_rate)}%）`} />
+                    <Field label="積み置き料金（1日あたり）" id="storage_fee_per_day" value={settings.storage_fee_per_day} onChange={(v: string) => handleChange('storage_fee_per_day', v)} suffix="円" />
+                    <Field label="梱包サービス料金" id="packing_fee" value={settings.packing_fee} onChange={(v: string) => handleChange('packing_fee', v)} suffix="円" />
+                    <Field label="階段作業料金（1階あたり）" id="floor_fee" value={settings.floor_fee} onChange={(v: string) => handleChange('floor_fee', v)} suffix="円" />
+                    <Field label="階段作業無料階数" id="free_floor_limit" value={settings.free_floor_limit} onChange={(v: string) => handleChange('free_floor_limit', v)} suffix="階まで無料" />
+                    <Field label="時間指定料金（午前・午後）" id="time_slot_fee" value={settings.time_slot_fee} onChange={(v: string) => handleChange('time_slot_fee', v)} suffix="円" />
                 </div>
 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800"><p>※ 設定変更は次回以降の新規見積もりに反映されます。</p></div>

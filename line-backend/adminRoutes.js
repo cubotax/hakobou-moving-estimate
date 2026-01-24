@@ -35,7 +35,9 @@ import {
     recordCouponUsage,
     getPricingSettings,
     updatePricingSettings,
+    getSupabase,
 } from './adminDb.js';
+
 
 const router = express.Router();
 
@@ -843,5 +845,86 @@ router.put('/pricing-settings', authMiddleware, async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 });
+// ============================================
+// 統計API
+// ============================================
 
+/**
+ * 月別統計を取得
+ * GET /api/admin/stats/monthly
+ */
+router.get('/stats/monthly', authMiddleware, async (req, res) => {
+    try {
+        const supabase = getSupabase();
+
+        // 過去12ヶ月のデータを取得
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+        twelveMonthsAgo.setDate(1);
+        twelveMonthsAgo.setHours(0, 0, 0, 0);
+
+        const { data: estimates, error } = await supabase
+            .from('estimates')
+            .select('id, created_at, line_user_id, browser_id, status')
+            .gte('created_at', twelveMonthsAgo.toISOString())
+            .order('created_at', { ascending: true });
+
+        if (error) {
+            console.error('Error fetching stats:', error);
+            return res.status(500).json({ success: false, error: 'Failed to fetch stats' });
+        }
+
+        // 月別に集計
+        const monthlyStats = {};
+
+        for (const estimate of estimates || []) {
+            const date = new Date(estimate.created_at);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+            if (!monthlyStats[monthKey]) {
+                monthlyStats[monthKey] = {
+                    month: monthKey,
+                    totalEstimates: 0,
+                    lineLinked: 0,
+                    applied: 0,
+                    uniqueBrowsers: new Set(),
+                    uniqueLineUsers: new Set(),
+                };
+            }
+
+            monthlyStats[monthKey].totalEstimates++;
+
+            // ブラウザIDでユニークユーザーをカウント
+            if (estimate.browser_id) {
+                monthlyStats[monthKey].uniqueBrowsers.add(estimate.browser_id);
+            }
+
+            // LINE連携ユーザーをカウント
+            if (estimate.line_user_id) {
+                monthlyStats[monthKey].lineLinked++;
+                monthlyStats[monthKey].uniqueLineUsers.add(estimate.line_user_id);
+            }
+
+            // 申込ステータスをカウント
+            if (['applied', 'consulting', 'confirmed', 'completed'].includes(estimate.status)) {
+                monthlyStats[monthKey].applied++;
+            }
+        }
+
+        // 配列に変換してソート（Setをカウントに変換）
+        const result = Object.values(monthlyStats).map(stat => ({
+            month: stat.month,
+            totalEstimates: stat.totalEstimates,
+            uniqueUsers: stat.uniqueBrowsers.size,
+            lineLinked: stat.lineLinked,
+            uniqueLineUsers: stat.uniqueLineUsers.size,
+            applied: stat.applied,
+        })).sort((a, b) => a.month.localeCompare(b.month));
+
+        res.json({ success: true, stats: result });
+    } catch (err) {
+        console.error('Error in monthly stats:', err);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
 export default router;

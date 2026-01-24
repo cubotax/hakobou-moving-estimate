@@ -360,19 +360,29 @@ export function EstimateResult() {
         </div>
 
         <div className="space-y-4">
-          {estimateResult.breakdown.map((item, index) => (
-            <div key={index} className="flex justify-between items-start py-2 border-b-2 border-dashed border-gray-200 last:border-0">
-              <div>
-                <p className="font-bold">{item.name}</p>
-                {!!item.note && (
-                  <p className="text-sm text-gray-500">{item.note}</p>
-                )}
+          {estimateResult.breakdown.map((item, index) => {
+            // 時間指定の場合、名前と補足を分離
+            const isTimeSlot = item.name.includes('時間指定');
+            const displayName = isTimeSlot ? '時間指定' : item.name;
+            const timeSlotNote = isTimeSlot ? '（午前・午後）' : null;
+
+            return (
+              <div key={index} className="flex justify-between items-start py-2 border-b-2 border-dashed border-gray-200 last:border-0">
+                <div>
+                  <p className="font-bold">{displayName}</p>
+                  {timeSlotNote && (
+                    <p className="text-sm text-gray-500">{timeSlotNote}</p>
+                  )}
+                  {!!item.note && (
+                    <p className="text-sm text-gray-500">{item.note}</p>
+                  )}
+                </div>
+                <span className="font-black text-lg whitespace-nowrap ml-4">
+                  {formatCurrency(item.amount)}
+                </span>
               </div>
-              <span className="font-black text-lg whitespace-nowrap ml-4">
-                {formatCurrency(item.amount)}
-              </span>
-            </div>
-          ))}
+            );
+          })}
 
           {estimateResult.breakdown.length === 0 && (
             <p className="text-gray-500 text-center py-4">

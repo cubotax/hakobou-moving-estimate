@@ -25,6 +25,9 @@ export const addressSchema = z.object({
     .string()
     .min(1, '町名を入力してください')
     .max(100, '町名が長すぎます'),
+  postalCode: z
+    .string()
+    .optional(),
 });
 
 // ============================================

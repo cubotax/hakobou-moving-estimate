@@ -1,0 +1,1 @@
+ALTER TABLE estimates ADD COLUMN IF NOT EXISTS browser_id VARCHAR(255);

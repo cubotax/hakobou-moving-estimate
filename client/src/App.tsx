@@ -22,6 +22,7 @@ import AdminCoupons from "./pages/admin/coupons/index";
 import AdminCouponDetail from "./pages/admin/coupons/[id]";
 import AdminCouponEdit from "./pages/admin/coupons/edit";
 import AdminPricingSettings from "./pages/admin/pricing-settings";
+import AdminStats from "./pages/admin/stats";
 
 /**
  * 引越し見積もりフォーム アプリケーション
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/admin/coupons/:id" component={AdminCouponDetail} />
       <Route path="/admin/coupons" component={AdminCoupons} />
       <Route path="/admin/pricing-settings" component={AdminPricingSettings} />
+      <Route path="/admin/stats" component={AdminStats} />
       <Route path="/admin" component={AdminDashboard} />
 
       <Route path="/404" component={NotFound} />
@@ -78,4 +80,3 @@ function App() {
 }
 
 export default App;
-

@@ -6,6 +6,7 @@ import { API_CONFIG } from './config';
 
 export interface PricingSettings {
     base_fee: number;
+    base_distance: number;
     busy_season_rate: number;
     busy_season_start: string;
     busy_season_end: string;
@@ -17,6 +18,11 @@ export interface PricingSettings {
     omakase_base_fee: number;
     omakase_additional_fee: number;
     time_slot_fee: number;
+    // 距離別単価
+    distance_rate_to_50: number;
+    distance_rate_to_100: number;
+    distance_rate_to_150: number;
+    distance_rate_over_150: number;
 }
 
 // キャッシュ（5分間有効）
@@ -43,6 +49,7 @@ export async function fetchPricingSettings(): Promise<PricingSettings> {
             // 文字列を数値に変換
             cachedSettings = {
                 base_fee: parseInt(data.settings.base_fee) || 19800,
+                base_distance: parseInt(data.settings.base_distance) || 30,
                 busy_season_rate: parseFloat(data.settings.busy_season_rate) || 0.3,
                 busy_season_start: data.settings.busy_season_start || '03-01',
                 busy_season_end: data.settings.busy_season_end || '04-10',
@@ -54,6 +61,11 @@ export async function fetchPricingSettings(): Promise<PricingSettings> {
                 omakase_base_fee: parseInt(data.settings.omakase_base_fee) || 8000,
                 omakase_additional_fee: parseInt(data.settings.omakase_additional_fee) || 4000,
                 time_slot_fee: parseInt(data.settings.time_slot_fee) || 1000,
+                // 距離別単価
+                distance_rate_to_50: parseInt(data.settings.distance_rate_to_50) || 220,
+                distance_rate_to_100: parseInt(data.settings.distance_rate_to_100) || 170,
+                distance_rate_to_150: parseInt(data.settings.distance_rate_to_150) || 140,
+                distance_rate_over_150: parseInt(data.settings.distance_rate_over_150) || 120,
             };
             cacheTimestamp = now;
             return cachedSettings;
@@ -65,6 +77,7 @@ export async function fetchPricingSettings(): Promise<PricingSettings> {
     // フォールバック（デフォルト値）
     return {
         base_fee: 19800,
+        base_distance: 30,
         busy_season_rate: 0.3,
         busy_season_start: '03-01',
         busy_season_end: '04-10',
@@ -76,6 +89,11 @@ export async function fetchPricingSettings(): Promise<PricingSettings> {
         omakase_base_fee: 8000,
         omakase_additional_fee: 4000,
         time_slot_fee: 1000,
+        // 距離別単価
+        distance_rate_to_50: 220,
+        distance_rate_to_100: 170,
+        distance_rate_to_150: 140,
+        distance_rate_over_150: 120,
     };
 }
 
