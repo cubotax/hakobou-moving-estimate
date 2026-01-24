@@ -35,6 +35,7 @@ export async function insertEstimate(estimate) {
       has_elevator_delivery: estimate.conditions?.hasElevatorDelivery || false,
       needs_packing: estimate.conditions?.needsPacking || false,
       plan: estimate.plan || '',
+      expressway_fee: estimate.expresswayFee || 0,
       pickup_time_slot: estimate.dates?.pickupTimeSlot || '',
       delivery_time_slot: estimate.dates?.deliveryTimeSlot || '',
       status: 'estimated',

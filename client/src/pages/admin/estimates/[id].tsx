@@ -801,6 +801,7 @@ function EstimateDetail() {
                                         label="距離"
                                         value={estimate.distance_km ? `${estimate.distance_km} km` : '-'}
                                     />
+                                    <InfoRow label="高速料金" value={estimate.expressway_fee ? `¥${estimate.expressway_fee.toLocaleString()}` : '¥0'} />
                                     <InfoRow
                                         label="見積金額"
                                         value={formatFee(estimate.total_fee)}

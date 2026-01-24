@@ -187,6 +187,7 @@ export function ConditionForm() {
               needsPacking: data.needsPacking,
             },
             plan: data.plan,
+            expresswayFee: result.highwayFee || 0,
             truckCount: data.truckCount,
           }),
         });
