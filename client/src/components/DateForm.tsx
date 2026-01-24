@@ -24,6 +24,7 @@ import { dateFormSchema, type DateFormData, type Step1FormData, type TimeSlot, d
 import { setStep1Data, getStep1Data } from '@/lib/store';
 import { isBusySeason, calculateStorageDays } from '@/lib/pricing';
 import { BUSY_SEASON_CONFIG, STORAGE_FEE_CONFIG } from '@/lib/config';
+import { fetchPricingSettings, PricingSettings } from '@/lib/pricingApi';
 
 // タイピングアニメーションコンポーネント
 const AnimatedText = ({ text }: { text: string }) => {
@@ -120,10 +121,16 @@ let didClearOnThisTabBoot = false;
 
 export function DateForm() {
   const [, navigate] = useLocation();
+  const [pricingSettings, setPricingSettings] = useState<PricingSettings | null>(null);
 
   // ページ読み込み時にトップにスクロール
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  // 料金設定を取得
+  useEffect(() => {
+    fetchPricingSettings().then(setPricingSettings);
   }, []);
 
   /**
@@ -195,6 +202,11 @@ export function DateForm() {
 
   // 積み置き日数計算
   const storageDays = calculateStorageDays({ pickupDate, deliveryDate });
+
+  // 繁忙期料率（DBから取得、なければconfig.tsのフォールバック）
+  const busySeasonRate = pricingSettings?.busy_season_rate ?? BUSY_SEASON_CONFIG.surchargeRate;
+  const busySeasonStart = pricingSettings?.busy_season_start ?? BUSY_SEASON_CONFIG.startDate;
+  const busySeasonEnd = pricingSettings?.busy_season_end ?? BUSY_SEASON_CONFIG.endDate;
 
   const onSubmit = (data: DateFormData) => {
     // Step1以降へ渡すための保存（これは残してOK）
@@ -358,8 +370,8 @@ export function DateForm() {
             <AlertCircle className="w-5 h-5 text-[oklch(0.6_0.2_20)] flex-shrink-0 mt-0.5" />
             <p className="text-sm text-[oklch(0.4_0.1_20)]">
               <span className="font-bold">繁忙期料金：</span>
-              {BUSY_SEASON_CONFIG.startDate.replace('-', '/')}〜{BUSY_SEASON_CONFIG.endDate.replace('-', '/')}は繁忙期のため、
-              基本料金が{Math.round(BUSY_SEASON_CONFIG.surchargeRate * 100)}%増しとなります。
+              {busySeasonStart.replace('-', '/')}〜{busySeasonEnd.replace('-', '/')}は繁忙期のため、
+              基本料金が{Math.round(busySeasonRate * 100)}%増しとなります。
             </p>
           </div>
         )}
