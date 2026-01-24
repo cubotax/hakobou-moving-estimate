@@ -411,10 +411,10 @@ function EstimateDetail() {
                         <div className="space-y-3">
                             <InfoRow label="見積ID" value={estimate.id} mono />
                             <InfoRow label="作成日時" value={formatDateTime(estimate.created_at)} />
-                            <div className="flex items-center justify-between py-2">
+                            <div className="grid grid-cols-[140px_1fr] gap-2 py-2 border-b border-gray-100">
                                 <span className="text-gray-500">ステータス:</span>
                                 <span
-                                    className="px-3 py-1 rounded-full text-sm font-medium"
+                                    className="px-3 py-1 rounded-full text-sm font-medium w-fit"
                                     style={{
                                         backgroundColor: statusBadgeStyles[estimate.status]?.bg || '#E5E7EB',
                                         color: statusBadgeStyles[estimate.status]?.text || '#374151',
@@ -665,6 +665,20 @@ function EstimateDetail() {
                     {/* 顧客情報カルテ */}
                     <Section title="顧客情報カルテ">
                         <div className="space-y-6">
+                            {/* 受信日時 */}
+                            <div className="bg-gray-50 p-3 rounded-lg space-y-1 text-sm">
+                                <div className="grid grid-cols-[140px_1fr] gap-2">
+                                    <span className="text-gray-500">概算見積受信:</span>
+                                    <span>{formatDateTime(estimate.created_at)}</span>
+                                </div>
+                                {estimate.applied_at && (
+                                    <div className="grid grid-cols-[140px_1fr] gap-2">
+                                        <span className="text-gray-500">申込情報受信:</span>
+                                        <span>{formatDateTime(estimate.applied_at)}</span>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* お客様情報 */}
                             <div className="space-y-2">
                                 <h4 className="font-medium text-gray-700 border-b pb-1">【お客様情報】</h4>
@@ -681,7 +695,7 @@ function EstimateDetail() {
                                             ? `${estimate.last_name_kana} ${estimate.first_name_kana}`
                                             : null}
                                     />
-                                    <div className="flex justify-between py-2">
+                                    <div className="grid grid-cols-[140px_1fr] gap-2 py-2 border-b border-gray-100">
                                         <span className="text-gray-500">電話番号:</span>
                                         {estimate.phone ? (
                                             <a
@@ -1194,7 +1208,7 @@ function InfoRow({
     bold?: boolean;
 }) {
     return (
-        <div className="flex justify-between py-2">
+        <div className="grid grid-cols-[140px_1fr] gap-2 py-2 border-b border-gray-100">
             <span className="text-gray-500">{label}:</span>
             {value ? (
                 <span className={`${mono ? 'font-mono' : ''} ${bold ? 'font-bold text-lg' : ''}`}>
@@ -1220,7 +1234,7 @@ function TwoColumnRow({
     const hasChange = adjusted !== null && adjusted !== original;
 
     return (
-        <div className="flex items-center justify-between py-2">
+        <div className="grid grid-cols-[140px_1fr] gap-2 py-2 border-b border-gray-100">
             <span className="text-gray-500">{label}:</span>
             <div className="flex items-center gap-2">
                 <span className={hasChange ? 'text-gray-400' : ''}>{original}</span>
@@ -1229,9 +1243,6 @@ function TwoColumnRow({
                         <ArrowRight size={14} className="text-gray-400" />
                         <span className="text-blue-600 font-medium">{adjusted}</span>
                     </>
-                )}
-                {adjusted === null && original && (
-                    <span className="text-gray-300 text-sm italic ml-2">（変更なし）</span>
                 )}
             </div>
         </div>
