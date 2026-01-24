@@ -68,7 +68,12 @@ export interface Estimate {
     delivery_time_slot?: string;
     notes?: string;
     line_user_id?: string;
+    last_name?: string;
+    first_name?: string;
+    last_name_kana?: string;
+    first_name_kana?: string;
     created_at: string;
+    consulted_at?: string;
     applied_at?: string;
     // 調整後の値
     adjusted_pickup_date?: string;

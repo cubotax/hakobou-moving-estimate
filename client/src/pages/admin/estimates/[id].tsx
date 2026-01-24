@@ -687,6 +687,141 @@ function EstimateDetail() {
                             </div>
                         )}
                     </Section>
+
+                    {/* 顧客情報カルテ */}
+                    <Section title="顧客情報カルテ">
+                        <div className="space-y-6">
+                            {/* お客様情報 */}
+                            <ChartCard title="お客様情報" source="申込フォーム">
+                                <ChartRow
+                                    label="お名前"
+                                    value={
+                                        (estimate.last_name || estimate.first_name)
+                                            ? `${estimate.last_name || ''} ${estimate.first_name || ''}`
+                                            : null
+                                    }
+                                />
+                                <ChartRow
+                                    label="ふりがな"
+                                    value={
+                                        (estimate.last_name_kana || estimate.first_name_kana)
+                                            ? `${estimate.last_name_kana || ''} ${estimate.first_name_kana || ''}`
+                                            : null
+                                    }
+                                />
+                                <ChartRow
+                                    label="電話番号"
+                                    value={estimate.phone}
+                                    isPhone
+                                />
+                            </ChartCard>
+
+                            {/* 集荷先情報 */}
+                            <ChartCard title="集荷先情報">
+                                <ChartRow
+                                    label="住所（市区町村まで）"
+                                    value={`${estimate.pickup_prefecture}${estimate.pickup_city}${estimate.pickup_town}`}
+                                    source="概算見積"
+                                />
+                                <ChartRow
+                                    label="番地以降"
+                                    value={estimate.pickup_address_detail}
+                                    source="申込フォーム"
+                                />
+                                <ChartRow
+                                    label="建物名・部屋番号"
+                                    value={estimate.pickup_building}
+                                    source="申込フォーム"
+                                />
+                                <ChartRow
+                                    label="階数"
+                                    value={`${estimate.floor_pickup}階`}
+                                    source="概算見積"
+                                />
+                                <ChartRow
+                                    label="エレベーター"
+                                    value={estimate.has_elevator_pickup ? 'あり' : 'なし'}
+                                    source="概算見積"
+                                />
+                                <ChartRow
+                                    label="希望日"
+                                    value={formatDate(estimate.pickup_date)}
+                                    source="概算見積"
+                                />
+                                <ChartRow
+                                    label="希望時間帯"
+                                    value={timeSlotLabels[estimate.pickup_time_slot || ''] || estimate.pickup_time_slot}
+                                    source="概算見積"
+                                />
+                            </ChartCard>
+
+                            {/* 配達先情報 */}
+                            <ChartCard title="配達先情報">
+                                <ChartRow
+                                    label="住所（市区町村まで）"
+                                    value={`${estimate.delivery_prefecture}${estimate.delivery_city}${estimate.delivery_town}`}
+                                    source="概算見積"
+                                />
+                                <ChartRow
+                                    label="番地以降"
+                                    value={estimate.delivery_address_detail}
+                                    source="申込フォーム"
+                                />
+                                <ChartRow
+                                    label="建物名・部屋番号"
+                                    value={estimate.delivery_building}
+                                    source="申込フォーム"
+                                />
+                                <ChartRow
+                                    label="階数"
+                                    value={`${estimate.floor_delivery}階`}
+                                    source="概算見積"
+                                />
+                                <ChartRow
+                                    label="エレベーター"
+                                    value={estimate.has_elevator_delivery ? 'あり' : 'なし'}
+                                    source="概算見積"
+                                />
+                                <ChartRow
+                                    label="希望日"
+                                    value={formatDate(estimate.delivery_date)}
+                                    source="概算見積"
+                                />
+                                <ChartRow
+                                    label="希望時間帯"
+                                    value={timeSlotLabels[estimate.delivery_time_slot || ''] || estimate.delivery_time_slot}
+                                    source="概算見積"
+                                />
+                            </ChartCard>
+
+                            {/* 見積条件 */}
+                            <ChartCard title="見積条件">
+                                <ChartRow
+                                    label="プラン"
+                                    value={planLabels[estimate.plan || ''] || '未選択'}
+                                />
+                                <ChartRow
+                                    label="梱包サービス"
+                                    value={estimate.needs_packing ? '希望する' : '希望しない'}
+                                />
+                                <ChartRow
+                                    label="距離"
+                                    value={`${estimate.distance_km} km`}
+                                />
+                                <ChartRow
+                                    label="見積金額"
+                                    value={formatFee(estimate.total_fee)}
+                                />
+                            </ChartCard>
+
+                            {/* 備考 */}
+                            <ChartCard title="備考" source="申込フォーム">
+                                <p className="text-gray-700 whitespace-pre-wrap text-sm">
+                                    {estimate.notes || 'なし'}
+                                </p>
+                            </ChartCard>
+                        </div>
+                    </Section>
                 </div>
 
                 {/* 金額編集モーダル */}
@@ -1084,6 +1219,75 @@ function TwoColumnRow({
                 )}
                 {adjusted === null && original && (
                     <span className="text-gray-300 text-sm italic ml-2">（変更なし）</span>
+                )}
+            </div>
+        </div>
+    );
+}
+
+// カルテ用カードコンポーネント
+function ChartCard({
+    title,
+    children,
+    source
+}: {
+    title: string;
+    children: React.ReactNode;
+    source?: string;
+}) {
+    return (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                <span className="font-bold text-gray-700 text-sm">【{title}】</span>
+                {source && (
+                    <span className="text-xs text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-200">
+                        {source}で取得
+                    </span>
+                )}
+            </div>
+            <div className="p-4 bg-white">
+                {children}
+            </div>
+        </div>
+    );
+}
+
+// カルテ用行コンポーネント
+function ChartRow({
+    label,
+    value,
+    source,
+    isPhone = false
+}: {
+    label: string;
+    value: string | null | undefined;
+    source?: string;
+    isPhone?: boolean;
+}) {
+    const isRegistered = value !== null && value !== undefined && value !== '';
+
+    return (
+        <div className="flex flex-col sm:flex-row sm:items-center border-b border-gray-100 last:border-0 py-2">
+            <div className="w-full sm:w-1/3 text-sm text-gray-500 mb-1 sm:mb-0">
+                {label}
+            </div>
+            <div className="w-full sm:w-2/3 flex justify-between items-center">
+                {isRegistered ? (
+                    isPhone ? (
+                        <a href={`tel:${value}`} className="text-blue-600 hover:underline font-medium">
+                            {value}
+                        </a>
+                    ) : (
+                        <span className="text-gray-900 font-medium">{value}</span>
+                    )
+                ) : (
+                    <span className="text-gray-300 text-sm">未登録</span>
+                )}
+
+                {source && (
+                    <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">
+                        {source}
+                    </span>
                 )}
             </div>
         </div>
