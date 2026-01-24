@@ -47,7 +47,7 @@ function formatCurrency(amount: number): string {
 function getPlanLabel(plan?: string): string {
     if (!plan) return '未選択';
     if (plan === 'helper') return 'ヘルパープラン';
-    if (plan === 'omakase') return 'お任せプラン';
+    if (plan === 'full') return 'お任せプラン';
     return plan;
 }
 

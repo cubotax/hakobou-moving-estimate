@@ -67,7 +67,7 @@ const timeSlotLabels: Record<string, string> = {
 // プランラベル
 const planLabels: Record<string, string> = {
     helper: 'ヘルパープラン',
-    omakase: 'お任せプラン',
+    full: 'お任せプラン',
 };
 
 // 日付フォーマット
@@ -944,7 +944,7 @@ function EstimateDetail() {
                                 >
                                     <option value="">未選択</option>
                                     <option value="helper">ヘルパープラン</option>
-                                    <option value="omakase">お任せプラン</option>
+                                    <option value="full">お任せプラン</option>
                                 </select>
                             </div>
                             <div>
