@@ -207,7 +207,8 @@ router.put('/estimates/:id/fee', authMiddleware, async (req, res) => {
         }
 
         const estimate = await updateEstimateFee(req.params.id, { finalFee, feeChangeReason, expresswayFee });
-        await addActionLog(req.params.id, 'fee_changed', `金額を変更しました（${finalFee}円）${feeChangeReason ? '：' + feeChangeReason : ''}`);
+        await addActionLog(req.params.id, 'fee_changed', `金額を変更しました（${finalFee}円）${feeChangeReason ? '：' + feeChangeReason : ''}`); cat / Users / cooboo / dev / hakobou / hakobou - mitsumori / client / src / components / Admin / ActionLogs.tsx
+
         res.json({ success: true, estimate });
     } catch (err) {
         console.error('Error updating fee:', err);
@@ -269,6 +270,39 @@ router.post('/estimates/:id/memos', authMiddleware, async (req, res) => {
         res.json({ success: true, memo });
     } catch (err) {
         console.error('Error adding memo:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
+/**
+ * メモ更新
+ */
+router.put('/estimates/:id/memos/:memoId', authMiddleware, async (req, res) => {
+    try {
+        const { content } = req.body;
+
+        if (!content) {
+            return res.status(400).json({ success: false, error: 'Content is required' });
+        }
+
+        const memo = await updateEstimateMemo(req.params.memoId, content);
+        res.json({ success: true, memo });
+    } catch (err) {
+        console.error('Error updating memo:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * メモ削除
+ */
+router.delete('/estimates/:id/memos/:memoId', authMiddleware, async (req, res) => {
+    try {
+        await deleteEstimateMemo(req.params.memoId);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting memo:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
@@ -1209,7 +1243,6 @@ router.post('/estimates/:id/action-logs', authMiddleware, async (req, res) => {
         console.error('Error adding action log:', err);
         res.status(500).json({ success: false, error: err.message });
     }
-}); sed - n '626,700p' / Users / cooboo / dev / hakobou / hakobou - mitsumori / line - backend / adminRoutes.js
-
+});
 
 export default router;
