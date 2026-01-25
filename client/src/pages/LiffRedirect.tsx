@@ -11,7 +11,8 @@ import { Loader2, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
 const LIFF_ID = '2008810460-IvjGbCbG';
 
 // API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://hakobou-mitsumori.fly.dev';
+// API Base URL
+const API_BASE_URL = 'https://mitsumori.hakobou.com';
 
 type Status = 'loading' | 'sending' | 'success' | 'error';
 
