@@ -423,9 +423,6 @@ function calculateStorageFee(dates: MovingDates): {
   };
 }
 
-/**
- * 見積もりを計算
- */
 export function calculateEstimate(
   distance: DistanceResult,
   options: EstimateOptions,
@@ -433,45 +430,65 @@ export function calculateEstimate(
   plan: 'helper' | 'full' = 'helper'
 ): EstimateResult {
   const settings = getSettings();
-  const breakdown: FeeBreakdownItem[] = [];
 
   const movingDates: MovingDates = dates || {
     pickupDate: new Date().toISOString().split('T')[0],
     deliveryDate: new Date().toISOString().split('T')[0],
   };
 
-  // 1. 基本料金（お任せプラン含む）
+  // 各料金を計算
   const baseFeeResult = calculateBaseFee(movingDates, plan);
-  breakdown.push(...baseFeeResult.breakdown);
-
-  // 2. 距離超過料金（新規追加）
   const distanceFeeResult = calculateDistanceFee(distance.distanceKm);
-  if (distanceFeeResult.breakdown) {
-    breakdown.push(distanceFeeResult.breakdown);
-  }
-
-  // 3. 階数料金
   const floorFeeResult = calculateFloorFees(options);
+  const optionFeeResult = calculateOptionFees(options);
+  const timeSlotFeeResult = calculateTimeSlotFees(movingDates);
+  const highwayFeeResult = processHighwayFee(distance);
+  const storageFeeResult = calculateStorageFee(movingDates);
+
+  // breakdownを指定の順番で構築
+  // 基本料金 → プラン → 梱包サービス → 時間指定 → 土日加算 → 階数 → 積み置き → 繁忙期加算 → 高速 → トラック台数
+  const breakdown: FeeBreakdownItem[] = [];
+
+  // 1. 基本料金
+  const baseItem = baseFeeResult.breakdown.find(item => item.name === '基本料金');
+  if (baseItem) breakdown.push(baseItem);
+
+  // 2. プラン（お任せプラン）
+  const planItem = baseFeeResult.breakdown.find(item => item.name === 'お任せプラン');
+  if (planItem) breakdown.push(planItem);
+
+  // 3. 梱包サービス
+  const packingItem = optionFeeResult.breakdown.find(item => item.name === '梱包サービス');
+  if (packingItem) breakdown.push(packingItem);
+
+  // 4. 時間指定
+  const timeSlotItems = timeSlotFeeResult.breakdown.filter(item => item.name.includes('時間指定'));
+  breakdown.push(...timeSlotItems);
+
+  // 5. 土日祝加算
+  const weekendItem = baseFeeResult.breakdown.find(item => item.name === '土日祝加算料金');
+  if (weekendItem) breakdown.push(weekendItem);
+
+  // 6. 階数料金
   breakdown.push(...floorFeeResult.breakdown);
 
-  // 4. オプション料金
-  const optionFeeResult = calculateOptionFees(options);
-  breakdown.push(...optionFeeResult.breakdown);
+  // 7. 積み置き料金
+  if (storageFeeResult.breakdown) {
+    breakdown.push(storageFeeResult.breakdown);
+  }
 
-  // 5. 時間指定料金
-  const timeSlotFeeResult = calculateTimeSlotFees(movingDates);
-  breakdown.push(...timeSlotFeeResult.breakdown);
+  // 8. 繁忙期加算
+  const busySeasonItem = baseFeeResult.breakdown.find(item => item.name === '繁忙期加算料金');
+  if (busySeasonItem) breakdown.push(busySeasonItem);
 
-  // 6. 高速料金
-  const highwayFeeResult = processHighwayFee(distance);
+  // 9. 高速道路料金
   if (highwayFeeResult.breakdown) {
     breakdown.push(highwayFeeResult.breakdown);
   }
 
-  // 7. 積み置き料金
-  const storageFeeResult = calculateStorageFee(movingDates);
-  if (storageFeeResult.breakdown) {
-    breakdown.push(storageFeeResult.breakdown);
+  // 10. 距離超過料金（トラック台数の前に表示、または非表示）
+  if (distanceFeeResult.breakdown) {
+    breakdown.push(distanceFeeResult.breakdown);
   }
 
   // 合計計算
