@@ -172,6 +172,7 @@ export function ConditionForm() {
           headers: {
             'Content-Type': 'application/json',
           },
+
           body: JSON.stringify({
             browserId: getBrowserId(),
             pickupAddress: step1Data.pickupAddress,
@@ -189,480 +190,490 @@ export function ConditionForm() {
             plan: data.plan,
             expresswayFee: result.highwayFee || 0,
             truckCount: data.truckCount,
+            // 料金内訳を追加
+            baseFee: result.baseFee || 0,
+            distanceFee: result.breakdown?.find(b => b.name === '距離超過料金')?.amount || 0,
+            busySeasonFee: result.busySeasonFee || 0,
+            weekendHolidayFee: result.weekendHolidayFee || 0,
+            floorPickupFee: result.breakdown?.find(b => b.name === '集荷先 階数料金')?.amount || 0,
+            floorDeliveryFee: result.breakdown?.find(b => b.name === '届け先 階数料金')?.amount || 0,
+            packingFee: result.breakdown?.find(b => b.name === '梱包サービス')?.amount || 0,
+            timeSlotFee: result.breakdown?.find(b => b.name?.includes('時間指定'))?.amount || 0,
+            storageFee: result.storageFee || 0,
+            planFee: result.breakdown?.find(b => b.name === 'お任せプラン')?.amount || 0,
           }),
-        });
 
-        const responseData = await response.json();
+          const responseData = await response.json();
 
-        if (responseData.success) {
-          // estimateIdとliffUrlをローカルストレージに保存
-          localStorage.setItem('estimateId', responseData.estimateId);
-          if (responseData.liffUrl) {
-            localStorage.setItem('liffUrl', responseData.liffUrl);
-          }
-          // 結果ページへ
-          navigate('/result');
-        } else {
-          console.error('API Error:', responseData.error);
-          toast.error('見積もりデータの保存に失敗しました', {
-            description: 'LINE連携が正しく動作しない可能性があります。',
-          });
-          // エラーでも遷移はする（ユーザー体験のため）
-          navigate('/result');
+          if(responseData.success) {
+            // estimateIdとliffUrlをローカルストレージに保存
+            localStorage.setItem('estimateId', responseData.estimateId);
+        if (responseData.liffUrl) {
+          localStorage.setItem('liffUrl', responseData.liffUrl);
         }
-      } catch (error) {
-        console.error('Failed to save estimate:', error);
-        toast.error('通信エラーが発生しました', {
-          description: '見積もり結果は表示されますが、LINE連携が利用できない場合があります。',
+        // 結果ページへ
+        navigate('/result');
+      } else {
+        console.error('API Error:', responseData.error);
+        toast.error('見積もりデータの保存に失敗しました', {
+          description: 'LINE連携が正しく動作しない可能性があります。',
         });
+        // エラーでも遷移はする（ユーザー体験のため）
         navigate('/result');
       }
+    } catch (error) {
+      console.error('Failed to save estimate:', error);
+      toast.error('通信エラーが発生しました', {
+        description: '見積もり結果は表示されますが、LINE連携が利用できない場合があります。',
+      });
+      navigate('/result');
     }
-  };
+  }
+};
 
-  const goBack = () => {
-    navigate('/step1');
-  };
+const goBack = () => {
+  navigate('/step1');
+};
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
-      {/* 説明文 */}
-      <p className="text-center text-gray-600 font-bold text-base">
-        <AnimatedText lines={["引越しプランと条件を教えてください！"]} />
-      </p>
+return (
+  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
+    {/* 説明文 */}
+    <p className="text-center text-gray-600 font-bold text-base">
+      <AnimatedText lines={["引越しプランと条件を教えてください！"]} />
+    </p>
 
-      {/* プランの選択 */}
-      <div className="pop-card p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.6_0.15_240)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            <ClipboardList className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="text-xl font-black">プランの選択</h3>
-          <span className="ml-auto px-3 py-1 rounded-full text-sm font-black text-white bg-blue-500">PLAN</span>
+    {/* プランの選択 */}
+    <div className="pop-card p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-full bg-[oklch(0.6_0.15_240)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <ClipboardList className="w-6 h-6 text-white" />
         </div>
+        <h3 className="text-xl font-black">プランの選択</h3>
+        <span className="ml-auto px-3 py-1 rounded-full text-sm font-black text-white bg-blue-500">PLAN</span>
+      </div>
 
-        <Controller
-          name="plan"
-          control={control}
-          render={({ field }) => (
-            <RadioGroup
-              onValueChange={field.onChange}
-              defaultValue={field.value}
-              className="grid gap-4"
+      <Controller
+        name="plan"
+        control={control}
+        render={({ field }) => (
+          <RadioGroup
+            onValueChange={field.onChange}
+            defaultValue={field.value}
+            className="grid gap-4"
+          >
+            <label
+              htmlFor="plan-helper"
+              className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${field.value === 'helper'
+                ? 'border-[oklch(0.6_0.15_240)] bg-blue-50'
+                : 'border-gray-200 hover:border-gray-300'
+                }`}
             >
-              <label
-                htmlFor="plan-helper"
-                className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${field.value === 'helper'
-                  ? 'border-[oklch(0.6_0.15_240)] bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-                  }`}
-              >
-                <RadioGroupItem value="helper" id="plan-helper" className="mt-1 text-[oklch(0.6_0.15_240)] border-[oklch(0.6_0.15_240)]" />
-                <div className="flex-1">
-                  <span className="font-bold text-lg block">ヘルパープラン</span>
-                  <span className="font-bold text-[oklch(0.6_0.15_240)] block mb-1">追加料金 0円</span>
-                  <p className="text-sm text-gray-600">
-                    作業員が1人で伺い、搬入搬出作業をお客様にも手伝っていただくプラン
-                  </p>
-                </div>
-              </label>
+              <RadioGroupItem value="helper" id="plan-helper" className="mt-1 text-[oklch(0.6_0.15_240)] border-[oklch(0.6_0.15_240)]" />
+              <div className="flex-1">
+                <span className="font-bold text-lg block">ヘルパープラン</span>
+                <span className="font-bold text-[oklch(0.6_0.15_240)] block mb-1">追加料金 0円</span>
+                <p className="text-sm text-gray-600">
+                  作業員が1人で伺い、搬入搬出作業をお客様にも手伝っていただくプラン
+                </p>
+              </div>
+            </label>
 
-              <label
-                htmlFor="plan-full"
-                className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${field.value === 'full'
-                  ? 'border-[oklch(0.6_0.15_240)] bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
-                  }`}
-              >
-                <RadioGroupItem value="full" id="plan-full" className="mt-1 text-[oklch(0.6_0.15_240)] border-[oklch(0.6_0.15_240)]" />
-                <div className="flex-1">
-                  <span className="font-bold text-lg block">お任せプラン</span>
-                  <span className="font-bold text-[oklch(0.6_0.15_240)] block mb-1">基本料金 8,000円〜</span>
-                  <p className="text-sm text-gray-600">
-                    作業員が2名で伺い、搬入搬出作業をすべてお任せできるプラン
-                  </p>
-                </div>
-              </label>
-            </RadioGroup>
-          )}
-        />
-      </div>
-
-      {/* 集荷先の条件 */}
-      <div className="pop-card p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.75_0.2_0)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            <MapPin className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="text-xl font-black">集荷先の条件</h3>
-          <span className="badge-pink-no-border ml-auto">FROM</span>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2">
-          {/* 階数 */}
-          <div className="space-y-2">
-            <Label htmlFor="floor-pickup" className="flex items-center gap-2 font-bold">
-              <Building2 className="w-5 h-5" />
-              階数
-            </Label>
-            <Controller
-              name="floorPickup"
-              control={control}
-              render={({ field }) => (
-                <div className="flex items-center gap-3">
-                  <Select
-                    value={String(field.value)}
-                    onValueChange={(value) => field.onChange(Number(value))}
-                  >
-                    <SelectTrigger
-                      id="floor-pickup"
-                      className={`w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white ${errors.floorPickup ? 'border-[oklch(0.75_0.2_0)]' : ''
-                        }`}
-                    >
-                      <SelectValue placeholder="選択" />
-                    </SelectTrigger>
-                    <SelectContent className="border-[2px] border-black rounded-xl">
-                      {FLOOR_OPTIONS.map((floor) => (
-                        <SelectItem
-                          key={floor}
-                          value={String(floor)}
-                          className="text-lg font-medium"
-                        >
-                          {floor}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <span className="text-lg font-medium">階</span>
-                </div>
-              )}
-            />
-            {errors.floorPickup && (
-              <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{errors.floorPickup.message}</p>
-            )}
-            {floorPickup >= 2 && !hasElevatorPickup ? (
-              <p className="text-sm text-[oklch(0.8_0.18_60)] font-medium flex items-center gap-1">
-                <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.8_0.18_60)]"></span>
-                階段作業の追加料金が発生します
-              </p>
-            ) : null}
-          </div>
-
-          {/* エレベーター */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2 font-bold">
-              エレベーター
-            </Label>
-            <Controller
-              name="hasElevatorPickup"
-              control={control}
-              render={({ field }) => (
-                <div className="flex items-center space-x-3 pt-2">
-                  <Checkbox
-                    id="elevator-pickup"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="w-6 h-6 border-[2px] border-black rounded-md data-[state=checked]:bg-[oklch(0.75_0.2_145)] data-[state=checked]:border-[oklch(0.75_0.2_145)]"
-                  />
-                  <Label
-                    htmlFor="elevator-pickup"
-                    className="text-base font-medium cursor-pointer"
-                  >
-                    エレベーターあり
-                  </Label>
-                </div>
-              )}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* お届け先の条件 */}
-      <div className="pop-card p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.75_0.2_145)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            <Truck className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="text-xl font-black">お届け先の条件</h3>
-          <span className="badge-green-no-border ml-auto">TO</span>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2">
-          {/* 階数 */}
-          <div className="space-y-2">
-            <Label htmlFor="floor-delivery" className="flex items-center gap-2 font-bold">
-              <Building2 className="w-5 h-5" />
-              階数
-            </Label>
-            <Controller
-              name="floorDelivery"
-              control={control}
-              render={({ field }) => (
-                <div className="flex items-center gap-3">
-                  <Select
-                    value={String(field.value)}
-                    onValueChange={(value) => field.onChange(Number(value))}
-                  >
-                    <SelectTrigger
-                      id="floor-delivery"
-                      className={`w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white ${errors.floorDelivery ? 'border-[oklch(0.75_0.2_0)]' : ''
-                        }`}
-                    >
-                      <SelectValue placeholder="選択" />
-                    </SelectTrigger>
-                    <SelectContent className="border-[2px] border-black rounded-xl">
-                      {FLOOR_OPTIONS.map((floor) => (
-                        <SelectItem
-                          key={floor}
-                          value={String(floor)}
-                          className="text-lg font-medium"
-                        >
-                          {floor}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <span className="text-lg font-medium">階</span>
-                </div>
-              )}
-            />
-            {errors.floorDelivery && (
-              <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{errors.floorDelivery.message}</p>
-            )}
-            {floorDelivery >= 2 && !hasElevatorDelivery ? (
-              <p className="text-sm text-[oklch(0.8_0.18_60)] font-medium flex items-center gap-1">
-                <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.8_0.18_60)]"></span>
-                階段作業の追加料金が発生します
-              </p>
-            ) : null}
-          </div>
-
-          {/* エレベーター */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2 font-bold">
-              エレベーター
-            </Label>
-            <Controller
-              name="hasElevatorDelivery"
-              control={control}
-              render={({ field }) => (
-                <div className="flex items-center space-x-3 pt-2">
-                  <Checkbox
-                    id="elevator-delivery"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="w-6 h-6 border-[2px] border-black rounded-md data-[state=checked]:bg-[oklch(0.75_0.2_145)] data-[state=checked]:border-[oklch(0.75_0.2_145)]"
-                  />
-                  <Label
-                    htmlFor="elevator-delivery"
-                    className="text-base font-medium cursor-pointer"
-                  >
-                    エレベーターあり
-                  </Label>
-                </div>
-              )}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* その他のオプション */}
-      <div className="pop-card p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.8_0.18_60)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            <Package className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="text-xl font-black">梱包オプション</h3>
-          <span className="badge-orange-no-border ml-auto">OPTION</span>
-        </div>
-
-        <Controller
-          name="needsPacking"
-          control={control}
-          render={({ field }) => (
-            <RadioGroup
-              onValueChange={(value) => field.onChange(value === 'true')}
-              defaultValue={field.value ? 'true' : 'false'}
-              className="grid gap-4"
+            <label
+              htmlFor="plan-full"
+              className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${field.value === 'full'
+                ? 'border-[oklch(0.6_0.15_240)] bg-blue-50'
+                : 'border-gray-200 hover:border-gray-300'
+                }`}
             >
-              <label
-                htmlFor="packing-off"
-                className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${!field.value
-                  ? 'border-[oklch(0.8_0.18_60)] bg-orange-50'
-                  : 'border-gray-200 hover:border-gray-300'
-                  }`}
-              >
-                <RadioGroupItem value="false" id="packing-off" className="mt-1 text-[oklch(0.8_0.18_60)] border-[oklch(0.8_0.18_60)]" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <Package className="w-5 h-5 text-[oklch(0.8_0.18_60)]" />
-                    <span className="font-bold text-lg block">梱包サービスを利用しない</span>
-                  </div>
-                  <span className="font-bold text-[oklch(0.8_0.18_60)] block mb-1">追加料金 0円</span>
-                  <p className="text-sm text-gray-600">
-                    お客様がお荷物の梱包を行います
-                  </p>
-                </div>
-              </label>
+              <RadioGroupItem value="full" id="plan-full" className="mt-1 text-[oklch(0.6_0.15_240)] border-[oklch(0.6_0.15_240)]" />
+              <div className="flex-1">
+                <span className="font-bold text-lg block">お任せプラン</span>
+                <span className="font-bold text-[oklch(0.6_0.15_240)] block mb-1">基本料金 8,000円〜</span>
+                <p className="text-sm text-gray-600">
+                  作業員が2名で伺い、搬入搬出作業をすべてお任せできるプラン
+                </p>
+              </div>
+            </label>
+          </RadioGroup>
+        )}
+      />
+    </div>
 
-              <label
-                htmlFor="packing-on"
-                className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${field.value
-                  ? 'border-[oklch(0.8_0.18_60)] bg-orange-50'
-                  : 'border-gray-200 hover:border-gray-300'
-                  }`}
-              >
-                <RadioGroupItem value="true" id="packing-on" className="mt-1 text-[oklch(0.8_0.18_60)] border-[oklch(0.8_0.18_60)]" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[oklch(0.8_0.18_60)]" />
-                    <span className="font-bold text-lg">梱包サービスを利用する</span>
-                  </div>
-                  <span className="font-bold text-[oklch(0.8_0.18_60)] block mb-1">トラック1台分につき5,000円</span>
-                  <p className="text-sm text-gray-600">
-                    作業員がお荷物の梱包を行います
-                  </p>
-                </div>
-              </label>
-            </RadioGroup>
-          )}
-        />
+    {/* 集荷先の条件 */}
+    <div className="pop-card p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-full bg-[oklch(0.75_0.2_0)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <MapPin className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-xl font-black">集荷先の条件</h3>
+        <span className="badge-pink-no-border ml-auto">FROM</span>
       </div>
 
-      {/* トラック台数 */}
-      <div className="pop-card p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-[oklch(0.6_0.15_300)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            <Truck className="w-6 h-6 text-white" />
-          </div>
-          <h3 className="text-xl font-black">トラック台数</h3>
-          <span className="ml-auto px-3 py-1 rounded-full text-sm font-black text-white bg-[oklch(0.6_0.15_300)]">TRUCK</span>
-        </div>
-
-        <div className="space-y-4">
+      <div className="grid gap-6 sm:grid-cols-2">
+        {/* 階数 */}
+        <div className="space-y-2">
+          <Label htmlFor="floor-pickup" className="flex items-center gap-2 font-bold">
+            <Building2 className="w-5 h-5" />
+            階数
+          </Label>
           <Controller
-            name="truckCount"
+            name="floorPickup"
             control={control}
             render={({ field }) => (
-              <div className="space-y-2">
-                <Label htmlFor="truck-count" className="flex items-center gap-2 font-bold">
-                  <Truck className="w-5 h-5" />
-                  台数
-                </Label>
-                <div className="flex items-center gap-3">
-                  <Select
-                    value={String(field.value)}
-                    onValueChange={(value) => field.onChange(Number(value))}
+              <div className="flex items-center gap-3">
+                <Select
+                  value={String(field.value)}
+                  onValueChange={(value) => field.onChange(Number(value))}
+                >
+                  <SelectTrigger
+                    id="floor-pickup"
+                    className={`w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white ${errors.floorPickup ? 'border-[oklch(0.75_0.2_0)]' : ''
+                      }`}
                   >
-                    <SelectTrigger
-                      id="truck-count"
-                      className="w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white"
-                    >
-                      <SelectValue placeholder="選択" />
-                    </SelectTrigger>
-                    <SelectContent className="border-[2px] border-black rounded-xl">
-                      <SelectItem value="1" className="text-lg font-medium">1</SelectItem>
-                      <SelectItem value="2" className="text-lg font-medium">2</SelectItem>
-                      <SelectItem value="3" className="text-lg font-medium">3</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <span className="text-lg font-medium">台</span>
-                </div>
+                    <SelectValue placeholder="選択" />
+                  </SelectTrigger>
+                  <SelectContent className="border-[2px] border-black rounded-xl">
+                    {FLOOR_OPTIONS.map((floor) => (
+                      <SelectItem
+                        key={floor}
+                        value={String(floor)}
+                        className="text-lg font-medium"
+                      >
+                        {floor}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-lg font-medium">階</span>
               </div>
             )}
           />
+          {errors.floorPickup && (
+            <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{errors.floorPickup.message}</p>
+          )}
+          {floorPickup >= 2 && !hasElevatorPickup ? (
+            <p className="text-sm text-[oklch(0.8_0.18_60)] font-medium flex items-center gap-1">
+              <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.8_0.18_60)]"></span>
+              階段作業の追加料金が発生します
+            </p>
+          ) : null}
+        </div>
 
-          <p className="text-sm text-gray-600">
-            トラック1台分の積み込み目安は
+        {/* エレベーター */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2 font-bold">
+            エレベーター
+          </Label>
+          <Controller
+            name="hasElevatorPickup"
+            control={control}
+            render={({ field }) => (
+              <div className="flex items-center space-x-3 pt-2">
+                <Checkbox
+                  id="elevator-pickup"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="w-6 h-6 border-[2px] border-black rounded-md data-[state=checked]:bg-[oklch(0.75_0.2_145)] data-[state=checked]:border-[oklch(0.75_0.2_145)]"
+                />
+                <Label
+                  htmlFor="elevator-pickup"
+                  className="text-base font-medium cursor-pointer"
+                >
+                  エレベーターあり
+                </Label>
+              </div>
+            )}
+          />
+        </div>
+      </div>
+    </div>
+
+    {/* お届け先の条件 */}
+    <div className="pop-card p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-full bg-[oklch(0.75_0.2_145)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <Truck className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-xl font-black">お届け先の条件</h3>
+        <span className="badge-green-no-border ml-auto">TO</span>
+      </div>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        {/* 階数 */}
+        <div className="space-y-2">
+          <Label htmlFor="floor-delivery" className="flex items-center gap-2 font-bold">
+            <Building2 className="w-5 h-5" />
+            階数
+          </Label>
+          <Controller
+            name="floorDelivery"
+            control={control}
+            render={({ field }) => (
+              <div className="flex items-center gap-3">
+                <Select
+                  value={String(field.value)}
+                  onValueChange={(value) => field.onChange(Number(value))}
+                >
+                  <SelectTrigger
+                    id="floor-delivery"
+                    className={`w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white ${errors.floorDelivery ? 'border-[oklch(0.75_0.2_0)]' : ''
+                      }`}
+                  >
+                    <SelectValue placeholder="選択" />
+                  </SelectTrigger>
+                  <SelectContent className="border-[2px] border-black rounded-xl">
+                    {FLOOR_OPTIONS.map((floor) => (
+                      <SelectItem
+                        key={floor}
+                        value={String(floor)}
+                        className="text-lg font-medium"
+                      >
+                        {floor}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-lg font-medium">階</span>
+              </div>
+            )}
+          />
+          {errors.floorDelivery && (
+            <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{errors.floorDelivery.message}</p>
+          )}
+          {floorDelivery >= 2 && !hasElevatorDelivery ? (
+            <p className="text-sm text-[oklch(0.8_0.18_60)] font-medium flex items-center gap-1">
+              <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.8_0.18_60)]"></span>
+              階段作業の追加料金が発生します
+            </p>
+          ) : null}
+        </div>
+
+        {/* エレベーター */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2 font-bold">
+            エレベーター
+          </Label>
+          <Controller
+            name="hasElevatorDelivery"
+            control={control}
+            render={({ field }) => (
+              <div className="flex items-center space-x-3 pt-2">
+                <Checkbox
+                  id="elevator-delivery"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="w-6 h-6 border-[2px] border-black rounded-md data-[state=checked]:bg-[oklch(0.75_0.2_145)] data-[state=checked]:border-[oklch(0.75_0.2_145)]"
+                />
+                <Label
+                  htmlFor="elevator-delivery"
+                  className="text-base font-medium cursor-pointer"
+                >
+                  エレベーターあり
+                </Label>
+              </div>
+            )}
+          />
+        </div>
+      </div>
+    </div>
+
+    {/* その他のオプション */}
+    <div className="pop-card p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-full bg-[oklch(0.8_0.18_60)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <Package className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-xl font-black">梱包オプション</h3>
+        <span className="badge-orange-no-border ml-auto">OPTION</span>
+      </div>
+
+      <Controller
+        name="needsPacking"
+        control={control}
+        render={({ field }) => (
+          <RadioGroup
+            onValueChange={(value) => field.onChange(value === 'true')}
+            defaultValue={field.value ? 'true' : 'false'}
+            className="grid gap-4"
+          >
+            <label
+              htmlFor="packing-off"
+              className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${!field.value
+                ? 'border-[oklch(0.8_0.18_60)] bg-orange-50'
+                : 'border-gray-200 hover:border-gray-300'
+                }`}
+            >
+              <RadioGroupItem value="false" id="packing-off" className="mt-1 text-[oklch(0.8_0.18_60)] border-[oklch(0.8_0.18_60)]" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Package className="w-5 h-5 text-[oklch(0.8_0.18_60)]" />
+                  <span className="font-bold text-lg block">梱包サービスを利用しない</span>
+                </div>
+                <span className="font-bold text-[oklch(0.8_0.18_60)] block mb-1">追加料金 0円</span>
+                <p className="text-sm text-gray-600">
+                  お客様がお荷物の梱包を行います
+                </p>
+              </div>
+            </label>
+
+            <label
+              htmlFor="packing-on"
+              className={`flex items-start gap-4 p-4 rounded-xl border-[2px] cursor-pointer transition-all ${field.value
+                ? 'border-[oklch(0.8_0.18_60)] bg-orange-50'
+                : 'border-gray-200 hover:border-gray-300'
+                }`}
+            >
+              <RadioGroupItem value="true" id="packing-on" className="mt-1 text-[oklch(0.8_0.18_60)] border-[oklch(0.8_0.18_60)]" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[oklch(0.8_0.18_60)]" />
+                  <span className="font-bold text-lg">梱包サービスを利用する</span>
+                </div>
+                <span className="font-bold text-[oklch(0.8_0.18_60)] block mb-1">トラック1台分につき5,000円</span>
+                <p className="text-sm text-gray-600">
+                  作業員がお荷物の梱包を行います
+                </p>
+              </div>
+            </label>
+          </RadioGroup>
+        )}
+      />
+    </div>
+
+    {/* トラック台数 */}
+    <div className="pop-card p-6">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-full bg-[oklch(0.6_0.15_300)] flex items-center justify-center border-[3px] border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <Truck className="w-6 h-6 text-white" />
+        </div>
+        <h3 className="text-xl font-black">トラック台数</h3>
+        <span className="ml-auto px-3 py-1 rounded-full text-sm font-black text-white bg-[oklch(0.6_0.15_300)]">TRUCK</span>
+      </div>
+
+      <div className="space-y-4">
+        <Controller
+          name="truckCount"
+          control={control}
+          render={({ field }) => (
+            <div className="space-y-2">
+              <Label htmlFor="truck-count" className="flex items-center gap-2 font-bold">
+                <Truck className="w-5 h-5" />
+                台数
+              </Label>
+              <div className="flex items-center gap-3">
+                <Select
+                  value={String(field.value)}
+                  onValueChange={(value) => field.onChange(Number(value))}
+                >
+                  <SelectTrigger
+                    id="truck-count"
+                    className="w-28 border-[2px] border-black rounded-xl h-12 text-center text-lg font-bold bg-white"
+                  >
+                    <SelectValue placeholder="選択" />
+                  </SelectTrigger>
+                  <SelectContent className="border-[2px] border-black rounded-xl">
+                    <SelectItem value="1" className="text-lg font-medium">1</SelectItem>
+                    <SelectItem value="2" className="text-lg font-medium">2</SelectItem>
+                    <SelectItem value="3" className="text-lg font-medium">3</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-lg font-medium">台</span>
+              </div>
+            </div>
+          )}
+        />
+
+        <p className="text-sm text-gray-600">
+          トラック1台分の積み込み目安は
+          <button
+            type="button"
+            onClick={() => setShowTruckGuide(true)}
+            className="font-bold text-[oklch(0.6_0.15_300)] underline hover:no-underline cursor-pointer"
+          >
+            こちら
+          </button>
+          をご確認ください
+        </p>
+      </div>
+    </div>
+
+    {/* トラック目安モーダル */}
+    {showTruckGuide && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowTruckGuide(false)}>
+        <div className="bg-white rounded-2xl max-w-md w-full max-h-[80vh] overflow-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h4 className="font-bold text-lg">トラック1台分の積み込み目安</h4>
             <button
               type="button"
-              onClick={() => setShowTruckGuide(true)}
-              className="font-bold text-[oklch(0.6_0.15_300)] underline hover:no-underline cursor-pointer"
+              onClick={() => setShowTruckGuide(false)}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
             >
-              こちら
+              <X className="w-6 h-6" />
             </button>
-            をご確認ください
-          </p>
-        </div>
-      </div>
-
-      {/* トラック目安モーダル */}
-      {showTruckGuide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowTruckGuide(false)}>
-          <div className="bg-white rounded-2xl max-w-md w-full max-h-[80vh] overflow-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h4 className="font-bold text-lg">トラック1台分の積み込み目安</h4>
-              <button
-                type="button"
-                onClick={() => setShowTruckGuide(false)}
-                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <div className="p-6">
-              <ul className="space-y-2">
-                {[
-                  '2人掛けソファー',
-                  'ダブルのベッドマットレス',
-                  'ベッドフレーム',
-                  'ローテーブル',
-                  '洗濯機',
-                  '冷蔵庫',
-                  '電子レンジ',
-                  'カーペット',
-                  '布団毛布類',
-                  '120サイズ段ボール10個分',
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[oklch(0.6_0.15_300)]"></span>
-                    <span className="text-gray-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="px-6 pb-6">
-              <Button
-                type="button"
-                onClick={() => setShowTruckGuide(false)}
-                className="w-full h-12 bg-[oklch(0.6_0.15_300)] hover:bg-[oklch(0.5_0.15_300)] text-white font-bold rounded-xl"
-              >
-                閉じる
-              </Button>
-            </div>
+          </div>
+          <div className="p-6">
+            <ul className="space-y-2">
+              {[
+                '2人掛けソファー',
+                'ダブルのベッドマットレス',
+                'ベッドフレーム',
+                'ローテーブル',
+                '洗濯機',
+                '冷蔵庫',
+                '電子レンジ',
+                'カーペット',
+                '布団毛布類',
+                '120サイズ段ボール10個分',
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[oklch(0.6_0.15_300)]"></span>
+                  <span className="text-gray-700">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="px-6 pb-6">
+            <Button
+              type="button"
+              onClick={() => setShowTruckGuide(false)}
+              className="w-full h-12 bg-[oklch(0.6_0.15_300)] hover:bg-[oklch(0.5_0.15_300)] text-white font-bold rounded-xl"
+            >
+              閉じる
+            </Button>
           </div>
         </div>
-      )}
-
-      {/* ナビゲーションボタン */}
-      <div className="flex justify-between pt-4 gap-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={goBack}
-          className="h-14 px-6 border-[3px] border-black rounded-xl font-bold text-base shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all bg-white"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          戻る
-        </Button>
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-              計算中...
-            </>
-          ) : (
-            <>
-              見積もりを確認
-              <ArrowRight className="w-6 h-6 ml-2" />
-            </>
-          )}
-        </Button>
       </div>
-    </form>
-  );
+    )}
+
+    {/* ナビゲーションボタン */}
+    <div className="flex justify-between pt-4 gap-4">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={goBack}
+        className="h-14 px-6 border-[3px] border-black rounded-xl font-bold text-base shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all bg-white"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        戻る
+      </Button>
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="pop-button flex-1 max-w-[280px] h-14 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:shadow-none disabled:opacity-70 disabled:cursor-not-allowed"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+            計算中...
+          </>
+        ) : (
+          <>
+            見積もりを確認
+            <ArrowRight className="w-6 h-6 ml-2" />
+          </>
+        )}
+      </Button>
+    </div>
+  </form>
+);
 }

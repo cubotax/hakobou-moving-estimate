@@ -202,9 +202,94 @@ const CustomerCard = ({
                     )}
                 </div>
                 <div className="text-3xl font-bold text-orange-600 mt-2">{formatFee(totalFee)}</div>
-                <div className="mt-2 pt-2 border-t border-orange-100">
+
+                {/* 料金内訳 */}
+                <div className="mt-3 pt-3 border-t border-orange-100 space-y-2">
+                    <div className="text-sm font-medium text-gray-700 mb-2">料金内訳</div>
+
+                    {/* 基本料金 */}
+                    {(estimate.base_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">基本料金</span>
+                            <span className="font-medium">{formatFee(estimate.base_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* 距離超過料金 */}
+                    {(estimate.distance_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">距離超過料金</span>
+                            <span className="font-medium">{formatFee(estimate.distance_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* お任せプラン料金 */}
+                    {(estimate.plan_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">お任せプラン</span>
+                            <span className="font-medium">{formatFee(estimate.plan_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* 繁忙期加算 */}
+                    {(estimate.busy_season_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">繁忙期加算</span>
+                            <span className="font-medium">{formatFee(estimate.busy_season_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* 土日祝加算 */}
+                    {(estimate.weekend_holiday_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">土日祝加算</span>
+                            <span className="font-medium">{formatFee(estimate.weekend_holiday_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* 集荷先階数料金 */}
+                    {(estimate.floor_pickup_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">集荷先階数料金</span>
+                            <span className="font-medium">{formatFee(estimate.floor_pickup_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* 届け先階数料金 */}
+                    {(estimate.floor_delivery_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">届け先階数料金</span>
+                            <span className="font-medium">{formatFee(estimate.floor_delivery_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* 梱包サービス */}
+                    {(estimate.packing_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">梱包サービス</span>
+                            <span className="font-medium">{formatFee(estimate.packing_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* 時間指定料金 */}
+                    {(estimate.time_slot_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">時間指定</span>
+                            <span className="font-medium">{formatFee(estimate.time_slot_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* 積み置き料金 */}
+                    {(estimate.storage_fee > 0) && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">積み置き料金</span>
+                            <span className="font-medium">{formatFee(estimate.storage_fee)}</span>
+                        </div>
+                    )}
+
+                    {/* 高速道路料金 */}
                     <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">高速料金</span>
+                        <span className="text-gray-600">高速道路料金</span>
                         <span className="font-medium">{formatFee(estimate.expressway_fee || 0)}</span>
                     </div>
                 </div>

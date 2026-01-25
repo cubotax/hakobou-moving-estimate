@@ -39,6 +39,17 @@ export async function insertEstimate(estimate) {
       pickup_time_slot: estimate.dates?.pickupTimeSlot || '',
       delivery_time_slot: estimate.dates?.deliveryTimeSlot || '',
       status: 'estimated',
+      // 料金内訳カラム
+      base_fee: estimate.baseFee || 0,
+      distance_fee: estimate.distanceFee || 0,
+      busy_season_fee: estimate.busySeasonFee || 0,
+      weekend_holiday_fee: estimate.weekendHolidayFee || 0,
+      floor_pickup_fee: estimate.floorPickupFee || 0,
+      floor_delivery_fee: estimate.floorDeliveryFee || 0,
+      packing_fee: estimate.packingFee || 0,
+      time_slot_fee: estimate.timeSlotFee || 0,
+      storage_fee: estimate.storageFee || 0,
+      plan_fee: estimate.planFee || 0,
     })
     .select()
     .single();
