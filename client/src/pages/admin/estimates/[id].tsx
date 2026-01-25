@@ -91,10 +91,6 @@ const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) =>
     </div>
 );
 
-const TwoColumnRow = ({ children }: { children: React.ReactNode }) => (
-    <div className="grid grid-cols-2 gap-4">{children}</div>
-);
-
 // 顧客カルテコンポーネント（編集可能版）
 const CustomerCard = ({
     estimate,
@@ -206,9 +202,12 @@ const CustomerCard = ({
                     )}
                 </div>
                 <div className="text-3xl font-bold text-orange-600 mt-2">{formatFee(totalFee)}</div>
-                {estimate.expressway_fee > 0 && (
-                    <div className="text-sm text-gray-500 mt-1">（高速料金 {formatFee(estimate.expressway_fee)} 含む）</div>
-                )}
+                <div className="mt-2 pt-2 border-t border-orange-100">
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">高速料金</span>
+                        <span className="font-medium">{formatFee(estimate.expressway_fee || 0)}</span>
+                    </div>
+                </div>
             </div>
 
             {/* 日程 */}
@@ -804,14 +803,16 @@ export default function EstimateDetail() {
                                         <option value="full">お任せプラン</option>
                                     </select>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="needsPacking"
-                                        checked={adjNeedsPacking}
-                                        onChange={(e) => setAdjNeedsPacking(e.target.checked)}
-                                    />
-                                    <label htmlFor="needsPacking">梱包サービスを利用する</label>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">梱包サービス</label>
+                                    <select
+                                        className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                        value={adjNeedsPacking ? 'true' : 'false'}
+                                        onChange={(e) => setAdjNeedsPacking(e.target.value === 'true')}
+                                    >
+                                        <option value="false">利用しない</option>
+                                        <option value="true">利用する</option>
+                                    </select>
                                 </div>
                             </div>
                             <DialogFooter>
@@ -840,14 +841,16 @@ export default function EstimateDetail() {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="hasElevatorPickup"
-                                        checked={adjHasElevatorPickup}
-                                        onChange={(e) => setAdjHasElevatorPickup(e.target.checked)}
-                                    />
-                                    <label htmlFor="hasElevatorPickup">エレベーターあり</label>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">エレベーター</label>
+                                    <select
+                                        className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                        value={adjHasElevatorPickup ? 'true' : 'false'}
+                                        onChange={(e) => setAdjHasElevatorPickup(e.target.value === 'true')}
+                                    >
+                                        <option value="false">なし</option>
+                                        <option value="true">あり</option>
+                                    </select>
                                 </div>
                             </div>
                             <DialogFooter>
@@ -876,14 +879,16 @@ export default function EstimateDetail() {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="hasElevatorDelivery"
-                                        checked={adjHasElevatorDelivery}
-                                        onChange={(e) => setAdjHasElevatorDelivery(e.target.checked)}
-                                    />
-                                    <label htmlFor="hasElevatorDelivery">エレベーターあり</label>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">エレベーター</label>
+                                    <select
+                                        className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                        value={adjHasElevatorDelivery ? 'true' : 'false'}
+                                        onChange={(e) => setAdjHasElevatorDelivery(e.target.value === 'true')}
+                                    >
+                                        <option value="false">なし</option>
+                                        <option value="true">あり</option>
+                                    </select>
                                 </div>
                             </div>
                             <DialogFooter>
