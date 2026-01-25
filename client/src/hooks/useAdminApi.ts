@@ -326,8 +326,62 @@ export function useMemos() {
             setLoading(false);
         }
     }, []);
+    const updateMemo = useCallback(async (estimateId: string, memoId: string, content: string): Promise<boolean> => {
+        setLoading(true);
+        setError(null);
 
-    return { loading, error, getMemos, addMemo };
+        try {
+            const response = await authFetch(
+                `${API_BASE_URL}/api/admin/estimates/${estimateId}/memos/${memoId}`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify({ content }),
+                }
+            );
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to update memo');
+            }
+
+            return true;
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'エラーが発生しました';
+            setError(message);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const deleteMemo = useCallback(async (estimateId: string, memoId: string): Promise<boolean> => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authFetch(
+                `${API_BASE_URL}/api/admin/estimates/${estimateId}/memos/${memoId}`,
+                {
+                    method: 'DELETE',
+                }
+            );
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to delete memo');
+            }
+
+            return true;
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'エラーが発生しました';
+            setError(message);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return { loading, error, getMemos, addMemo, updateMemo, deleteMemo };
 }
 
 // =====================================================

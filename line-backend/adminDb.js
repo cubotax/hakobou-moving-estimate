@@ -303,6 +303,7 @@ export async function getMessageLogs(estimateId) {
     return data || [];
 }
 
+
 /**
  * 送信履歴を追加
  */
@@ -326,6 +327,45 @@ export async function addMessageLog(estimateId, messageType, sentBy = null) {
 
     return data;
 }
+
+/**
+ * メモを更新
+ */
+export async function updateEstimateMemo(memoId, content) {
+    const supabase = requireSupabase();
+    const { data, error } = await supabase
+        .from('estimate_memos')
+        .update({ content })
+        .eq('id', memoId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating memo:', error);
+        throw error;
+    }
+
+    return data;
+}
+
+/**
+ * メモを削除
+ */
+export async function deleteEstimateMemo(memoId) {
+    const supabase = requireSupabase();
+    const { error } = await supabase
+        .from('estimate_memos')
+        .delete()
+        .eq('id', memoId);
+
+    if (error) {
+        console.error('Error deleting memo:', error);
+        throw error;
+    }
+
+    return true;
+}
+
 
 // =====================================================
 // クーポン管理

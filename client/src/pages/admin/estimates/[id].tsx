@@ -456,7 +456,7 @@ export default function EstimateDetail() {
 
     // Hooks
     const { getEstimate, updateStatus, updateFee, updateAdjustment, loading } = useEstimates();
-    const { getMemos, addMemo } = useMemos();
+    const { getMemos, addMemo, updateMemo, deleteMemo } = useMemos();
     const { getLogs, sendInvite, sendPayment } = useMessages();
     const { getProposals, createProposal, sendProposal, loading: proposalLoading } = useProposals();
     const { getActionLogs } = useActionLogs();
@@ -471,6 +471,10 @@ export default function EstimateDetail() {
     // Modal State
     const [editFeeModal, setEditFeeModal] = useState(false);
     const [addMemoModal, setAddMemoModal] = useState(false);
+    const [editMemoModal, setEditMemoModal] = useState(false);
+    const [deleteMemoModal, setDeleteMemoModal] = useState(false);
+    const [selectedMemo, setSelectedMemo] = useState<Memo | null>(null);
+
     const [sendModal, setSendModal] = useState<'invite' | 'payment' | null>(null);
     const [cancelModal, setCancelModal] = useState(false);
     const [editDateModal, setEditDateModal] = useState(false);
@@ -572,6 +576,38 @@ export default function EstimateDetail() {
         setAddMemoModal(false);
         setMemoContent('');
         fetchData();
+    };
+
+    // メモ編集
+    const handleMemoUpdate = async () => {
+        if (!estimateId || !selectedMemo || !memoContent) return;
+        await updateMemo(estimateId, selectedMemo.id, memoContent);
+        setEditMemoModal(false);
+        setSelectedMemo(null);
+        setMemoContent('');
+        fetchData();
+    };
+
+    // メモ削除
+    const handleMemoDelete = async () => {
+        if (!estimateId || !selectedMemo) return;
+        await deleteMemo(estimateId, selectedMemo.id);
+        setDeleteMemoModal(false);
+        setSelectedMemo(null);
+        fetchData();
+    };
+
+    // メモ編集モーダルを開く
+    const openEditMemoModal = (memo: Memo) => {
+        setSelectedMemo(memo);
+        setMemoContent(memo.content);
+        setEditMemoModal(true);
+    };
+
+    // メモ削除モーダルを開く
+    const openDeleteMemoModal = (memo: Memo) => {
+        setSelectedMemo(memo);
+        setDeleteMemoModal(true);
     };
 
     // 案内送信
