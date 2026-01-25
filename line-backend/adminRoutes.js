@@ -933,9 +933,11 @@ router.get('/stats/monthly', authMiddleware, async (req, res) => {
 // ========================================
 
 // 提案一覧を取得
-router.get('/estimates/:id/proposals', authenticateAdmin, async (req, res) => {
+router.get('/estimates/:id/proposals', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
+        const supabase = getSupabase();
+
         const { data, error } = await supabase
             .from('estimate_proposals')
             .select('*')
@@ -951,10 +953,11 @@ router.get('/estimates/:id/proposals', authenticateAdmin, async (req, res) => {
 });
 
 // 新規提案を作成
-router.post('/estimates/:id/proposals', authenticateAdmin, async (req, res) => {
+router.post('/estimates/:id/proposals', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
         const proposalData = req.body;
+        const supabase = getSupabase();
 
         // 現在の提案数を取得
         const { data: existing } = await supabase
@@ -1000,9 +1003,10 @@ router.post('/estimates/:id/proposals', authenticateAdmin, async (req, res) => {
 });
 
 // 提案をLINEで送信
-router.post('/estimates/:id/proposals/:proposalId/send', authenticateAdmin, async (req, res) => {
+router.post('/estimates/:id/proposals/:proposalId/send', authMiddleware, async (req, res) => {
     try {
         const { id, proposalId } = req.params;
+        const supabase = getSupabase();
 
         // 見積もりと提案を取得
         const { data: estimate } = await supabase
@@ -1139,7 +1143,7 @@ router.post('/estimates/:id/proposals/:proposalId/send', authenticateAdmin, asyn
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
+                'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
             },
             body: JSON.stringify({
                 to: estimate.line_user_id,
