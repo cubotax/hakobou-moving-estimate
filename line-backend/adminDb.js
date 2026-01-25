@@ -740,5 +740,89 @@ export async function updatePricingSettings(updates) {
     return true;
 }
 
+/**
+ * アクションログを追加
+ */
+export async function addActionLog(estimateId, actionType, description = null, performedBy = 'admin') {
+    const supabase = requireSupabase();
+    const { data, error } = await supabase
+        .from('action_logs')
+        .insert({
+            estimate_id: estimateId,
+            action_type: actionType,
+            description: description,
+            performed_by: performedBy,
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error adding action log:', error);
+        return null;
+    }
+
+    return data;
+}
+
+/**
+ * アクションログを取得
+ */
+export async function getActionLogs(estimateId) {
+    const supabase = requireSupabase();
+    const { data, error } = await supabase
+        .from('action_logs')
+        .select('*')
+        .eq('estimate_id', estimateId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching action logs:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+/**
+ * アクション履歴を追加
+ */
+export async function addActionLog(estimateId, actionType, description = null, performedBy = 'admin') {
+    const supabase = requireSupabase();
+    const { data, error } = await supabase
+        .from('action_logs')
+        .insert({
+            estimate_id: estimateId,
+            action_type: actionType,
+            description: description,
+            performed_by: performedBy
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error adding action log:', error);
+        return null;
+    }
+    return data;
+}
+
+/**
+ * アクション履歴を取得
+ */
+export async function getActionLogs(estimateId) {
+    const supabase = requireSupabase();
+    const { data, error } = await supabase
+        .from('action_logs')
+        .select('*')
+        .eq('estimate_id', estimateId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching action logs:', error);
+        return [];
+    }
+    return data || [];
+}
+
 export { getSupabase };
 export { updateEstimatePaymentSession } from "./db.js";

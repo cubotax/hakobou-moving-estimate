@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRoute, Link } from 'wouter';
 import { RequireAuth } from '@/contexts/AdminAuthContext';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { useEstimates, useMemos, useMessages, useProposals, Estimate, Memo, MessageLog, AdjustmentData } from '@/hooks/useAdminApi';
+import { useEstimates, useMemos, useMessages, useProposals, useActionLogs, Estimate, Memo, MessageLog, AdjustmentData } from '@/hooks/useAdminApi';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,6 @@ const timeSlotLabels: Record<string, string> = {
     afternoon: '午後',
     anytime: 'どちらでも',
 };
-
 
 // プランラベル
 const planLabels: Record<string, string> = {
@@ -204,7 +203,6 @@ const CustomerCard = ({
                 </div>
                 <div className="text-3xl font-bold text-orange-600 mt-2">{formatFee(totalFee)}</div>
 
-                {/* 料金内訳 */}
                 {/* 料金内訳 */}
                 <div className="mt-3 pt-3 border-t border-orange-100 space-y-2">
                     <div className="text-sm font-medium text-gray-700 mb-2">料金内訳</div>
@@ -398,18 +396,16 @@ const CustomerCard = ({
             </div>
 
             {/* 備考 */}
-            {
-                estimate.notes && (
-                    <div className="bg-white rounded-lg p-4 border border-orange-100">
-                        <div className="flex items-center gap-2 mb-2">
-                            <FileText className="w-5 h-5 text-orange-600" />
-                            <span className="font-medium text-gray-800">備考</span>
-                        </div>
-                        <p className="text-gray-700 whitespace-pre-wrap text-sm">{estimate.notes}</p>
+            {estimate.notes && (
+                <div className="bg-white rounded-lg p-4 border border-orange-100">
+                    <div className="flex items-center gap-2 mb-2">
+                        <FileText className="w-5 h-5 text-orange-600" />
+                        <span className="font-medium text-gray-800">備考</span>
                     </div>
-                )
-            }
-        </div >
+                    <p className="text-gray-700 whitespace-pre-wrap text-sm">{estimate.notes}</p>
+                </div>
+            )}
+        </div>
     );
 };
 
@@ -463,12 +459,14 @@ export default function EstimateDetail() {
     const { getMemos, addMemo } = useMemos();
     const { getLogs, sendInvite, sendPayment } = useMessages();
     const { getProposals, createProposal, sendProposal, loading: proposalLoading } = useProposals();
+    const { getActionLogs } = useActionLogs();
 
     // State
     const [estimate, setEstimate] = useState<Estimate | null>(null);
     const [memos, setMemos] = useState<Memo[]>([]);
     const [logs, setLogs] = useState<MessageLog[]>([]);
     const [proposals, setProposals] = useState<any[]>([]);
+    const [actionLogs, setActionLogs] = useState<any[]>([]);
 
     // Modal State
     const [editFeeModal, setEditFeeModal] = useState(false);
@@ -502,18 +500,20 @@ export default function EstimateDetail() {
     const fetchData = useCallback(async () => {
         if (!estimateId) return;
 
-        const [estimateData, memosData, logsData, proposalsData] = await Promise.all([
+        const [estimateData, memosData, logsData, proposalsData, actionLogsData] = await Promise.all([
             getEstimate(estimateId),
             getMemos(estimateId),
             getLogs(estimateId),
             getProposals(estimateId),
+            getActionLogs(estimateId),
         ]);
 
         if (estimateData) setEstimate(estimateData);
         setMemos(memosData);
         setLogs(logsData);
         setProposals(proposalsData || []);
-    }, [estimateId, getEstimate, getMemos, getLogs, getProposals]);
+        setActionLogs(actionLogsData || []);
+    }, [estimateId, getEstimate, getMemos, getLogs, getProposals, getActionLogs]);
 
     useEffect(() => {
         fetchData();
@@ -786,6 +786,22 @@ export default function EstimateDetail() {
                                     <div key={memo.id} className="bg-gray-50 p-3 rounded">
                                         <p className="text-gray-700">{memo.content}</p>
                                         <p className="text-gray-400 text-xs mt-1">{formatDateTime(memo.created_at)}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </Section>
+
+                    {/* アクション履歴 */}
+                    <Section title="アクション履歴">
+                        {actionLogs.length === 0 ? (
+                            <p className="text-gray-400 text-sm">アクション履歴はありません</p>
+                        ) : (
+                            <div className="space-y-2">
+                                {actionLogs.map((log) => (
+                                    <div key={log.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                        <span className="text-gray-700">{log.description || log.action_type}</span>
+                                        <span className="text-gray-400 text-sm">{formatDateTime(log.created_at)}</span>
                                     </div>
                                 ))}
                             </div>

@@ -721,3 +721,39 @@ export function useProposals() {
         sendProposal,
     };
 }
+
+/**
+ * アクション履歴用フック
+ */
+export function useActionLogs() {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const getActionLogs = useCallback(async (estimateId: string) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authFetch(`${API_BASE_URL}/api/admin/estimates/${estimateId}/action-logs`);
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to fetch action logs');
+            }
+
+            return data.logs || [];
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'エラーが発生しました';
+            setError(message);
+            return [];
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    return {
+        loading,
+        error,
+        getActionLogs,
+    };
+}

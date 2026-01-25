@@ -36,8 +36,8 @@ export async function insertEstimate(estimate) {
       needs_packing: estimate.conditions?.needsPacking || false,
       plan: estimate.plan || '',
       expressway_fee: estimate.expresswayFee || 0,
-      pickup_time_slot: estimate.dates?.pickupTimeSlot || '',
-      delivery_time_slot: estimate.dates?.deliveryTimeSlot || '',
+      pickup_time_slot: estimate.dates?.pickupTimeSlot ||
+        delivery_time_slot: estimate.dates?.deliveryTimeSlot || '',
       status: 'estimated',
       // 料金内訳カラム
       base_fee: estimate.baseFee || 0,

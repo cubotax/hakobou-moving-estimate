@@ -36,6 +36,8 @@ import {
     getPricingSettings,
     updatePricingSettings,
     getSupabase,
+    addActionLog,
+    getActionLogs,
 } from './adminDb.js';
 
 
@@ -205,6 +207,7 @@ router.put('/estimates/:id/fee', authMiddleware, async (req, res) => {
         }
 
         const estimate = await updateEstimateFee(req.params.id, { finalFee, feeChangeReason, expresswayFee });
+        await addActionLog(req.params.id, 'fee_changed', `金額を変更しました（${finalFee}円）${feeChangeReason ? '：' + feeChangeReason : ''}`);
         res.json({ success: true, estimate });
     } catch (err) {
         console.error('Error updating fee:', err);
@@ -221,6 +224,7 @@ router.put('/estimates/:id/adjust', authMiddleware, async (req, res) => {
         const adjustedBy = req.user?.email || 'unknown';
 
         const estimate = await updateEstimateAdjustment(req.params.id, adjustmentData, adjustedBy);
+        await addActionLog(req.params.id, 'adjustment_saved', '調整内容を保存しました');
         res.json({ success: true, estimate });
     } catch (err) {
         console.error('Error updating adjustment:', err);
@@ -646,6 +650,8 @@ router.post('/estimates/:id/send-invite', authMiddleware, async (req, res) => {
         await updateEstimateStatus(req.params.id, 'invite_sent');
         await addMessageLog(req.params.id, 'invite', req.adminUser.email);
 
+        await addActionLog(req.params.id, 'invite_sent', '申込案内をLINEに送信しました');
+
         res.json({ success: true, message: 'Invite sent successfully' });
     } catch (err) {
         console.error('Error sending invite:', err);
@@ -721,6 +727,8 @@ router.post('/estimates/:id/send-payment', authMiddleware, async (req, res) => {
 
         // 送信履歴を追加
         await addMessageLog(req.params.id, 'payment', req.adminUser.email);
+
+        await addActionLog(req.params.id, 'payment_sent', '決済案内をLINEに送信しました');
 
         res.json({ success: true, message: 'Payment request sent via LINE' });
     } catch (err) {
@@ -1170,5 +1178,38 @@ router.post('/estimates/:id/proposals/:proposalId/send', authMiddleware, async (
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
+
+// ==================== アクション履歴 ====================
+
+/**
+ * アクション履歴取得
+ */
+router.get('/estimates/:id/action-logs', authMiddleware, async (req, res) => {
+    try {
+        const logs = await getActionLogs(req.params.id);
+        res.json({ success: true, logs });
+    } catch (err) {
+        console.error('Error fetching action logs:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * アクション履歴追加
+ */
+router.post('/estimates/:id/action-logs', authMiddleware, async (req, res) => {
+    try {
+        const { actionType, description } = req.body;
+        if (!actionType) {
+            return res.status(400).json({ success: false, error: 'Action type is required' });
+        }
+        const log = await addActionLog(req.params.id, actionType, description);
+        res.json({ success: true, log });
+    } catch (err) {
+        console.error('Error adding action log:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+}); sed - n '626,700p' / Users / cooboo / dev / hakobou / hakobou - mitsumori / line - backend / adminRoutes.js
+
 
 export default router;
