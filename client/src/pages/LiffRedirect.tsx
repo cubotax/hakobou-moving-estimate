@@ -7,16 +7,6 @@
 import { useEffect, useState } from 'react';
 import { Loader2, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
 
-// LIFF SDK グローバル型宣言
-declare const liff: {
-    init: (config: { liffId: string }) => Promise<void>;
-    isLoggedIn: () => boolean;
-    login: (config?: { redirectUri?: string }) => void;
-    getProfile: () => Promise<{ userId: string; displayName: string; pictureUrl?: string }>;
-    isInClient: () => boolean;
-    closeWindow: () => void;
-};
-
 // LIFF ID
 const LIFF_ID = '2008810460-IvjGbCbG';
 
@@ -35,6 +25,11 @@ export default function LiffRedirect() {
 
     async function initializeLiff() {
         try {
+            // LIFF SDKが読み込まれているか確認
+            if (typeof window.liff === 'undefined') {
+                throw new Error('LIFF SDKが読み込まれていません');
+            }
+
             // URLパラメータからestimateIdを取得
             const urlParams = new URLSearchParams(window.location.search);
             let estimateId = urlParams.get('estimateId');
@@ -53,16 +48,16 @@ export default function LiffRedirect() {
             }
 
             // LIFF初期化
-            await liff.init({ liffId: LIFF_ID });
+            await window.liff.init({ liffId: LIFF_ID });
 
             // LINEログイン確認
-            if (!liff.isLoggedIn()) {
-                liff.login({ redirectUri: window.location.href });
+            if (!window.liff.isLoggedIn()) {
+                window.liff.login({ redirectUri: window.location.href });
                 return;
             }
 
             // ユーザー情報取得
-            const profile = await liff.getProfile();
+            const profile = await window.liff.getProfile();
             const lineUserId = profile.userId;
 
             setStatus('sending');
@@ -99,8 +94,6 @@ export default function LiffRedirect() {
             }
 
             setStatus('success');
-
-            // 自動クローズは削除 - ユーザーが「トーク画面を開く」ボタンを押すまで待つ
 
         } catch (error: any) {
             console.error('LIFF Error:', error);
@@ -154,8 +147,8 @@ export default function LiffRedirect() {
                         <button
                             type="button"
                             onClick={() => {
-                                if (liff.isInClient()) {
-                                    liff.closeWindow();
+                                if (typeof window.liff !== 'undefined' && window.liff.isInClient()) {
+                                    window.liff.closeWindow();
                                 } else {
                                     window.close();
                                 }
@@ -169,4 +162,18 @@ export default function LiffRedirect() {
             </div>
         </div>
     );
+}
+
+// Window に liff を追加する型宣言
+declare global {
+    interface Window {
+        liff: {
+            init: (config: { liffId: string }) => Promise<void>;
+            isLoggedIn: () => boolean;
+            login: (config?: { redirectUri?: string }) => void;
+            getProfile: () => Promise<{ userId: string; displayName: string; pictureUrl?: string }>;
+            isInClient: () => boolean;
+            closeWindow: () => void;
+        };
+    }
 }
