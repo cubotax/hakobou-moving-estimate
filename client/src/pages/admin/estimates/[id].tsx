@@ -457,7 +457,7 @@ export default function EstimateDetail() {
     // Hooks
     const { getEstimate, updateStatus, updateFee, updateAdjustment, loading } = useEstimates();
     const { getMemos, addMemo } = useMemos();
-    const { getLogs } = useMessages();
+    const { getLogs, sendInvite, sendPayment } = useMessages();
     const { getProposals, createProposal, sendProposal, loading: proposalLoading } = useProposals();
 
     // State
@@ -569,10 +569,18 @@ export default function EstimateDetail() {
     // 案内送信
     const handleSend = async (type: 'invite' | 'payment') => {
         if (!estimateId) return;
-        const newStatus = type === 'invite' ? 'invite_sent' : 'payment_sent';
-        await updateStatus(estimateId, newStatus);
-        setSendModal(null);
-        fetchData();
+
+        let success = false;
+        if (type === 'invite') {
+            success = await sendInvite(estimateId);
+        } else {
+            success = await sendPayment(estimateId);
+        }
+
+        if (success) {
+            setSendModal(null);
+            fetchData();
+        }
     };
 
     // キャンセル
