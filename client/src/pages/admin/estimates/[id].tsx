@@ -479,6 +479,7 @@ export default function EstimateDetail() {
 
     // Form State
     const [newFee, setNewFee] = useState('');
+    const [newExpresswayFee, setNewExpresswayFee] = useState('');
     const [feeReason, setFeeReason] = useState('');
     const [memoContent, setMemoContent] = useState('');
     const [proposalMessage, setProposalMessage] = useState('');
@@ -521,6 +522,7 @@ export default function EstimateDetail() {
         switch (field) {
             case 'fee':
                 setNewFee(String(estimate.final_fee || estimate.total_fee || ''));
+                setNewExpresswayFee(String(estimate.expressway_fee || ''));
                 setFeeReason('');
                 setEditFeeModal(true);
                 break;
@@ -550,9 +552,11 @@ export default function EstimateDetail() {
     // 金額変更
     const handleFeeSubmit = async () => {
         if (!estimateId || !newFee) return;
-        await updateFee(estimateId, parseInt(newFee), feeReason);
+        const expresswayFeeValue = newExpresswayFee ? parseInt(newExpresswayFee) : undefined;
+        await updateFee(estimateId, parseInt(newFee), feeReason, expresswayFeeValue);
         setEditFeeModal(false);
         setNewFee('');
+        setNewExpresswayFee('');
         setFeeReason('');
         fetchData();
     };
@@ -822,6 +826,15 @@ export default function EstimateDetail() {
                                 <DialogTitle>金額を変更</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">高速道路料金</label>
+                                    <Input
+                                        type="number"
+                                        value={newExpresswayFee}
+                                        onChange={(e) => setNewExpresswayFee(e.target.value)}
+                                        placeholder="例: 3000"
+                                    />
+                                </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1">新しい金額</label>
                                     <Input

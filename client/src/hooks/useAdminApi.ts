@@ -193,7 +193,8 @@ export function useEstimates() {
     const updateFee = useCallback(async (
         id: string,
         finalFee: number,
-        feeChangeReason: string
+        feeChangeReason: string,
+        expresswayFee?: number
     ): Promise<boolean> => {
         setLoading(true);
         setError(null);
@@ -201,7 +202,7 @@ export function useEstimates() {
         try {
             const response = await authFetch(`${API_BASE_URL}/api/admin/estimates/${id}/fee`, {
                 method: 'PUT',
-                body: JSON.stringify({ finalFee, feeChangeReason }),
+                body: JSON.stringify({ finalFee, feeChangeReason, expresswayFee }),
             });
             const data = await response.json();
 

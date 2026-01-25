@@ -147,14 +147,22 @@ export async function updateEstimateStatus(estimateId, status) {
 /**
  * 見積もり金額を更新
  */
-export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason }) {
+export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason, expresswayFee }) {
     const supabase = requireSupabase();
+
+    const updateData = {
+        final_fee: finalFee,
+        fee_change_reason: feeChangeReason,
+    };
+
+    // 高速料金が指定されている場合のみ更新
+    if (expresswayFee !== undefined) {
+        updateData.expressway_fee = expresswayFee;
+    }
+
     const { data, error } = await supabase
         .from('estimates')
-        .update({
-            final_fee: finalFee,
-            fee_change_reason: feeChangeReason,
-        })
+        .update(updateData)
         .eq('id', estimateId)
         .select()
         .single();

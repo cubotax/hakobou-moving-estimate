@@ -198,13 +198,13 @@ router.put('/estimates/:id/status', authMiddleware, async (req, res) => {
  */
 router.put('/estimates/:id/fee', authMiddleware, async (req, res) => {
     try {
-        const { finalFee, feeChangeReason } = req.body;
+        const { finalFee, feeChangeReason, expresswayFee } = req.body;
 
         if (finalFee === undefined) {
             return res.status(400).json({ success: false, error: 'Final fee is required' });
         }
 
-        const estimate = await updateEstimateFee(req.params.id, { finalFee, feeChangeReason });
+        const estimate = await updateEstimateFee(req.params.id, { finalFee, feeChangeReason, expresswayFee });
         res.json({ success: true, estimate });
     } catch (err) {
         console.error('Error updating fee:', err);
