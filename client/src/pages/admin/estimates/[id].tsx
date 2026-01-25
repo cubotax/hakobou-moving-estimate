@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRoute, Link } from 'wouter';
-import RequireAuth from '@/components/admin/RequireAuth';
+import { RequireAuth } from '@/contexts/AdminAuthContext';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useEstimates, useMemos, useMessages, useProposals, Estimate, Memo, MessageLog, AdjustmentData } from '@/hooks/useAdminApi';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
