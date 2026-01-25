@@ -121,6 +121,22 @@ const CustomerCard = ({
     const hasElevatorDelivery = estimate.adjusted_has_elevator_delivery ?? estimate.has_elevator_delivery ?? false;
     const totalFee = estimate.final_fee || estimate.total_fee || 0;
 
+    // 氏名
+    const fullName = estimate.last_name || estimate.first_name
+        ? `${estimate.last_name || ''} ${estimate.first_name || ''}`.trim()
+        : null;
+    const fullNameKana = estimate.last_name_kana || estimate.first_name_kana
+        ? `${estimate.last_name_kana || ''} ${estimate.first_name_kana || ''}`.trim()
+        : null;
+
+    // 集荷先住所
+    const pickupAddress = `${estimate.pickup_prefecture || ''}${estimate.pickup_city || ''}${estimate.pickup_town || ''}`;
+    const pickupDetail = [estimate.pickup_address_detail, estimate.pickup_building].filter(Boolean).join(' ');
+
+    // お届け先住所
+    const deliveryAddress = `${estimate.delivery_prefecture || ''}${estimate.delivery_city || ''}${estimate.delivery_town || ''}`;
+    const deliveryDetail = [estimate.delivery_address_detail, estimate.delivery_building].filter(Boolean).join(' ');
+
     return (
         <div className="bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-200 rounded-xl p-5 mb-4">
             <div className="flex justify-between items-center mb-4">
@@ -135,6 +151,46 @@ const CustomerCard = ({
                     <span className="text-sm text-gray-500">{formatDateTime(sentAt)}</span>
                 )}
             </div>
+
+            {/* 作成日時 */}
+            {estimate.created_at && (
+                <div className="bg-white rounded-lg p-3 mb-4 border border-orange-100">
+                    <div className="flex justify-between items-center">
+                        <span className="text-gray-600 text-sm">作成日時</span>
+                        <span className="font-medium">{formatDateTime(estimate.created_at)}</span>
+                    </div>
+                </div>
+            )}
+
+            {/* お客様情報 */}
+            {(fullName || estimate.phone) && (
+                <div className="bg-white rounded-lg p-4 mb-4 border border-orange-100">
+                    <div className="flex items-center gap-2 mb-3">
+                        <User className="w-5 h-5 text-orange-600" />
+                        <span className="font-medium text-gray-800">お客様情報</span>
+                    </div>
+                    <div className="space-y-2">
+                        {fullName && (
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">氏名</span>
+                                <span className="font-medium">{fullName}</span>
+                            </div>
+                        )}
+                        {fullNameKana && (
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">フリガナ</span>
+                                <span className="text-sm">{fullNameKana}</span>
+                            </div>
+                        )}
+                        {estimate.phone && (
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">電話番号</span>
+                                <span className="font-medium">{estimate.phone}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* 金額 */}
             <div className="bg-white rounded-lg p-4 mb-4 border border-orange-100">
@@ -221,7 +277,10 @@ const CustomerCard = ({
                     )}
                 </div>
                 <div className="space-y-2">
-                    <div className="font-medium">{`${estimate.pickup_prefecture || ''}${estimate.pickup_city || ''}${estimate.pickup_town || ''}`}</div>
+                    <div className="font-medium">{pickupAddress || '-'}</div>
+                    {pickupDetail && (
+                        <div className="text-sm text-gray-700">{pickupDetail}</div>
+                    )}
                     <div className="text-sm text-gray-600">
                         {floorPickup}階 / エレベーター：{hasElevatorPickup ? 'あり' : 'なし'}
                     </div>
@@ -229,7 +288,7 @@ const CustomerCard = ({
             </div>
 
             {/* お届け先 */}
-            <div className="bg-white rounded-lg p-4 border border-orange-100">
+            <div className="bg-white rounded-lg p-4 mb-4 border border-orange-100">
                 <div className="flex justify-between items-center mb-3">
                     <div className="flex items-center gap-2">
                         <Truck className="w-5 h-5 text-orange-600" />
@@ -242,12 +301,26 @@ const CustomerCard = ({
                     )}
                 </div>
                 <div className="space-y-2">
-                    <div className="font-medium">{`${estimate.delivery_prefecture || ''}${estimate.delivery_city || ''}${estimate.delivery_town || ''}`}</div>
+                    <div className="font-medium">{deliveryAddress || '-'}</div>
+                    {deliveryDetail && (
+                        <div className="text-sm text-gray-700">{deliveryDetail}</div>
+                    )}
                     <div className="text-sm text-gray-600">
                         {floorDelivery}階 / エレベーター：{hasElevatorDelivery ? 'あり' : 'なし'}
                     </div>
                 </div>
             </div>
+
+            {/* 備考 */}
+            {estimate.notes && (
+                <div className="bg-white rounded-lg p-4 border border-orange-100">
+                    <div className="flex items-center gap-2 mb-2">
+                        <FileText className="w-5 h-5 text-orange-600" />
+                        <span className="font-medium text-gray-800">備考</span>
+                    </div>
+                    <p className="text-gray-700 whitespace-pre-wrap text-sm">{estimate.notes}</p>
+                </div>
+            )}
         </div>
     );
 };
@@ -541,20 +614,41 @@ export default function EstimateDetail() {
 
                     {/* アクションボタン */}
                     <Section title="アクション">
-                        <div className="flex flex-wrap gap-2">
-                            <Button onClick={() => setSendModal('invite')} disabled={!estimate.line_user_id}>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Button
+                                onClick={() => setSendModal('invite')}
+                                disabled={!estimate.line_user_id}
+                                className="w-full"
+                                size="sm"
+                            >
                                 <Send className="w-4 h-4 mr-1" />
-                                申込案内を送信
+                                申込案内
                             </Button>
-                            <Button onClick={() => setSendModal('payment')} disabled={!estimate.line_user_id}>
+                            <Button
+                                onClick={() => setSendModal('payment')}
+                                disabled={!estimate.line_user_id}
+                                className="w-full"
+                                size="sm"
+                            >
                                 <Send className="w-4 h-4 mr-1" />
-                                決済案内を送信
+                                決済案内
                             </Button>
-                            <Button onClick={() => setProposalMessageModal(true)} disabled={!estimate.line_user_id} variant="outline">
+                            <Button
+                                onClick={() => setProposalMessageModal(true)}
+                                disabled={!estimate.line_user_id}
+                                variant="outline"
+                                className="w-full"
+                                size="sm"
+                            >
                                 <FileText className="w-4 h-4 mr-1" />
-                                再提案を送信
+                                再提案
                             </Button>
-                            <Button onClick={() => setCancelModal(true)} variant="destructive">
+                            <Button
+                                onClick={() => setCancelModal(true)}
+                                variant="destructive"
+                                className="w-full"
+                                size="sm"
+                            >
                                 <XCircle className="w-4 h-4 mr-1" />
                                 キャンセル
                             </Button>
@@ -564,7 +658,6 @@ export default function EstimateDetail() {
                     {/* 基本情報 */}
                     <Section title="基本情報">
                         <InfoRow label="見積ID" value={estimate.id} />
-                        <InfoRow label="作成日時" value={formatDateTime(estimate.created_at)} />
                         <InfoRow label="LINE連携" value={estimate.line_user_id ? '連携済み' : '未連携'} />
                     </Section>
 
@@ -575,24 +668,6 @@ export default function EstimateDetail() {
                         editable={true}
                         title="顧客カルテ"
                     />
-
-                    {/* 連絡先 */}
-                    {(estimate.last_name || estimate.phone) && (
-                        <Section title="連絡先" icon={<User className="w-5 h-5 text-gray-600" />}>
-                            <InfoRow label="氏名" value={`${estimate.last_name || ''} ${estimate.first_name || ''}`} />
-                            {estimate.last_name_kana && (
-                                <InfoRow label="フリガナ" value={`${estimate.last_name_kana || ''} ${estimate.first_name_kana || ''}`} />
-                            )}
-                            <InfoRow label="電話番号" value={estimate.phone || '-'} />
-                        </Section>
-                    )}
-
-                    {/* 備考 */}
-                    {estimate.notes && (
-                        <Section title="備考">
-                            <p className="text-gray-700 whitespace-pre-wrap">{estimate.notes}</p>
-                        </Section>
-                    )}
 
                     {/* 管理者メモ */}
                     <Section
