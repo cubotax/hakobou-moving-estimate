@@ -54,6 +54,23 @@ const statusStyles: Record<string, string> = {
     cancelled: 'bg-red-100 text-red-700',
 };
 
+// 日時フォーマット（年月日 + 時間）改行あり・センター揃え
+function formatDateTime(dateStr: string | null) {
+    if (!dateStr) return <div className="text-center">-</div>;
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return (
+        <div className="text-center">
+            <div>{year}/{month}/{day}</div>
+            <div>{hours}:{minutes}</div>
+        </div>
+    );
+}
+
 // 期間オプション
 const periodOptions = [
     { value: 'all', label: '全期間' },
@@ -240,14 +257,16 @@ function AdminDashboard() {
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
-                                <table className="w-full min-w-[700px]">
+                                <table className="w-full min-w-[800px]">
                                     <thead className="bg-gray-50 border-b border-gray-200">
                                         <tr>
+                                            <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">取得日時</th>
                                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">ID</th>
                                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">集荷先</th>
                                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">お届け先</th>
                                             <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">金額</th>
                                             <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">集荷日</th>
+                                            <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">お届け日</th>
                                             <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">ステータス</th>
                                             <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">操作</th>
                                         </tr>
@@ -258,6 +277,9 @@ function AdminDashboard() {
 
                                             return (
                                                 <tr key={estimate.id} className="hover:bg-gray-50">
+                                                    <td className="px-4 py-3 text-sm">
+                                                        {formatDateTime(estimate.created_at)}
+                                                    </td>
                                                     <td className="px-4 py-3">
                                                         <Link
                                                             href={`/admin/estimates/${estimate.id}`}
@@ -277,6 +299,9 @@ function AdminDashboard() {
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-center">
                                                         {formatDate(estimate.pickup_date)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-center">
+                                                        {formatDate(estimate.delivery_date)}
                                                     </td>
                                                     <td className="px-4 py-3 text-center">
                                                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusStyles[estimate.status] || 'bg-gray-100'}`}>
