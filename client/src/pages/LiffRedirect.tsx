@@ -18,6 +18,7 @@ type Status = 'loading' | 'sending' | 'success' | 'error';
 export default function LiffRedirect() {
     const [status, setStatus] = useState<Status>('loading');
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const [debugInfo, setDebugInfo] = useState<string>('');
 
     useEffect(() => {
         initializeLiff();
@@ -25,6 +26,11 @@ export default function LiffRedirect() {
 
     async function initializeLiff() {
         try {
+            let debug = '';
+            debug += `[1] Start initialization\n`;
+            debug += `[2] window.liff: ${typeof window.liff}\n`;
+            debug += `[3] URL: ${window.location.href}\n`;
+
             // LIFF SDKが読み込まれているか確認
             if (typeof window.liff === 'undefined') {
                 throw new Error('LIFF SDKが読み込まれていません');
@@ -33,38 +39,52 @@ export default function LiffRedirect() {
             // URLパラメータからestimateIdを取得
             const urlParams = new URLSearchParams(window.location.search);
             let estimateId = urlParams.get('estimateId');
+            debug += `[4] estimateId from URL: ${estimateId}\n`;
 
             // liff.stateからも確認（LIFFリダイレクト時）
             if (!estimateId) {
                 const liffState = urlParams.get('liff.state');
+                debug += `[5] liff.state: ${liffState}\n`;
                 if (liffState) {
                     const stateParams = new URLSearchParams(liffState);
                     estimateId = stateParams.get('estimateId');
+                    debug += `[6] estimateId from liff.state: ${estimateId}\n`;
                 }
             }
 
             if (!estimateId) {
+                setDebugInfo(debug);
                 throw new Error('見積もりIDが見つかりません');
             }
 
             // LIFF初期化
+            debug += `[7] Initializing LIFF with ID: ${LIFF_ID}\n`;
             await window.liff.init({ liffId: LIFF_ID });
+            debug += `[8] LIFF initialized successfully\n`;
 
             // LINEログイン確認
-            if (!window.liff.isLoggedIn()) {
+            const isLoggedIn = window.liff.isLoggedIn();
+            debug += `[9] isLoggedIn: ${isLoggedIn}\n`;
+
+            if (!isLoggedIn) {
+                debug += `[10] Redirecting to login\n`;
+                setDebugInfo(debug);
                 window.liff.login({ redirectUri: window.location.href });
                 return;
             }
 
             // ユーザー情報取得
+            debug += `[11] Getting profile\n`;
             const profile = await window.liff.getProfile();
             const lineUserId = profile.userId;
+            debug += `[12] Got userId: ${lineUserId.substring(0, 10)}...\n`;
 
             setStatus('sending');
 
             // API URL 正規化（末尾スラッシュ対策）
             const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
             const endpoint = `${base}/api/link`;
+            debug += `[13] Calling API: ${endpoint}\n`;
 
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -72,8 +92,12 @@ export default function LiffRedirect() {
                 body: JSON.stringify({ estimateId, lineUserId }),
             });
 
+            debug += `[14] API response status: ${response.status}\n`;
+
             // 失敗時もできるだけ理由を拾う（JSONじゃない場合もある）
             const rawText = await response.text().catch(() => '');
+            debug += `[15] API response: ${rawText.substring(0, 100)}\n`;
+
             let result: any = null;
             try {
                 result = rawText ? JSON.parse(rawText) : null;
@@ -86,18 +110,27 @@ export default function LiffRedirect() {
                     result?.error ||
                     `APIエラーが発生しました（HTTP ${response.status}）` +
                     (rawText ? `: ${rawText}` : '');
+                setDebugInfo(debug);
                 throw new Error(msg);
             }
 
             if (!result?.success) {
+                setDebugInfo(debug);
                 throw new Error(result?.error || 'エラーが発生しました');
             }
 
+            debug += `[16] Success!\n`;
+            setDebugInfo(debug);
             setStatus('success');
 
         } catch (error: any) {
             console.error('LIFF Error:', error);
-            let message = error?.message || 'エラーが発生しました';
+            let message = 'エラーが発生しました';
+            if (error?.message) {
+                message = error.message;
+            } else if (typeof error === 'string') {
+                message = error;
+            }
             setErrorMessage(message);
             setStatus('error');
         }
@@ -144,6 +177,17 @@ export default function LiffRedirect() {
                         <XCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
                         <p className="text-xl font-black text-gray-800">エラー</p>
                         <p className="text-sm text-red-500 mt-2">{errorMessage}</p>
+
+                        {/* デバッグ情報 */}
+                        {debugInfo && (
+                            <div className="mt-4 p-3 bg-gray-100 rounded-lg text-left">
+                                <p className="text-xs font-bold text-gray-600 mb-1">デバッグ情報:</p>
+                                <pre className="text-xs text-gray-500 whitespace-pre-wrap break-all">
+                                    {debugInfo}
+                                </pre>
+                            </div>
+                        )}
+
                         <button
                             type="button"
                             onClick={() => {
