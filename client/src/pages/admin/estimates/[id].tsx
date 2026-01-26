@@ -930,23 +930,25 @@ export default function EstimateDetail() {
 
                     {/* 金額編集モーダル */}
                     <Dialog open={editFeeModal} onOpenChange={setEditFeeModal}>
-                        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>金額を変更</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {(Object.keys(feeLabels) as Array<keyof FeeBreakdown>).map((key) => (
-                                    <div key={key} className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                                        <label className="text-sm text-gray-700 truncate">{feeLabels[key]}</label>
-                                        <div className="relative">
-                                            <Input
+                                    <div key={key} className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {feeLabels[key]}
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            <input
                                                 type="number"
                                                 value={feeBreakdown[key] || ''}
                                                 onChange={(e) => updateFeeItem(key, e.target.value)}
                                                 placeholder="0"
-                                                className="pr-8"
+                                                className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right placeholder:text-gray-400"
                                             />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
+                                            <span className="text-gray-500 shrink-0">円</span>
                                         </div>
                                     </div>
                                 ))}
@@ -956,13 +958,14 @@ export default function EstimateDetail() {
                                         <span className="text-orange-600">{formatFee(calculatedTotal)}</span>
                                     </div>
                                 </div>
-                                <div>
+                                <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">変更理由</label>
                                     <Textarea
                                         value={feeReason}
                                         onChange={(e) => setFeeReason(e.target.value)}
                                         placeholder="例: 繁忙期割引適用"
                                         rows={2}
+                                        className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
