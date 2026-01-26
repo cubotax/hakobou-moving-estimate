@@ -911,26 +911,32 @@ export default function EstimateDetail() {
 
                     {/* 金額編集モーダル（内訳編集版） */}
                     <Dialog open={editFeeModal} onOpenChange={setEditFeeModal}>
-                        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>金額を変更</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-3">
                                 {(Object.keys(feeLabels) as Array<keyof FeeBreakdown>).map((key) => (
-                                    <div key={key} className="flex items-center gap-2">
-                                        <label className="text-sm text-gray-600 w-32 flex-shrink-0">{feeLabels[key]}</label>
-                                        <Input
-                                            type="number"
-                                            value={feeBreakdown[key] || ''}
-                                            onChange={(e) => updateFeeItem(key, e.target.value)}
-                                            placeholder="0"
-                                            className="flex-1"
-                                        />
-                                        <span className="text-sm text-gray-500">円</span>
+                                    <div key={key} className="grid grid-cols-[140px_1fr] gap-2 items-center">
+                                        <label className="text-sm text-gray-700 truncate">
+                                            {feeLabels[key]}
+                                        </label>
+                                        <div className="relative">
+                                            <Input
+                                                type="number"
+                                                value={feeBreakdown[key] || ''}
+                                                onChange={(e) => updateFeeItem(key, e.target.value)}
+                                                placeholder="0"
+                                                className="pr-8"
+                                            />
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                                                円
+                                            </span>
+                                        </div>
                                     </div>
                                 ))}
 
-                                <div className="border-t pt-3 mt-3">
+                                <div className="border-t border-gray-200 pt-4 mt-4">
                                     <div className="flex justify-between items-center text-lg font-bold">
                                         <span>合計金額</span>
                                         <span className="text-orange-600">{formatFee(calculatedTotal)}</span>
@@ -938,7 +944,7 @@ export default function EstimateDetail() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">変更理由</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">変更理由</label>
                                     <Textarea
                                         value={feeReason}
                                         onChange={(e) => setFeeReason(e.target.value)}
