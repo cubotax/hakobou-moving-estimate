@@ -194,7 +194,20 @@ export function useEstimates() {
         id: string,
         finalFee: number,
         feeChangeReason: string,
-        expresswayFee?: number
+        expresswayFee?: number,
+        feeBreakdown?: {
+            baseFee?: number;
+            planFee?: number;
+            packingFee?: number;
+            timeSlotFee?: number;
+            weekendHolidayFee?: number;
+            floorPickupFee?: number;
+            floorDeliveryFee?: number;
+            storageFee?: number;
+            busySeasonFee?: number;
+            expresswayFee?: number;
+            distanceFee?: number;
+        }
     ): Promise<boolean> => {
         setLoading(true);
         setError(null);
@@ -202,7 +215,7 @@ export function useEstimates() {
         try {
             const response = await authFetch(`${API_BASE_URL}/api/admin/estimates/${id}/fee`, {
                 method: 'PUT',
-                body: JSON.stringify({ finalFee, feeChangeReason, expresswayFee }),
+                body: JSON.stringify({ finalFee, feeChangeReason, expresswayFee, feeBreakdown }),
             });
             const data = await response.json();
 

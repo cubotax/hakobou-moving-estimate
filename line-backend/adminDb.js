@@ -145,9 +145,9 @@ export async function updateEstimateStatus(estimateId, status) {
 }
 
 /**
- * 見積もり金額を更新
+ * 見積もり金額を更新（内訳含む）
  */
-export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason, expresswayFee }) {
+export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason, expresswayFee, feeBreakdown }) {
     const supabase = requireSupabase();
 
     const updateData = {
@@ -158,6 +158,21 @@ export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason,
     // 高速料金が指定されている場合のみ更新
     if (expresswayFee !== undefined) {
         updateData.expressway_fee = expresswayFee;
+    }
+
+    // 内訳が指定されている場合は各カラムも更新
+    if (feeBreakdown) {
+        if (feeBreakdown.baseFee !== undefined) updateData.base_fee = feeBreakdown.baseFee;
+        if (feeBreakdown.planFee !== undefined) updateData.plan_fee = feeBreakdown.planFee;
+        if (feeBreakdown.packingFee !== undefined) updateData.packing_fee = feeBreakdown.packingFee;
+        if (feeBreakdown.timeSlotFee !== undefined) updateData.time_slot_fee = feeBreakdown.timeSlotFee;
+        if (feeBreakdown.weekendHolidayFee !== undefined) updateData.weekend_holiday_fee = feeBreakdown.weekendHolidayFee;
+        if (feeBreakdown.floorPickupFee !== undefined) updateData.floor_pickup_fee = feeBreakdown.floorPickupFee;
+        if (feeBreakdown.floorDeliveryFee !== undefined) updateData.floor_delivery_fee = feeBreakdown.floorDeliveryFee;
+        if (feeBreakdown.storageFee !== undefined) updateData.storage_fee = feeBreakdown.storageFee;
+        if (feeBreakdown.busySeasonFee !== undefined) updateData.busy_season_fee = feeBreakdown.busySeasonFee;
+        if (feeBreakdown.expresswayFee !== undefined) updateData.expressway_fee = feeBreakdown.expresswayFee;
+        if (feeBreakdown.distanceFee !== undefined) updateData.distance_fee = feeBreakdown.distanceFee;
     }
 
     const { data, error } = await supabase

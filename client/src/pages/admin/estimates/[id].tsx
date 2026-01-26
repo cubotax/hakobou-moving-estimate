@@ -581,7 +581,7 @@ export default function EstimateDetail() {
     // 金額変更（内訳から合計を計算して保存）
     const handleFeeSubmit = async () => {
         if (!estimateId) return;
-        await updateFee(estimateId, calculatedTotal, feeReason, feeBreakdown.expresswayFee);
+        await updateFee(estimateId, calculatedTotal, feeReason, feeBreakdown.expresswayFee, feeBreakdown);
         setEditFeeModal(false);
         setFeeReason('');
         fetchData();
