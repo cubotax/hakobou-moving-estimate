@@ -176,6 +176,25 @@ export async function updateEstimateToConsulting(estimateId) {
 /**
  * 見積もりにStripe Session IDを保存
  */
+
+export async function updateEstimateToPhotoDiagnosis(estimateId) {
+  const { data, error } = await supabase
+    .from('estimates')
+    .update({
+      status: 'photo_diagnosis',
+      photo_diagnosis_at: new Date().toISOString(),
+    })
+    .eq('id', estimateId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating estimate to photo_diagnosis:', error);
+    throw error;
+  }
+
+  return data;
+}
 export async function updateEstimatePaymentSession(estimateId, sessionId) {
   const { data, error } = await supabase
     .from('estimates')

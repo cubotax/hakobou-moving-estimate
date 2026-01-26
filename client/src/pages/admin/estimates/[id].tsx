@@ -11,8 +11,9 @@ import { ArrowLeft, Edit, Plus, Send, XCircle, FileText, User, Calendar, MapPin,
 
 // ステータスラベル
 const statusLabels: Record<string, string> = {
-    estimated: '見積完了',
-    consulting: '相談中',
+    estimated: '概算見積完了',
+    photo_diagnosis: '写真診断中',
+    consulting: '日程調整中',
     invite_sent: '申込案内送信済み',
     applied: '申込完了',
     payment_sent: '決済案内送信済み',
@@ -22,14 +23,16 @@ const statusLabels: Record<string, string> = {
 
 // ステータスバッジスタイル
 const statusBadgeStyles: Record<string, { bg: string; text: string }> = {
-    estimated: { bg: '#E5E7EB', text: '#374151' },
-    consulting: { bg: '#FEF3C7', text: '#92400E' },
-    invite_sent: { bg: '#DBEAFE', text: '#1E40AF' },
-    applied: { bg: '#D1FAE5', text: '#065F46' },
-    payment_sent: { bg: '#EDE9FE', text: '#5B21B6' },
-    paid: { bg: '#A7F3D0', text: '#047857' },
-    cancelled: { bg: '#FEE2E2', text: '#991B1B' },
+    estimated: { bg: 'bg-gray-100', text: 'text-gray-800' },
+    photo_diagnosis: { bg: 'bg-purple-100', text: 'text-purple-800' },
+    consulting: { bg: 'bg-blue-100', text: 'text-blue-800' },
+    invite_sent: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+    applied: { bg: 'bg-green-100', text: 'text-green-800' },
+    payment_sent: { bg: 'bg-orange-100', text: 'text-orange-800' },
+    paid: { bg: 'bg-emerald-100', text: 'text-emerald-800' },
+    cancelled: { bg: 'bg-red-100', text: 'text-red-800' },
 };
+
 
 // 時間帯ラベル
 const timeSlotLabels: Record<string, string> = {

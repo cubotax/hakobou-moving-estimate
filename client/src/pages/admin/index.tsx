@@ -34,8 +34,9 @@ import { ChevronLeft, ChevronRight, MoreVertical, Search, Check } from 'lucide-r
 
 // ステータスラベル
 const statusLabels: Record<string, string> = {
-    estimated: '見積完了',
-    consulting: '相談中',
+    estimated: '概算見積完了',
+    photo_diagnosis: '写真診断中',
+    consulting: '日程調整中',
     invite_sent: '申込案内送信済み',
     applied: '申込完了',
     payment_sent: '決済案内送信済み',
@@ -43,9 +44,11 @@ const statusLabels: Record<string, string> = {
     cancelled: 'キャンセル',
 };
 
+
 // ステータスに応じたバッジスタイル
 const statusStyles: Record<string, string> = {
     estimated: 'bg-gray-100 text-gray-700',
+    photo_diagnosis: 'bg-purple-100 text-purple-800',
     consulting: 'bg-blue-100 text-blue-700',
     invite_sent: 'bg-purple-100 text-purple-700',
     applied: 'bg-yellow-100 text-yellow-700',
@@ -53,6 +56,7 @@ const statusStyles: Record<string, string> = {
     paid: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
 };
+
 
 // 日時フォーマット（年月日 + 時間）改行あり・センター揃え
 function formatDateTime(dateStr: string | null) {

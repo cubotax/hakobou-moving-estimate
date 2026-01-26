@@ -30,6 +30,7 @@ import {
   getEstimateById,
   updateEstimateWithApplication,
   updateEstimateToConsulting,
+  updateEstimateToPhotoDiagnosis,
 } from "./db.js";
 
 import cors from "cors";
@@ -63,7 +64,7 @@ function isEstimateValid(estimate) {
   if (!estimate || !estimate.created_at) return false;
 
   // すでに相談中以降のステータスなら有効
-  const activeStatuses = ['consulting', 'applied', 'invite_sent', 'payment_sent', 'paid'];
+  const activeStatuses = ['photo_diagnosis', 'consulting', 'applied', 'invite_sent', 'payment_sent', 'paid'];
   if (activeStatuses.includes(estimate.status)) {
     return true;
   }
@@ -624,9 +625,9 @@ async function handlePostbackEvent(event) {
         });
       }
 
-      // ステータスを「相談中」に更新
-      await updateEstimateToConsulting(estimateId);
-      console.log("Updated estimate to online_meeting:", estimateId);
+      // ステータスを「写真診断中」に更新
+      await updateEstimateToPhotoDiagnosis(estimateId);
+      console.log("Updated estimate to photo_diagnosis:", estimateId);
 
       // ユーザーへ返信
       return client.replyMessage({
