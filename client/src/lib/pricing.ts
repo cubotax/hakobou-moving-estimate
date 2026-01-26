@@ -51,6 +51,13 @@ function getSettings(): PricingSettings {
 }
 
 /**
+ * 10円単位で繰り上げ
+ */
+function roundUpToTen(amount: number): number {
+  return Math.ceil(amount / 10) * 10;
+}
+
+/**
  * 距離超過料金を計算
  */
 function calculateDistanceFee(distanceKm: number): {
@@ -104,8 +111,8 @@ function calculateDistanceFee(distanceKm: number): {
     details.push(`151km〜: ${km}km × ${settings.distance_rate_over_150}円`);
   }
 
-  // 100円単位で切り捨て
-  totalFee = Math.floor(totalFee / 100) * 100;
+  // 10円単位で繰り上げ
+  totalFee = roundUpToTen(totalFee);
 
   return {
     fee: totalFee,
@@ -132,8 +139,9 @@ function calculateBaseFee(dates: MovingDates, plan: 'helper' | 'full'): {
   const isBusy = isBusySeason(dates.pickupDate) || isBusySeason(dates.deliveryDate);
   const isWeekendHoliday = isWeekendOrHoliday(dates.pickupDate) || isWeekendOrHoliday(dates.deliveryDate);
 
-  const busySeasonSurcharge = isBusy ? Math.floor((baseFee * settings.busy_season_rate) / 100) * 100 : 0;
-  const weekendHolidaySurcharge = isWeekendHoliday ? Math.floor((baseFee * settings.weekend_holiday_rate) / 100) * 100 : 0;
+  // 10円単位で繰り上げ
+  const busySeasonSurcharge = isBusy ? roundUpToTen(baseFee * settings.busy_season_rate) : 0;
+  const weekendHolidaySurcharge = isWeekendHoliday ? roundUpToTen(baseFee * settings.weekend_holiday_rate) : 0;
 
   const breakdown: FeeBreakdownItem[] = [];
   let totalFee = baseFee;
@@ -302,7 +310,8 @@ function processHighwayFee(distance: DistanceResult): {
 
   // 100km以上かつhighwayFeeがある場合のみ加算
   if (distanceKm >= 100 && highwayFee !== null && highwayFee > 0) {
-    const roundedHighwayFee = Math.floor(highwayFee / 100) * 100;
+    // 10円単位で繰り上げ
+    const roundedHighwayFee = roundUpToTen(highwayFee);
     return {
       fee: roundedHighwayFee,
       breakdown: {
@@ -512,8 +521,8 @@ export function calculateEstimate(
     optionFee: optionFeeResult.totalFee + floorFeeResult.totalFee + timeSlotFeeResult.totalFee + distanceFeeResult.fee,
     highwayFee: highwayFeeResult.fee,
     storageFee: storageFeeResult.fee,
-    busySeasonFee: (isBusySeason(movingDates.pickupDate) || isBusySeason(movingDates.deliveryDate)) ? Math.round(settings.base_fee * settings.busy_season_rate) : 0,
-    weekendHolidayFee: isWeekendHoliday ? Math.round(settings.base_fee * settings.weekend_holiday_rate) : 0,
+    busySeasonFee: (isBusySeason(movingDates.pickupDate) || isBusySeason(movingDates.deliveryDate)) ? roundUpToTen(settings.base_fee * settings.busy_season_rate) : 0,
+    weekendHolidayFee: isWeekendHoliday ? roundUpToTen(settings.base_fee * settings.weekend_holiday_rate) : 0,
     totalFee,
     breakdown,
     highwayFeeNote: highwayFeeResult.note,
