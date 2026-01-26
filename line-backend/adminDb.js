@@ -349,7 +349,7 @@ export async function addMessageLog(estimateId, messageType, sentBy = null) {
 export async function updateEstimateMemo(memoId, content) {
     const supabase = requireSupabase();
     const { data, error } = await supabase
-        .from('estimate_memos')
+        .from('admin_memos')
         .update({ content })
         .eq('id', memoId)
         .select()
@@ -369,7 +369,7 @@ export async function updateEstimateMemo(memoId, content) {
 export async function deleteEstimateMemo(memoId) {
     const supabase = requireSupabase();
     const { error } = await supabase
-        .from('estimate_memos')
+        .from('admin_memos')
         .delete()
         .eq('id', memoId);
 

@@ -129,6 +129,8 @@ const CustomerCard = ({
     title = "顧客カルテ",
     proposalNumber,
     sentAt,
+    showProposalButton = false,
+    onProposalClick,
 }: {
     estimate: Estimate;
     onEdit?: (field: string) => void;
@@ -136,6 +138,8 @@ const CustomerCard = ({
     title?: string;
     proposalNumber?: number;
     sentAt?: string;
+    showProposalButton?: boolean;
+    onProposalClick?: () => void;
 }) => {
     const pickupDate = estimate.adjusted_pickup_date || estimate.pickup_date;
     const deliveryDate = estimate.adjusted_delivery_date || estimate.delivery_date;
@@ -233,10 +237,9 @@ const CustomerCard = ({
                 </div>
                 <div className="text-3xl font-bold text-orange-600 mt-2">{formatFee(totalFee)}</div>
 
-                {/* 料金内訳 - 全項目を表示 */}
+                {/* 料金内訳 */}
                 <div className="mt-3 pt-3 border-t border-orange-100 space-y-1">
                     <div className="text-sm font-medium text-gray-700 mb-2">料金内訳</div>
-
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-600">基本料金</span>
                         <span className="font-medium">{formatFee(estimate.base_fee || 0)}</span>
@@ -386,12 +389,34 @@ const CustomerCard = ({
 
             {/* 備考 */}
             {estimate.notes && (
-                <div className="bg-white rounded-lg p-4 border border-orange-100">
+                <div className="bg-white rounded-lg p-4 mb-4 border border-orange-100">
                     <div className="flex items-center gap-2 mb-2">
                         <FileText className="w-5 h-5 text-orange-600" />
                         <span className="font-medium text-gray-800">備考</span>
                     </div>
                     <p className="text-gray-700 whitespace-pre-wrap text-sm break-words">{estimate.notes}</p>
+                </div>
+            )}
+
+            {/* 再提案ボタン（顧客カルテ内） */}
+            {showProposalButton && (
+                <div className="flex justify-center">
+                    <div className="w-1/2">
+                        <Button
+                            onClick={onProposalClick}
+                            disabled={!estimate.line_user_id}
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-base font-bold"
+                            size="default"
+                        >
+                            <Send className="w-4 h-4 mr-2" />
+                            顧客に再提案する
+                        </Button>
+                        {!estimate.line_user_id && (
+                            <p className="text-xs text-gray-500 text-center mt-1">
+                                LINE連携されていないため再提案できません
+                            </p>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
@@ -438,7 +463,6 @@ const ProposalCard = ({ proposal }: { proposal: any }) => {
         </div>
     );
 };
-
 export default function EstimateDetail() {
     const [, params] = useRoute('/admin/estimates/:id');
     const estimateId = params?.id;
@@ -578,7 +602,7 @@ export default function EstimateDetail() {
         }
     };
 
-    // 金額変更（内訳から合計を計算して保存）
+    // 金額変更
     const handleFeeSubmit = async () => {
         if (!estimateId) return;
         await updateFee(estimateId, calculatedTotal, feeReason, feeBreakdown.expresswayFee, feeBreakdown);
@@ -772,31 +796,49 @@ export default function EstimateDetail() {
                         <InfoRow label="LINE連携" value={estimate.line_user_id ? '連携済み' : '未連携'} />
                     </Section>
 
-                    {/* 顧客カルテ（編集可能） */}
+                    {/* アクションボタン */}
+                    <Section title="アクション">
+                        <div className="grid grid-cols-3 gap-2">
+                            <Button
+                                onClick={() => setSendModal('invite')}
+                                disabled={!estimate.line_user_id}
+                                className="w-full"
+                                size="sm"
+                            >
+                                <Send className="w-4 h-4 mr-1" />
+                                申込案内
+                            </Button>
+                            <Button
+                                onClick={() => setSendModal('payment')}
+                                disabled={!estimate.line_user_id}
+                                className="w-full"
+                                size="sm"
+                            >
+                                <Send className="w-4 h-4 mr-1" />
+                                決済案内
+                            </Button>
+                            <Button
+                                onClick={() => setCancelModal(true)}
+                                variant="destructive"
+                                className="w-full"
+                                size="sm"
+                            >
+                                <XCircle className="w-4 h-4 mr-1" />
+                                キャンセル
+                            </Button>
+                        </div>
+                    </Section>
+
+                    {/* 顧客カルテ（編集可能・再提案ボタン内蔵） */}
                     <CustomerCard
                         estimate={estimate}
                         onEdit={handleCardEdit}
                         editable={true}
                         title="顧客カルテ"
+                        showProposalButton={true}
+                        onProposalClick={() => setProposalMessageModal(true)}
                     />
 
-                    {/* 再提案ボタン */}
-                    <div className="mb-4">
-                        <Button
-                            onClick={() => setProposalMessageModal(true)}
-                            disabled={!estimate.line_user_id}
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 text-lg font-bold"
-                            size="lg"
-                        >
-                            <Send className="w-5 h-5 mr-2" />
-                            顧客に再提案する
-                        </Button>
-                        {!estimate.line_user_id && (
-                            <p className="text-sm text-gray-500 text-center mt-2">
-                                LINE連携されていないため再提案できません
-                            </p>
-                        )}
-                    </div>
                     {/* 管理者メモ */}
                     <Section
                         title="管理者メモ"
@@ -852,40 +894,6 @@ export default function EstimateDetail() {
                         )}
                     </Section>
 
-                    {/* アクションボタン */}
-                    <Section title="アクション">
-                        <div className="grid grid-cols-3 gap-2">
-                            <Button
-                                onClick={() => setSendModal('invite')}
-                                disabled={!estimate.line_user_id}
-                                className="w-full"
-                                size="sm"
-                            >
-                                <Send className="w-4 h-4 mr-1" />
-                                申込案内
-                            </Button>
-                            <Button
-                                onClick={() => setSendModal('payment')}
-                                disabled={!estimate.line_user_id}
-                                className="w-full"
-                                size="sm"
-                            >
-                                <Send className="w-4 h-4 mr-1" />
-                                決済案内
-                            </Button>
-                            <Button
-                                onClick={() => setCancelModal(true)}
-                                variant="destructive"
-                                className="w-full"
-                                size="sm"
-                            >
-                                <XCircle className="w-4 h-4 mr-1" />
-                                キャンセル
-                            </Button>
-                        </div>
-                    </Section>
-
-
                     {/* 送信履歴 */}
                     <Section title="送信履歴">
                         {logs.length === 0 ? (
@@ -917,7 +925,7 @@ export default function EstimateDetail() {
 
                     {/* ===== モーダル群 ===== */}
 
-                    {/* 金額編集モーダル（内訳編集版） */}
+                    {/* 金額編集モーダル */}
                     <Dialog open={editFeeModal} onOpenChange={setEditFeeModal}>
                         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
@@ -926,9 +934,7 @@ export default function EstimateDetail() {
                             <div className="space-y-3">
                                 {(Object.keys(feeLabels) as Array<keyof FeeBreakdown>).map((key) => (
                                     <div key={key} className="grid grid-cols-[140px_1fr] gap-2 items-center">
-                                        <label className="text-sm text-gray-700 truncate">
-                                            {feeLabels[key]}
-                                        </label>
+                                        <label className="text-sm text-gray-700 truncate">{feeLabels[key]}</label>
                                         <div className="relative">
                                             <Input
                                                 type="number"
@@ -937,20 +943,16 @@ export default function EstimateDetail() {
                                                 placeholder="0"
                                                 className="pr-8"
                                             />
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                                                円
-                                            </span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">円</span>
                                         </div>
                                     </div>
                                 ))}
-
                                 <div className="border-t border-gray-200 pt-4 mt-4">
                                     <div className="flex justify-between items-center text-lg font-bold">
                                         <span>合計金額</span>
                                         <span className="text-orange-600">{formatFee(calculatedTotal)}</span>
                                     </div>
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">変更理由</label>
                                     <Textarea
@@ -977,19 +979,11 @@ export default function EstimateDetail() {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1">集荷日</label>
-                                    <Input
-                                        type="date"
-                                        value={adjPickupDate}
-                                        onChange={(e) => setAdjPickupDate(e.target.value)}
-                                    />
+                                    <Input type="date" value={adjPickupDate} onChange={(e) => setAdjPickupDate(e.target.value)} />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1">お届け日</label>
-                                    <Input
-                                        type="date"
-                                        value={adjDeliveryDate}
-                                        onChange={(e) => setAdjDeliveryDate(e.target.value)}
-                                    />
+                                    <Input type="date" value={adjDeliveryDate} onChange={(e) => setAdjDeliveryDate(e.target.value)} />
                                 </div>
                             </div>
                             <DialogFooter>
@@ -1155,9 +1149,7 @@ export default function EstimateDetail() {
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>メモを削除</DialogTitle>
-                                <DialogDescription>
-                                    このメモを削除します。よろしいですか？
-                                </DialogDescription>
+                                <DialogDescription>このメモを削除します。よろしいですか？</DialogDescription>
                             </DialogHeader>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setDeleteMemoModal(false)}>キャンセル</Button>
@@ -1170,9 +1162,7 @@ export default function EstimateDetail() {
                     <Dialog open={sendModal !== null} onOpenChange={() => setSendModal(null)}>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>
-                                    {sendModal === 'invite' ? '申込案内を送信' : '決済案内を送信'}
-                                </DialogTitle>
+                                <DialogTitle>{sendModal === 'invite' ? '申込案内を送信' : '決済案内を送信'}</DialogTitle>
                                 <DialogDescription>
                                     LINEで{sendModal === 'invite' ? '申込案内' : '決済案内'}を送信します。よろしいですか？
                                 </DialogDescription>
@@ -1189,9 +1179,7 @@ export default function EstimateDetail() {
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>キャンセル確認</DialogTitle>
-                                <DialogDescription>
-                                    この見積もりをキャンセルします。よろしいですか？
-                                </DialogDescription>
+                                <DialogDescription>この見積もりをキャンセルします。よろしいですか？</DialogDescription>
                             </DialogHeader>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setCancelModal(false)}>戻る</Button>
@@ -1206,8 +1194,7 @@ export default function EstimateDetail() {
                             <DialogHeader>
                                 <DialogTitle>再提案を送信</DialogTitle>
                                 <DialogDescription>
-                                    現在の顧客カルテの内容でLINEに再提案を送信します。
-                                    メッセージを添えることもできます。
+                                    現在の顧客カルテの内容でLINEに再提案を送信します。メッセージを添えることもできます。
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4">
