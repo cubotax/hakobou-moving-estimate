@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRoute, Link } from 'wouter';
 import { RequireAuth } from '@/contexts/AdminAuthContext';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Edit, Plus, Send, XCircle, FileText, User, Calendar, MapPin, CreditCard, Truck, Package } from 'lucide-react';
+import { ArrowLeft, Edit, Plus, Send, XCircle, FileText, User, Calendar, MapPin, CreditCard, Truck, Package, Trash2 } from 'lucide-react';
 
 // ステータスラベル
 const statusLabels: Record<string, string> = {
@@ -66,7 +66,7 @@ const formatDateTime = (dateStr?: string) => {
 };
 
 const formatFee = (fee?: number) => {
-    if (fee === undefined || fee === null) return '-';
+    if (fee === undefined || fee === null) return '¥0';
     return `¥${fee.toLocaleString()}`;
 };
 
@@ -86,10 +86,40 @@ const Section = ({ title, children, action, icon }: { title: string; children: R
 
 const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <div className="flex py-2 border-b border-gray-100 last:border-b-0">
-        <span className="w-32 text-gray-500 text-sm">{label}</span>
-        <span className="flex-1 text-gray-800">{value}</span>
+        <span className="w-32 text-gray-500 text-sm flex-shrink-0">{label}</span>
+        <span className="flex-1 text-gray-800 break-words">{value}</span>
     </div>
 );
+
+// 料金内訳の型定義
+interface FeeBreakdown {
+    baseFee: number;
+    planFee: number;
+    packingFee: number;
+    timeSlotFee: number;
+    weekendHolidayFee: number;
+    floorPickupFee: number;
+    floorDeliveryFee: number;
+    storageFee: number;
+    busySeasonFee: number;
+    expresswayFee: number;
+    distanceFee: number;
+}
+
+// 料金内訳ラベル
+const feeLabels: Record<keyof FeeBreakdown, string> = {
+    baseFee: '基本料金',
+    planFee: 'お任せプラン',
+    packingFee: '梱包サービス',
+    timeSlotFee: '時間指定',
+    weekendHolidayFee: '土日祝加算',
+    floorPickupFee: '集荷先階数料金',
+    floorDeliveryFee: '届け先階数料金',
+    storageFee: '積み置き料金',
+    busySeasonFee: '繁忙期加算',
+    expresswayFee: '高速道路料金',
+    distanceFee: '距離超過料金',
+};
 
 // 顧客カルテコンポーネント（編集可能版）
 const CustomerCard = ({
@@ -203,95 +233,54 @@ const CustomerCard = ({
                 </div>
                 <div className="text-3xl font-bold text-orange-600 mt-2">{formatFee(totalFee)}</div>
 
-                {/* 料金内訳 */}
-                <div className="mt-3 pt-3 border-t border-orange-100 space-y-2">
+                {/* 料金内訳 - 全項目を表示 */}
+                <div className="mt-3 pt-3 border-t border-orange-100 space-y-1">
                     <div className="text-sm font-medium text-gray-700 mb-2">料金内訳</div>
 
-                    {/* 1. 基本料金 */}
-                    {(estimate.base_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">基本料金</span>
-                            <span className="font-medium">{formatFee(estimate.base_fee)}</span>
-                        </div>
-                    )}
-
-                    {/* 2. お任せプラン料金 */}
-                    {(estimate.plan_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">お任せプラン</span>
-                            <span className="font-medium">{formatFee(estimate.plan_fee)}</span>
-                        </div>
-                    )}
-
-                    {/* 3. 梱包サービス */}
-                    {(estimate.packing_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">梱包サービス</span>
-                            <span className="font-medium">{formatFee(estimate.packing_fee)}</span>
-                        </div>
-                    )}
-
-                    {/* 4. 時間指定料金 */}
-                    {(estimate.time_slot_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">時間指定</span>
-                            <span className="font-medium">{formatFee(estimate.time_slot_fee)}</span>
-                        </div>
-                    )}
-
-                    {/* 5. 土日祝加算 */}
-                    {(estimate.weekend_holiday_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">土日祝加算</span>
-                            <span className="font-medium">{formatFee(estimate.weekend_holiday_fee)}</span>
-                        </div>
-                    )}
-
-                    {/* 6. 集荷先階数料金 */}
-                    {(estimate.floor_pickup_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">集荷先階数料金</span>
-                            <span className="font-medium">{formatFee(estimate.floor_pickup_fee)}</span>
-                        </div>
-                    )}
-
-                    {/* 7. 届け先階数料金 */}
-                    {(estimate.floor_delivery_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">届け先階数料金</span>
-                            <span className="font-medium">{formatFee(estimate.floor_delivery_fee)}</span>
-                        </div>
-                    )}
-
-                    {/* 8. 積み置き料金 */}
-                    {(estimate.storage_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">積み置き料金</span>
-                            <span className="font-medium">{formatFee(estimate.storage_fee)}</span>
-                        </div>
-                    )}
-
-                    {/* 9. 繁忙期加算 */}
-                    {(estimate.busy_season_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">繁忙期加算</span>
-                            <span className="font-medium">{formatFee(estimate.busy_season_fee)}</span>
-                        </div>
-                    )}
-
-                    {/* 10. 高速道路料金 */}
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">基本料金</span>
+                        <span className="font-medium">{formatFee(estimate.base_fee || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">お任せプラン</span>
+                        <span className="font-medium">{formatFee(estimate.plan_fee || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">梱包サービス</span>
+                        <span className="font-medium">{formatFee(estimate.packing_fee || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">時間指定</span>
+                        <span className="font-medium">{formatFee(estimate.time_slot_fee || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">土日祝加算</span>
+                        <span className="font-medium">{formatFee(estimate.weekend_holiday_fee || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">集荷先階数料金</span>
+                        <span className="font-medium">{formatFee(estimate.floor_pickup_fee || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">届け先階数料金</span>
+                        <span className="font-medium">{formatFee(estimate.floor_delivery_fee || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">積み置き料金</span>
+                        <span className="font-medium">{formatFee(estimate.storage_fee || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">繁忙期加算</span>
+                        <span className="font-medium">{formatFee(estimate.busy_season_fee || 0)}</span>
+                    </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-600">高速道路料金</span>
                         <span className="font-medium">{formatFee(estimate.expressway_fee || 0)}</span>
                     </div>
-
-                    {/* 11. 距離超過料金 */}
-                    {(estimate.distance_fee > 0) && (
-                        <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">距離超過料金</span>
-                            <span className="font-medium">{formatFee(estimate.distance_fee)}</span>
-                        </div>
-                    )}
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">距離超過料金</span>
+                        <span className="font-medium">{formatFee(estimate.distance_fee || 0)}</span>
+                    </div>
                 </div>
             </div>
 
@@ -312,12 +301,12 @@ const CustomerCard = ({
                     <div>
                         <div className="text-xs text-gray-500">集荷日</div>
                         <div className="font-medium">{formatDate(pickupDate)}</div>
-                        <div className="text-sm text-gray-600">{timeSlotLabels[estimate.pickup_time_slot || '']}</div>
+                        <div className="text-sm text-gray-600">{timeSlotLabels[estimate.pickup_time_slot || ''] || 'どちらでも'}</div>
                     </div>
                     <div>
                         <div className="text-xs text-gray-500">お届け日</div>
                         <div className="font-medium">{formatDate(deliveryDate)}</div>
-                        <div className="text-sm text-gray-600">{timeSlotLabels[estimate.delivery_time_slot || '']}</div>
+                        <div className="text-sm text-gray-600">{timeSlotLabels[estimate.delivery_time_slot || ''] || 'どちらでも'}</div>
                     </div>
                 </div>
             </div>
@@ -361,9 +350,9 @@ const CustomerCard = ({
                     )}
                 </div>
                 <div className="space-y-2">
-                    <div className="font-medium">{pickupAddress || '-'}</div>
+                    <div className="font-medium break-words">{pickupAddress || '-'}</div>
                     {pickupDetail && (
-                        <div className="text-sm text-gray-700">{pickupDetail}</div>
+                        <div className="text-sm text-gray-700 break-words">{pickupDetail}</div>
                     )}
                     <div className="text-sm text-gray-600">
                         {floorPickup}階 / エレベーター：{hasElevatorPickup ? 'あり' : 'なし'}
@@ -385,9 +374,9 @@ const CustomerCard = ({
                     )}
                 </div>
                 <div className="space-y-2">
-                    <div className="font-medium">{deliveryAddress || '-'}</div>
+                    <div className="font-medium break-words">{deliveryAddress || '-'}</div>
                     {deliveryDetail && (
-                        <div className="text-sm text-gray-700">{deliveryDetail}</div>
+                        <div className="text-sm text-gray-700 break-words">{deliveryDetail}</div>
                     )}
                     <div className="text-sm text-gray-600">
                         {floorDelivery}階 / エレベーター：{hasElevatorDelivery ? 'あり' : 'なし'}
@@ -402,7 +391,7 @@ const CustomerCard = ({
                         <FileText className="w-5 h-5 text-orange-600" />
                         <span className="font-medium text-gray-800">備考</span>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap text-sm">{estimate.notes}</p>
+                    <p className="text-gray-700 whitespace-pre-wrap text-sm break-words">{estimate.notes}</p>
                 </div>
             )}
         </div>
@@ -443,7 +432,7 @@ const ProposalCard = ({ proposal }: { proposal: any }) => {
             {proposal.message && (
                 <div className="mt-3 p-2 bg-white rounded border border-gray-100">
                     <div className="text-xs text-gray-500 mb-1">メッセージ</div>
-                    <div className="text-sm">{proposal.message}</div>
+                    <div className="text-sm break-words">{proposal.message}</div>
                 </div>
             )}
         </div>
@@ -474,7 +463,6 @@ export default function EstimateDetail() {
     const [editMemoModal, setEditMemoModal] = useState(false);
     const [deleteMemoModal, setDeleteMemoModal] = useState(false);
     const [selectedMemo, setSelectedMemo] = useState<Memo | null>(null);
-
     const [sendModal, setSendModal] = useState<'invite' | 'payment' | null>(null);
     const [cancelModal, setCancelModal] = useState(false);
     const [editDateModal, setEditDateModal] = useState(false);
@@ -483,9 +471,20 @@ export default function EstimateDetail() {
     const [editDeliveryModal, setEditDeliveryModal] = useState(false);
     const [proposalMessageModal, setProposalMessageModal] = useState(false);
 
-    // Form State
-    const [newFee, setNewFee] = useState('');
-    const [newExpresswayFee, setNewExpresswayFee] = useState('');
+    // 料金内訳 State
+    const [feeBreakdown, setFeeBreakdown] = useState<FeeBreakdown>({
+        baseFee: 0,
+        planFee: 0,
+        packingFee: 0,
+        timeSlotFee: 0,
+        weekendHolidayFee: 0,
+        floorPickupFee: 0,
+        floorDeliveryFee: 0,
+        storageFee: 0,
+        busySeasonFee: 0,
+        expresswayFee: 0,
+        distanceFee: 0,
+    });
     const [feeReason, setFeeReason] = useState('');
     const [memoContent, setMemoContent] = useState('');
     const [proposalMessage, setProposalMessage] = useState('');
@@ -499,6 +498,11 @@ export default function EstimateDetail() {
     const [adjHasElevatorPickup, setAdjHasElevatorPickup] = useState(false);
     const [adjFloorDelivery, setAdjFloorDelivery] = useState(1);
     const [adjHasElevatorDelivery, setAdjHasElevatorDelivery] = useState(false);
+
+    // 合計金額を自動計算
+    const calculatedTotal = useMemo(() => {
+        return Object.values(feeBreakdown).reduce((sum, val) => sum + (val || 0), 0);
+    }, [feeBreakdown]);
 
     // データ取得
     const fetchData = useCallback(async () => {
@@ -523,14 +527,31 @@ export default function EstimateDetail() {
         fetchData();
     }, [fetchData]);
 
+    // 料金内訳の個別更新
+    const updateFeeItem = (key: keyof FeeBreakdown, value: string) => {
+        const numValue = parseInt(value) || 0;
+        setFeeBreakdown(prev => ({ ...prev, [key]: numValue }));
+    };
+
     // カルテの編集ハンドラー
     const handleCardEdit = (field: string) => {
         if (!estimate) return;
 
         switch (field) {
             case 'fee':
-                setNewFee(String(estimate.final_fee || estimate.total_fee || ''));
-                setNewExpresswayFee(String(estimate.expressway_fee || ''));
+                setFeeBreakdown({
+                    baseFee: estimate.base_fee || 0,
+                    planFee: estimate.plan_fee || 0,
+                    packingFee: estimate.packing_fee || 0,
+                    timeSlotFee: estimate.time_slot_fee || 0,
+                    weekendHolidayFee: estimate.weekend_holiday_fee || 0,
+                    floorPickupFee: estimate.floor_pickup_fee || 0,
+                    floorDeliveryFee: estimate.floor_delivery_fee || 0,
+                    storageFee: estimate.storage_fee || 0,
+                    busySeasonFee: estimate.busy_season_fee || 0,
+                    expresswayFee: estimate.expressway_fee || 0,
+                    distanceFee: estimate.distance_fee || 0,
+                });
                 setFeeReason('');
                 setEditFeeModal(true);
                 break;
@@ -557,14 +578,11 @@ export default function EstimateDetail() {
         }
     };
 
-    // 金額変更
+    // 金額変更（内訳から合計を計算して保存）
     const handleFeeSubmit = async () => {
-        if (!estimateId || !newFee) return;
-        const expresswayFeeValue = newExpresswayFee ? parseInt(newExpresswayFee) : undefined;
-        await updateFee(estimateId, parseInt(newFee), feeReason, expresswayFeeValue);
+        if (!estimateId) return;
+        await updateFee(estimateId, calculatedTotal, feeReason, feeBreakdown.expresswayFee);
         setEditFeeModal(false);
-        setNewFee('');
-        setNewExpresswayFee('');
         setFeeReason('');
         fetchData();
     };
@@ -820,7 +838,23 @@ export default function EstimateDetail() {
                             <div className="space-y-2">
                                 {memos.map((memo) => (
                                     <div key={memo.id} className="bg-gray-50 p-3 rounded">
-                                        <p className="text-gray-700">{memo.content}</p>
+                                        <div className="flex justify-between items-start">
+                                            <p className="text-gray-700 flex-1 break-words">{memo.content}</p>
+                                            <div className="flex gap-1 ml-2 flex-shrink-0">
+                                                <button
+                                                    onClick={() => openEditMemoModal(memo)}
+                                                    className="text-gray-400 hover:text-blue-600 p-1"
+                                                >
+                                                    <Edit className="w-3 h-3" />
+                                                </button>
+                                                <button
+                                                    onClick={() => openDeleteMemoModal(memo)}
+                                                    className="text-gray-400 hover:text-red-600 p-1"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
                                         <p className="text-gray-400 text-xs mt-1">{formatDateTime(memo.created_at)}</p>
                                     </div>
                                 ))}
@@ -836,8 +870,8 @@ export default function EstimateDetail() {
                             <div className="space-y-2">
                                 {actionLogs.map((log) => (
                                     <div key={log.id} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-gray-700">{log.description || log.action_type}</span>
-                                        <span className="text-gray-400 text-sm">{formatDateTime(log.created_at)}</span>
+                                        <span className="text-gray-700 break-words flex-1">{log.description || log.action_type}</span>
+                                        <span className="text-gray-400 text-sm flex-shrink-0 ml-2">{formatDateTime(log.created_at)}</span>
                                     </div>
                                 ))}
                             </div>
@@ -875,37 +909,41 @@ export default function EstimateDetail() {
 
                     {/* ===== モーダル群 ===== */}
 
-                    {/* 金額編集モーダル */}
+                    {/* 金額編集モーダル（内訳編集版） */}
                     <Dialog open={editFeeModal} onOpenChange={setEditFeeModal}>
-                        <DialogContent>
+                        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>金額を変更</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">高速道路料金</label>
-                                    <Input
-                                        type="number"
-                                        value={newExpresswayFee}
-                                        onChange={(e) => setNewExpresswayFee(e.target.value)}
-                                        placeholder="例: 3000"
-                                    />
+                            <div className="space-y-3">
+                                {(Object.keys(feeLabels) as Array<keyof FeeBreakdown>).map((key) => (
+                                    <div key={key} className="flex items-center gap-2">
+                                        <label className="text-sm text-gray-600 w-32 flex-shrink-0">{feeLabels[key]}</label>
+                                        <Input
+                                            type="number"
+                                            value={feeBreakdown[key] || ''}
+                                            onChange={(e) => updateFeeItem(key, e.target.value)}
+                                            placeholder="0"
+                                            className="flex-1"
+                                        />
+                                        <span className="text-sm text-gray-500">円</span>
+                                    </div>
+                                ))}
+
+                                <div className="border-t pt-3 mt-3">
+                                    <div className="flex justify-between items-center text-lg font-bold">
+                                        <span>合計金額</span>
+                                        <span className="text-orange-600">{formatFee(calculatedTotal)}</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">新しい金額</label>
-                                    <Input
-                                        type="number"
-                                        value={newFee}
-                                        onChange={(e) => setNewFee(e.target.value)}
-                                        placeholder="例: 25000"
-                                    />
-                                </div>
+
                                 <div>
                                     <label className="block text-sm font-medium mb-1">変更理由</label>
                                     <Textarea
                                         value={feeReason}
                                         onChange={(e) => setFeeReason(e.target.value)}
                                         placeholder="例: 繁忙期割引適用"
+                                        rows={2}
                                     />
                                 </div>
                             </div>
@@ -1075,6 +1113,41 @@ export default function EstimateDetail() {
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setAddMemoModal(false)}>キャンセル</Button>
                                 <Button onClick={handleMemoSubmit}>追加</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* メモ編集モーダル */}
+                    <Dialog open={editMemoModal} onOpenChange={setEditMemoModal}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>メモを編集</DialogTitle>
+                            </DialogHeader>
+                            <Textarea
+                                value={memoContent}
+                                onChange={(e) => setMemoContent(e.target.value)}
+                                placeholder="メモを入力..."
+                                rows={4}
+                            />
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setEditMemoModal(false)}>キャンセル</Button>
+                                <Button onClick={handleMemoUpdate}>保存</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* メモ削除確認モーダル */}
+                    <Dialog open={deleteMemoModal} onOpenChange={setDeleteMemoModal}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>メモを削除</DialogTitle>
+                                <DialogDescription>
+                                    このメモを削除します。よろしいですか？
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setDeleteMemoModal(false)}>キャンセル</Button>
+                                <Button variant="destructive" onClick={handleMemoDelete}>削除</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
