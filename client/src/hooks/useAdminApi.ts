@@ -233,6 +233,30 @@ export function useEstimates() {
         }
     }, []);
 
+    const saveSnapshot = useCallback(async (id: string): Promise<boolean> => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await authFetch(`${API_BASE_URL}/api/admin/estimates/${id}/snapshot`, {
+                method: 'POST',
+            });
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to save snapshot');
+            }
+
+            return true;
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'エラーが発生しました';
+            setError(message);
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     const updateAdjustment = useCallback(async (
         id: string,
         adjustmentData: AdjustmentData
@@ -269,6 +293,7 @@ export function useEstimates() {
         updateStatus,
         updateFee,
         updateAdjustment,
+        saveSnapshot,
     };
 }
 

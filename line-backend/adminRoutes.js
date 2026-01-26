@@ -996,6 +996,76 @@ router.get('/estimates/:id/proposals', authMiddleware, async (req, res) => {
     }
 });
 
+// 編集前のスナップショットを保存
+router.post('/estimates/:id/snapshot', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const supabase = getSupabase();
+
+        // 現在の見積もりデータを取得
+        const { data: estimate, error: fetchError } = await supabase
+            .from('estimates')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !estimate) {
+            return res.status(404).json({ success: false, error: 'Estimate not found' });
+        }
+
+        // 現在のスナップショット数を取得
+        const { data: existing } = await supabase
+            .from('estimate_proposals')
+            .select('proposal_number')
+            .eq('estimate_id', id)
+            .order('proposal_number', { ascending: false })
+            .limit(1);
+
+        const nextNumber = existing && existing.length > 0 ? existing[0].proposal_number + 1 : 1;
+
+        // スナップショットを保存
+        const { data, error } = await supabase
+            .from('estimate_proposals')
+            .insert({
+                id: `snap_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                estimate_id: id,
+                proposal_number: nextNumber,
+                pickup_date: estimate.adjusted_pickup_date || estimate.pickup_date,
+                delivery_date: estimate.adjusted_delivery_date || estimate.delivery_date,
+                pickup_time_slot: estimate.pickup_time_slot,
+                delivery_time_slot: estimate.delivery_time_slot,
+                floor_pickup: estimate.adjusted_floor_pickup ?? estimate.floor_pickup ?? 1,
+                has_elevator_pickup: estimate.adjusted_has_elevator_pickup ?? estimate.has_elevator_pickup ?? false,
+                floor_delivery: estimate.adjusted_floor_delivery ?? estimate.floor_delivery ?? 1,
+                has_elevator_delivery: estimate.adjusted_has_elevator_delivery ?? estimate.has_elevator_delivery ?? false,
+                plan: estimate.adjusted_plan || estimate.plan || 'helper',
+                needs_packing: estimate.adjusted_needs_packing ?? estimate.needs_packing ?? false,
+                total_fee: estimate.final_fee || estimate.total_fee || 0,
+                expressway_fee: estimate.expressway_fee || 0,
+                base_fee: estimate.base_fee || 0,
+                plan_fee: estimate.plan_fee || 0,
+                packing_fee: estimate.packing_fee || 0,
+                time_slot_fee: estimate.time_slot_fee || 0,
+                weekend_holiday_fee: estimate.weekend_holiday_fee || 0,
+                floor_pickup_fee: estimate.floor_pickup_fee || 0,
+                floor_delivery_fee: estimate.floor_delivery_fee || 0,
+                storage_fee: estimate.storage_fee || 0,
+                busy_season_fee: estimate.busy_season_fee || 0,
+                distance_fee: estimate.distance_fee || 0,
+                snapshot_type: 'edit_history',
+                status: 'archived',
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, snapshot: data });
+    } catch (err) {
+        console.error('Error creating snapshot:', err);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
 // 新規提案を作成
 router.post('/estimates/:id/proposals', authMiddleware, async (req, res) => {
     try {
