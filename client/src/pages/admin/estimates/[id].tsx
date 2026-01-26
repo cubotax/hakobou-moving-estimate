@@ -926,106 +926,49 @@ export default function EstimateDetail() {
                             <p className="text-gray-400 text-sm">変更履歴はありません</p>
                         ) : (
                             <div className="space-y-4">
-                                {[...proposals].reverse().map((proposal) => (
-                                    <div key={proposal.id} className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-4">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <span className="font-medium text-gray-700">
-                                                履歴 #{proposal.proposal_number}
-                                            </span>
-                                            <span className="text-sm text-gray-500">
-                                                {formatDateTime(proposal.created_at)}
-                                            </span>
-                                        </div>
+                                {[...proposals].reverse().map((proposal) => {
+                                    // proposalデータをestimate形式に変換
+                                    const proposalAsEstimate = {
+                                        ...estimate,
+                                        // 提案時点のデータで上書き
+                                        adjusted_pickup_date: proposal.pickup_date,
+                                        adjusted_delivery_date: proposal.delivery_date,
+                                        pickup_time_slot: proposal.pickup_time_slot,
+                                        delivery_time_slot: proposal.delivery_time_slot,
+                                        adjusted_floor_pickup: proposal.floor_pickup,
+                                        adjusted_has_elevator_pickup: proposal.has_elevator_pickup,
+                                        adjusted_floor_delivery: proposal.floor_delivery,
+                                        adjusted_has_elevator_delivery: proposal.has_elevator_delivery,
+                                        adjusted_plan: proposal.plan,
+                                        adjusted_needs_packing: proposal.needs_packing,
+                                        final_fee: proposal.total_fee,
+                                        total_fee: proposal.total_fee,
+                                        expressway_fee: proposal.expressway_fee || 0,
+                                        base_fee: proposal.base_fee || 0,
+                                        plan_fee: proposal.plan_fee || 0,
+                                        packing_fee: proposal.packing_fee || 0,
+                                        time_slot_fee: proposal.time_slot_fee || 0,
+                                        weekend_holiday_fee: proposal.weekend_holiday_fee || 0,
+                                        floor_pickup_fee: proposal.floor_pickup_fee || 0,
+                                        floor_delivery_fee: proposal.floor_delivery_fee || 0,
+                                        storage_fee: proposal.storage_fee || 0,
+                                        busy_season_fee: proposal.busy_season_fee || 0,
+                                        distance_fee: proposal.distance_fee || 0,
+                                        created_at: proposal.created_at,
+                                    };
 
-                                        {/* 金額 */}
-                                        <div className="bg-white rounded-lg p-3 mb-3 border border-gray-100">
-                                            <div className="text-xl font-bold text-gray-700">{formatFee(proposal.total_fee)}</div>
-                                            <div className="mt-2 space-y-1 text-sm">
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">基本料金</span>
-                                                    <span>{formatFee(proposal.base_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">お任せプラン</span>
-                                                    <span>{formatFee(proposal.plan_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">梱包サービス</span>
-                                                    <span>{formatFee(proposal.packing_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">時間指定</span>
-                                                    <span>{formatFee(proposal.time_slot_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">土日祝加算</span>
-                                                    <span>{formatFee(proposal.weekend_holiday_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">集荷先階数料金</span>
-                                                    <span>{formatFee(proposal.floor_pickup_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">届け先階数料金</span>
-                                                    <span>{formatFee(proposal.floor_delivery_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">積み置き料金</span>
-                                                    <span>{formatFee(proposal.storage_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">繁忙期加算</span>
-                                                    <span>{formatFee(proposal.busy_season_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">高速道路料金</span>
-                                                    <span>{formatFee(proposal.expressway_fee || 0)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">距離超過料金</span>
-                                                    <span>{formatFee(proposal.distance_fee || 0)}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* 日程・条件 */}
-                                        <div className="grid grid-cols-2 gap-3 text-sm">
-                                            <div className="bg-white rounded-lg p-2 border border-gray-100">
-                                                <div className="text-gray-500 text-xs">集荷日</div>
-                                                <div className="font-medium">{formatDate(proposal.pickup_date)}</div>
-                                                <div className="text-gray-600 text-xs">{timeSlotLabels[proposal.pickup_time_slot] || ''}</div>
-                                            </div>
-                                            <div className="bg-white rounded-lg p-2 border border-gray-100">
-                                                <div className="text-gray-500 text-xs">お届け日</div>
-                                                <div className="font-medium">{formatDate(proposal.delivery_date)}</div>
-                                                <div className="text-gray-600 text-xs">{timeSlotLabels[proposal.delivery_time_slot] || ''}</div>
-                                            </div>
-                                            <div className="bg-white rounded-lg p-2 border border-gray-100">
-                                                <div className="text-gray-500 text-xs">プラン</div>
-                                                <div className="font-medium">{planLabels[proposal.plan] || 'ヘルパープラン'}</div>
-                                            </div>
-                                            <div className="bg-white rounded-lg p-2 border border-gray-100">
-                                                <div className="text-gray-500 text-xs">梱包</div>
-                                                <div className="font-medium">{proposal.needs_packing ? '利用する' : '利用しない'}</div>
-                                            </div>
-                                            <div className="bg-white rounded-lg p-2 border border-gray-100">
-                                                <div className="text-gray-500 text-xs">集荷先</div>
-                                                <div className="font-medium">{proposal.floor_pickup}階 / EV:{proposal.has_elevator_pickup ? 'あり' : 'なし'}</div>
-                                            </div>
-                                            <div className="bg-white rounded-lg p-2 border border-gray-100">
-                                                <div className="text-gray-500 text-xs">届け先</div>
-                                                <div className="font-medium">{proposal.floor_delivery}階 / EV:{proposal.has_elevator_delivery ? 'あり' : 'なし'}</div>
-                                            </div>
-                                        </div>
-
-                                        {proposal.message && (
-                                            <div className="mt-3 p-2 bg-white rounded border border-gray-100">
-                                                <div className="text-xs text-gray-500 mb-1">メッセージ</div>
-                                                <div className="text-sm break-words">{proposal.message}</div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                    return (
+                                        <CustomerCard
+                                            key={proposal.id}
+                                            estimate={proposalAsEstimate}
+                                            editable={false}
+                                            title="変更履歴"
+                                            proposalNumber={proposal.proposal_number}
+                                            sentAt={proposal.created_at}
+                                            showProposalButton={false}
+                                        />
+                                    );
+                                })}
                             </div>
                         )}
                     </Section>
