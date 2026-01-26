@@ -766,49 +766,6 @@ export default function EstimateDetail() {
                         </span>
                     </div>
 
-                    {/* アクションボタン */}
-                    <Section title="アクション">
-                        <div className="grid grid-cols-2 gap-2">
-                            <Button
-                                onClick={() => setSendModal('invite')}
-                                disabled={!estimate.line_user_id}
-                                className="w-full"
-                                size="sm"
-                            >
-                                <Send className="w-4 h-4 mr-1" />
-                                申込案内
-                            </Button>
-                            <Button
-                                onClick={() => setSendModal('payment')}
-                                disabled={!estimate.line_user_id}
-                                className="w-full"
-                                size="sm"
-                            >
-                                <Send className="w-4 h-4 mr-1" />
-                                決済案内
-                            </Button>
-                            <Button
-                                onClick={() => setProposalMessageModal(true)}
-                                disabled={!estimate.line_user_id}
-                                variant="outline"
-                                className="w-full"
-                                size="sm"
-                            >
-                                <FileText className="w-4 h-4 mr-1" />
-                                再提案
-                            </Button>
-                            <Button
-                                onClick={() => setCancelModal(true)}
-                                variant="destructive"
-                                className="w-full"
-                                size="sm"
-                            >
-                                <XCircle className="w-4 h-4 mr-1" />
-                                キャンセル
-                            </Button>
-                        </div>
-                    </Section>
-
                     {/* 基本情報 */}
                     <Section title="基本情報">
                         <InfoRow label="見積ID" value={estimate.id} />
@@ -823,6 +780,23 @@ export default function EstimateDetail() {
                         title="顧客カルテ"
                     />
 
+                    {/* 再提案ボタン */}
+                    <div className="mb-4">
+                        <Button
+                            onClick={() => setProposalMessageModal(true)}
+                            disabled={!estimate.line_user_id}
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6 text-lg font-bold"
+                            size="lg"
+                        >
+                            <Send className="w-5 h-5 mr-2" />
+                            顧客に再提案する
+                        </Button>
+                        {!estimate.line_user_id && (
+                            <p className="text-sm text-gray-500 text-center mt-2">
+                                LINE連携されていないため再提案できません
+                            </p>
+                        )}
+                    </div>
                     {/* 管理者メモ */}
                     <Section
                         title="管理者メモ"
@@ -877,6 +851,40 @@ export default function EstimateDetail() {
                             </div>
                         )}
                     </Section>
+
+                    {/* アクションボタン */}
+                    <Section title="アクション">
+                        <div className="grid grid-cols-3 gap-2">
+                            <Button
+                                onClick={() => setSendModal('invite')}
+                                disabled={!estimate.line_user_id}
+                                className="w-full"
+                                size="sm"
+                            >
+                                <Send className="w-4 h-4 mr-1" />
+                                申込案内
+                            </Button>
+                            <Button
+                                onClick={() => setSendModal('payment')}
+                                disabled={!estimate.line_user_id}
+                                className="w-full"
+                                size="sm"
+                            >
+                                <Send className="w-4 h-4 mr-1" />
+                                決済案内
+                            </Button>
+                            <Button
+                                onClick={() => setCancelModal(true)}
+                                variant="destructive"
+                                className="w-full"
+                                size="sm"
+                            >
+                                <XCircle className="w-4 h-4 mr-1" />
+                                キャンセル
+                            </Button>
+                        </div>
+                    </Section>
+
 
                     {/* 送信履歴 */}
                     <Section title="送信履歴">

@@ -9,7 +9,7 @@ import { validateCoupon, getPricingSettings } from './adminDb.js';
 const router = express.Router();
 
 // ============================================
-// NAVITIME API 距離計算
+// MapFan API 距離計算
 // ============================================
 
 /**
@@ -54,73 +54,54 @@ async function getCoordinatesFromAddress(address) {
 }
 
 /**
- * NAVITIME APIで距離を取得
+ * MapFan APIで距離と高速料金を取得
  */
-async function getDistanceFromNavitime(startCoord, goalCoord) {
+async function getDistanceFromMapFan(startCoord, goalCoord) {
     const apiKey = process.env.RAPIDAPI_KEY;
 
     if (!apiKey) {
         throw new Error('RAPIDAPI_KEY is not configured');
     }
 
-    // etc=use でETC料金取得、car_type=2 で普通車、condition=toll_time で高速優先
-    const url = `https://navitime-route-car.p.rapidapi.com/route_car?start=${startCoord.lat},${startCoord.lon}&goal=${goalCoord.lat},${goalCoord.lon}&datum=wgs84&coord_unit=degree&etc=use&car_type=2&condition=toll_time`;
+    // MapFan API: start/destination は「経度,緯度」の順
+    const url = `https://mapfanapi-route.p.rapidapi.com/altcalcroute?start=${startCoord.lon},${startCoord.lat}&destination=${goalCoord.lon},${goalCoord.lat}&fmt=json`;
 
-    console.log('[NAVITIME] Request URL:', url);
+    console.log('[MapFan] Request URL:', url);
 
     const response = await fetch(url, {
         method: 'GET',
         headers: {
-            'x-rapidapi-host': 'navitime-route-car.p.rapidapi.com',
+            'x-rapidapi-host': 'mapfanapi-route.p.rapidapi.com',
             'x-rapidapi-key': apiKey
         }
     });
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`NAVITIME API error: ${response.status} - ${errorText}`);
+        throw new Error(`MapFan API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
 
-    // ルート情報から距離を取得
-    if (!data.items || data.items.length === 0) {
+    if (data.status !== 'success' || !data.result || data.result.length === 0) {
         throw new Error('ルートが見つかりません');
     }
 
-    const route = data.items[0];
+    const route = data.result[0];
     const summary = route.summary;
 
     // 距離（メートル→キロメートル）
-    const distanceMeters = summary?.move?.distance || 0;
+    const distanceMeters = summary?.totalDistance || 0;
     const distanceKm = Math.round(distanceMeters / 100) / 10;
 
     // 所要時間（秒→分）
-    const durationSeconds = summary?.move?.time || 0;
+    const durationSeconds = summary?.totalTravelTime || 0;
     const durationMinutes = Math.round(durationSeconds / 60);
 
-    // 高速料金を取得（軽自動車ETC: unit_1064_1 または unit_1025_1）
+    // 高速料金を取得
     let highwayFee = null;
-
-    if (route.fares && route.fares.length > 0) {
-        for (const fare of route.fares) {
-            // type="move" のエントリから料金を取得
-            if (fare.type === 'move' && fare.detail?.fare) {
-                const fareData = fare.detail.fare;
-                // 軽自動車ETC料金を優先（unit_1064_1 または unit_1025_1）
-                const amount = fareData.unit_1064_1 || fareData.unit_1025_1 || 0;
-                if (amount > 0) {
-                    highwayFee = (highwayFee || 0) + amount;
-                }
-            }
-        }
-    }
-
-    // summaryにtoll情報がある場合（フォールバック）
-    if (highwayFee === null || highwayFee === 0) {
-        if (summary?.move?.toll_road_distance > 0 && summary?.move?.fare) {
-            highwayFee = summary.move.fare;
-        }
+    if (summary?.totalToll?.toll) {
+        highwayFee = summary.totalToll.toll;
     }
 
     // 0の場合はnullに変換
@@ -128,7 +109,7 @@ async function getDistanceFromNavitime(startCoord, goalCoord) {
         highwayFee = null;
     }
 
-    console.log(`[NAVITIME] Result - Distance: ${distanceKm}km, Duration: ${durationMinutes}min, Highway: ${highwayFee}`);
+    console.log(`[MapFan] Result - Distance: ${distanceKm}km, Duration: ${durationMinutes}min, Highway: ${highwayFee}`);
 
     return {
         distanceKm,
@@ -170,19 +151,19 @@ router.post('/distance', async (req, res) => {
 
         console.log(`[Distance API] Coordinates: (${originCoord.lat}, ${originCoord.lon}) → (${destCoord.lat}, ${destCoord.lon})`);
 
-        // 3. NAVITIME APIで距離を取得
-        const navitimeResult = await getDistanceFromNavitime(originCoord, destCoord);
+        // 3. MapFan APIで距離と高速料金を取得
+        const mapfanResult = await getDistanceFromMapFan(originCoord, destCoord);
 
-        console.log(`[Distance API] Result: ${navitimeResult.distanceKm}km, highway fee: ${navitimeResult.highwayFee}`);
+        console.log(`[Distance API] Result: ${mapfanResult.distanceKm}km, highway fee: ${mapfanResult.highwayFee}`);
 
         // 4. 県外判定
         const isInterPrefecture = originAddress.prefecture !== destAddress.prefecture;
 
         res.json({
             success: true,
-            distanceKm: navitimeResult.distanceKm,
-            highwayFee: navitimeResult.highwayFee,
-            durationMinutes: navitimeResult.durationMinutes,
+            distanceKm: mapfanResult.distanceKm,
+            highwayFee: mapfanResult.highwayFee,
+            durationMinutes: mapfanResult.durationMinutes,
             isInterPrefecture,
             origin: {
                 postalCode: originPostalCode,

@@ -293,13 +293,15 @@ function processHighwayFee(distance: DistanceResult): {
   breakdown: FeeBreakdownItem | null;
   note?: string;
 } {
-  const { isInterPrefecture, highwayFee } = distance;
+  const { isInterPrefecture, highwayFee, distanceKm } = distance;
 
+  // 県外のみ加算の設定がある場合
   if (!isInterPrefecture && HIGHWAY_FEE_CONFIG.onlyInterPrefecture) {
     return { fee: 0, breakdown: null };
   }
 
-  if (highwayFee !== null && highwayFee > 0) {
+  // 100km以上かつhighwayFeeがある場合のみ加算
+  if (distanceKm >= 100 && highwayFee !== null && highwayFee > 0) {
     const roundedHighwayFee = Math.floor(highwayFee / 100) * 100;
     return {
       fee: roundedHighwayFee,
@@ -311,11 +313,12 @@ function processHighwayFee(distance: DistanceResult): {
     };
   }
 
+  // 100km未満または高速料金がない場合
   if (HIGHWAY_FEE_CONFIG.treatUnavailableAsZero) {
     return {
       fee: 0,
       breakdown: null,
-      note: HIGHWAY_FEE_CONFIG.unavailableText,
+      note: distanceKm < 100 ? undefined : HIGHWAY_FEE_CONFIG.unavailableText,
     };
   }
 
