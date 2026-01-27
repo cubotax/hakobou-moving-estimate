@@ -133,6 +133,7 @@ const CustomerCard = ({
     proposalNumber,
     sentAt,
     showProposalButton = false,
+    showCreatedAt = true,
     onProposalClick,
 }: {
     estimate: Estimate;
@@ -142,8 +143,10 @@ const CustomerCard = ({
     proposalNumber?: number;
     sentAt?: string;
     showProposalButton?: boolean;
+    showCreatedAt?: boolean;
     onProposalClick?: () => void;
 }) => {
+
     const pickupDate = estimate.adjusted_pickup_date || estimate.pickup_date;
     const deliveryDate = estimate.adjusted_delivery_date || estimate.delivery_date;
     const plan = estimate.adjusted_plan || estimate.plan || 'helper';
@@ -186,7 +189,7 @@ const CustomerCard = ({
             </div>
 
             {/* 作成日時 */}
-            {estimate.created_at && (
+            {showCreatedAt && estimate.created_at && (
                 <div className="bg-white rounded-lg p-3 mb-4 border border-orange-100">
                     <div className="flex justify-between items-center">
                         <span className="text-gray-600 text-sm">作成日時</span>
@@ -807,476 +810,476 @@ export default function EstimateDetail() {
                     </Section>
 
                     {/* アクションボタン */}
-                    <Section title="アクション">
-                        <div className="grid grid-cols-3 gap-2">
-                            <Button
-                                onClick={() => setSendModal('invite')}
-                                disabled={!estimate.line_user_id}
-                                className="w-full"
-                                size="sm"
-                            >
-                                <Send className="w-4 h-4 mr-1" />
-                                申込案内
-                            </Button>
-                            <Button
-                                onClick={() => setSendModal('payment')}
-                                disabled={!estimate.line_user_id}
-                                className="w-full"
-                                size="sm"
-                            >
-                                <Send className="w-4 h-4 mr-1" />
-                                決済案内
-                            </Button>
-                            <Button
-                                onClick={() => setCancelModal(true)}
-                                variant="destructive"
-                                className="w-full"
-                                size="sm"
-                            >
-                                <XCircle className="w-4 h-4 mr-1" />
-                                キャンセル
-                            </Button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <Button
+                            onClick={() => setSendModal('invite')}
+                            disabled={!estimate.line_user_id}
+                            className="flex-1 text-xs sm:text-sm"
+                            size="sm"
+                        >
+                            <Send className="w-4 h-4 mr-1 flex-shrink-0" />
+                            <span>申込案内</span>
+                        </Button>
+                        <Button
+                            onClick={() => setSendModal('payment')}
+                            disabled={!estimate.line_user_id}
+                            className="flex-1 text-xs sm:text-sm"
+                            size="sm"
+                        >
+                            <Send className="w-4 h-4 mr-1 flex-shrink-0" />
+                            <span>決済案内</span>
+                        </Button>
+                        <Button
+                            onClick={() => setCancelModal(true)}
+                            variant="destructive"
+                            className="flex-1 text-xs sm:text-sm"
+                            size="sm"
+                        >
+                            <XCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                            <span>キャンセル</span>
+                        </Button>
+                    </div>
+                </Section>
+
+                {/* 顧客カルテ（編集可能・再提案ボタン内蔵） */}
+                <CustomerCard
+                    estimate={estimate}
+                    onEdit={handleCardEdit}
+                    editable={true}
+                    title="顧客カルテ"
+                    showProposalButton={true}
+                    onProposalClick={() => setProposalMessageModal(true)}
+                />
+
+                {/* 管理者メモ */}
+                <Section
+                    title="管理者メモ"
+                    action={
+                        <Button size="sm" variant="ghost" onClick={() => setAddMemoModal(true)}>
+                            <Plus className="w-4 h-4" />
+                        </Button>
+                    }
+                >
+                    {memos.length === 0 ? (
+                        <p className="text-gray-400 text-sm">メモはありません</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {memos.map((memo) => (
+                                <div key={memo.id} className="bg-gray-50 p-3 rounded">
+                                    <div className="flex justify-between items-start">
+                                        <p className="text-gray-700 flex-1 break-words">{memo.content}</p>
+                                        <div className="flex gap-1 ml-2 flex-shrink-0">
+                                            <button
+                                                onClick={() => openEditMemoModal(memo)}
+                                                className="text-gray-400 hover:text-blue-600 p-1"
+                                            >
+                                                <Edit className="w-3 h-3" />
+                                            </button>
+                                            <button
+                                                onClick={() => openDeleteMemoModal(memo)}
+                                                className="text-gray-400 hover:text-red-600 p-1"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p className="text-gray-400 text-xs mt-1">{formatDateTime(memo.created_at)}</p>
+                                </div>
+                            ))}
                         </div>
-                    </Section>
+                    )}
+                </Section>
 
-                    {/* 顧客カルテ（編集可能・再提案ボタン内蔵） */}
-                    <CustomerCard
-                        estimate={estimate}
-                        onEdit={handleCardEdit}
-                        editable={true}
-                        title="顧客カルテ"
-                        showProposalButton={true}
-                        onProposalClick={() => setProposalMessageModal(true)}
-                    />
+                {/* アクション履歴 */}
+                <Section title="アクション履歴">
+                    {actionLogs.length === 0 ? (
+                        <p className="text-gray-400 text-sm">アクション履歴はありません</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {actionLogs.map((log) => (
+                                <div key={log.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-gray-700 break-words flex-1">{log.description || log.action_type}</span>
+                                    <span className="text-gray-400 text-sm flex-shrink-0 ml-2">{formatDateTime(log.created_at)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </Section>
 
-                    {/* 管理者メモ */}
-                    <Section
-                        title="管理者メモ"
-                        action={
-                            <Button size="sm" variant="ghost" onClick={() => setAddMemoModal(true)}>
-                                <Plus className="w-4 h-4" />
-                            </Button>
-                        }
-                    >
-                        {memos.length === 0 ? (
-                            <p className="text-gray-400 text-sm">メモはありません</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {memos.map((memo) => (
-                                    <div key={memo.id} className="bg-gray-50 p-3 rounded">
-                                        <div className="flex justify-between items-start">
-                                            <p className="text-gray-700 flex-1 break-words">{memo.content}</p>
-                                            <div className="flex gap-1 ml-2 flex-shrink-0">
-                                                <button
-                                                    onClick={() => openEditMemoModal(memo)}
-                                                    className="text-gray-400 hover:text-blue-600 p-1"
-                                                >
-                                                    <Edit className="w-3 h-3" />
-                                                </button>
-                                                <button
-                                                    onClick={() => openDeleteMemoModal(memo)}
-                                                    className="text-gray-400 hover:text-red-600 p-1"
-                                                >
-                                                    <Trash2 className="w-3 h-3" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <p className="text-gray-400 text-xs mt-1">{formatDateTime(memo.created_at)}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </Section>
+                {/* 送信履歴 */}
+                <Section title="送信履歴">
+                    {logs.length === 0 ? (
+                        <p className="text-gray-400 text-sm">送信履歴はありません</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {logs.map((log) => (
+                                <div key={log.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span>{messageTypeLabels[log.message_type] || log.message_type}</span>
+                                    <span className="text-gray-400 text-sm">{formatDateTime(log.sent_at)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </Section>
 
-                    {/* アクション履歴 */}
-                    <Section title="アクション履歴">
-                        {actionLogs.length === 0 ? (
-                            <p className="text-gray-400 text-sm">アクション履歴はありません</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {actionLogs.map((log) => (
-                                    <div key={log.id} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-gray-700 break-words flex-1">{log.description || log.action_type}</span>
-                                        <span className="text-gray-400 text-sm flex-shrink-0 ml-2">{formatDateTime(log.created_at)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </Section>
+                {/* 変更履歴 */}
+                <Section title="変更履歴" icon={<FileText className="w-5 h-5 text-gray-600" />}>
+                    {proposals.length === 0 ? (
+                        <p className="text-gray-400 text-sm">変更履歴はありません</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {[...proposals].reverse().map((proposal) => {
+                                // proposalデータをestimate形式に変換
+                                const proposalAsEstimate = {
+                                    ...estimate,
+                                    // 提案時点のデータで上書き
+                                    adjusted_pickup_date: proposal.pickup_date,
+                                    adjusted_delivery_date: proposal.delivery_date,
+                                    pickup_time_slot: proposal.pickup_time_slot,
+                                    delivery_time_slot: proposal.delivery_time_slot,
+                                    adjusted_floor_pickup: proposal.floor_pickup,
+                                    adjusted_has_elevator_pickup: proposal.has_elevator_pickup,
+                                    adjusted_floor_delivery: proposal.floor_delivery,
+                                    adjusted_has_elevator_delivery: proposal.has_elevator_delivery,
+                                    adjusted_plan: proposal.plan,
+                                    adjusted_needs_packing: proposal.needs_packing,
+                                    final_fee: proposal.total_fee,
+                                    total_fee: proposal.total_fee,
+                                    expressway_fee: proposal.expressway_fee || 0,
+                                    base_fee: proposal.base_fee || 0,
+                                    plan_fee: proposal.plan_fee || 0,
+                                    packing_fee: proposal.packing_fee || 0,
+                                    time_slot_fee: proposal.time_slot_fee || 0,
+                                    weekend_holiday_fee: proposal.weekend_holiday_fee || 0,
+                                    floor_pickup_fee: proposal.floor_pickup_fee || 0,
+                                    floor_delivery_fee: proposal.floor_delivery_fee || 0,
+                                    storage_fee: proposal.storage_fee || 0,
+                                    busy_season_fee: proposal.busy_season_fee || 0,
+                                    distance_fee: proposal.distance_fee || 0,
+                                    created_at: proposal.created_at,
+                                };
 
-                    {/* 送信履歴 */}
-                    <Section title="送信履歴">
-                        {logs.length === 0 ? (
-                            <p className="text-gray-400 text-sm">送信履歴はありません</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {logs.map((log) => (
-                                    <div key={log.id} className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span>{messageTypeLabels[log.message_type] || log.message_type}</span>
-                                        <span className="text-gray-400 text-sm">{formatDateTime(log.sent_at)}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </Section>
+                                return (
+                                    <CustomerCard
+                                        key={proposal.id}
+                                        estimate={proposalAsEstimate}
+                                        editable={false}
+                                        title="変更履歴"
+                                        proposalNumber={proposal.proposal_number}
+                                        sentAt={proposal.created_at}
+                                        showProposalButton={false}
+                                        showCreatedAt={false}
+                                    />
+                                );
+                            })}
+                        </div>
+                    )}
+                </Section>
 
-                    {/* 変更履歴 */}
-                    <Section title="変更履歴" icon={<FileText className="w-5 h-5 text-gray-600" />}>
-                        {proposals.length === 0 ? (
-                            <p className="text-gray-400 text-sm">変更履歴はありません</p>
-                        ) : (
-                            <div className="space-y-4">
-                                {[...proposals].reverse().map((proposal) => {
-                                    // proposalデータをestimate形式に変換
-                                    const proposalAsEstimate = {
-                                        ...estimate,
-                                        // 提案時点のデータで上書き
-                                        adjusted_pickup_date: proposal.pickup_date,
-                                        adjusted_delivery_date: proposal.delivery_date,
-                                        pickup_time_slot: proposal.pickup_time_slot,
-                                        delivery_time_slot: proposal.delivery_time_slot,
-                                        adjusted_floor_pickup: proposal.floor_pickup,
-                                        adjusted_has_elevator_pickup: proposal.has_elevator_pickup,
-                                        adjusted_floor_delivery: proposal.floor_delivery,
-                                        adjusted_has_elevator_delivery: proposal.has_elevator_delivery,
-                                        adjusted_plan: proposal.plan,
-                                        adjusted_needs_packing: proposal.needs_packing,
-                                        final_fee: proposal.total_fee,
-                                        total_fee: proposal.total_fee,
-                                        expressway_fee: proposal.expressway_fee || 0,
-                                        base_fee: proposal.base_fee || 0,
-                                        plan_fee: proposal.plan_fee || 0,
-                                        packing_fee: proposal.packing_fee || 0,
-                                        time_slot_fee: proposal.time_slot_fee || 0,
-                                        weekend_holiday_fee: proposal.weekend_holiday_fee || 0,
-                                        floor_pickup_fee: proposal.floor_pickup_fee || 0,
-                                        floor_delivery_fee: proposal.floor_delivery_fee || 0,
-                                        storage_fee: proposal.storage_fee || 0,
-                                        busy_season_fee: proposal.busy_season_fee || 0,
-                                        distance_fee: proposal.distance_fee || 0,
-                                        created_at: proposal.created_at,
-                                    };
+                {/* ===== モーダル群 ===== */}
 
-                                    return (
-                                        <CustomerCard
-                                            key={proposal.id}
-                                            estimate={proposalAsEstimate}
-                                            editable={false}
-                                            title="変更履歴"
-                                            proposalNumber={proposal.proposal_number}
-                                            sentAt={proposal.created_at}
-                                            showProposalButton={false}
+                {/* 金額編集モーダル */}
+                <Dialog open={editFeeModal} onOpenChange={setEditFeeModal}>
+                    <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle>金額を変更</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            {(Object.keys(feeLabels) as Array<keyof FeeBreakdown>).map((key) => (
+                                <div key={key} className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        {feeLabels[key]}
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            value={feeBreakdown[key] || ''}
+                                            onChange={(e) => updateFeeItem(key, e.target.value)}
+                                            placeholder="0"
+                                            className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right placeholder:text-gray-400"
                                         />
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </Section>
-
-                    {/* ===== モーダル群 ===== */}
-
-                    {/* 金額編集モーダル */}
-                    <Dialog open={editFeeModal} onOpenChange={setEditFeeModal}>
-                        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle>金額を変更</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                {(Object.keys(feeLabels) as Array<keyof FeeBreakdown>).map((key) => (
-                                    <div key={key} className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            {feeLabels[key]}
-                                        </label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="number"
-                                                value={feeBreakdown[key] || ''}
-                                                onChange={(e) => updateFeeItem(key, e.target.value)}
-                                                placeholder="0"
-                                                className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right placeholder:text-gray-400"
-                                            />
-                                            <span className="text-gray-500 shrink-0">円</span>
-                                        </div>
-                                    </div>
-                                ))}
-                                <div className="border-t border-gray-200 pt-4 mt-4">
-                                    <div className="flex justify-between items-center text-lg font-bold">
-                                        <span>合計金額</span>
-                                        <span className="text-orange-600">{formatFee(calculatedTotal)}</span>
+                                        <span className="text-gray-500 shrink-0">円</span>
                                     </div>
                                 </div>
-                                <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">変更理由</label>
-                                    <Textarea
-                                        value={feeReason}
-                                        onChange={(e) => setFeeReason(e.target.value)}
-                                        placeholder="例: 繁忙期割引適用"
-                                        rows={2}
-                                        className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                    />
+                            ))}
+                            <div className="border-t border-gray-200 pt-4 mt-4">
+                                <div className="flex justify-between items-center text-lg font-bold">
+                                    <span>合計金額</span>
+                                    <span className="text-orange-600">{formatFee(calculatedTotal)}</span>
                                 </div>
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setEditFeeModal(false)}>キャンセル</Button>
-                                <Button onClick={handleFeeSubmit}>保存</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* 日程編集モーダル */}
-                    <Dialog open={editDateModal} onOpenChange={setEditDateModal}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>日程を調整</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">集荷日</label>
-                                    <Input type="date" value={adjPickupDate} onChange={(e) => setAdjPickupDate(e.target.value)} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">お届け日</label>
-                                    <Input type="date" value={adjDeliveryDate} onChange={(e) => setAdjDeliveryDate(e.target.value)} />
-                                </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">変更理由</label>
+                                <Textarea
+                                    value={feeReason}
+                                    onChange={(e) => setFeeReason(e.target.value)}
+                                    placeholder="例: 繁忙期割引適用"
+                                    rows={2}
+                                    className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                />
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setEditDateModal(false)}>キャンセル</Button>
-                                <Button onClick={handleDateAdjustment}>保存</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditFeeModal(false)}>キャンセル</Button>
+                            <Button onClick={handleFeeSubmit}>保存</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
-                    {/* プラン編集モーダル */}
-                    <Dialog open={editPlanModal} onOpenChange={setEditPlanModal}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>プラン・オプションを調整</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">プラン</label>
-                                    <select
-                                        className="w-full h-10 px-3 border border-gray-300 rounded-md"
-                                        value={adjPlan}
-                                        onChange={(e) => setAdjPlan(e.target.value)}
-                                    >
-                                        <option value="helper">ヘルパープラン</option>
-                                        <option value="full">お任せプラン</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">梱包サービス</label>
-                                    <select
-                                        className="w-full h-10 px-3 border border-gray-300 rounded-md"
-                                        value={adjNeedsPacking ? 'true' : 'false'}
-                                        onChange={(e) => setAdjNeedsPacking(e.target.value === 'true')}
-                                    >
-                                        <option value="false">利用しない</option>
-                                        <option value="true">利用する</option>
-                                    </select>
-                                </div>
+                {/* 日程編集モーダル */}
+                <Dialog open={editDateModal} onOpenChange={setEditDateModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>日程を調整</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">集荷日</label>
+                                <Input type="date" value={adjPickupDate} onChange={(e) => setAdjPickupDate(e.target.value)} />
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setEditPlanModal(false)}>キャンセル</Button>
-                                <Button onClick={handlePlanAdjustment}>保存</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* 集荷条件編集モーダル */}
-                    <Dialog open={editPickupModal} onOpenChange={setEditPickupModal}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>集荷先条件を調整</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">階数</label>
-                                    <select
-                                        className="w-full h-10 px-3 border border-gray-300 rounded-md"
-                                        value={adjFloorPickup}
-                                        onChange={(e) => setAdjFloorPickup(Number(e.target.value))}
-                                    >
-                                        {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
-                                            <option key={n} value={n}>{n}階</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">エレベーター</label>
-                                    <select
-                                        className="w-full h-10 px-3 border border-gray-300 rounded-md"
-                                        value={adjHasElevatorPickup ? 'true' : 'false'}
-                                        onChange={(e) => setAdjHasElevatorPickup(e.target.value === 'true')}
-                                    >
-                                        <option value="false">なし</option>
-                                        <option value="true">あり</option>
-                                    </select>
-                                </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">お届け日</label>
+                                <Input type="date" value={adjDeliveryDate} onChange={(e) => setAdjDeliveryDate(e.target.value)} />
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setEditPickupModal(false)}>キャンセル</Button>
-                                <Button onClick={handlePickupAdjustment}>保存</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditDateModal(false)}>キャンセル</Button>
+                            <Button onClick={handleDateAdjustment}>保存</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
-                    {/* お届け条件編集モーダル */}
-                    <Dialog open={editDeliveryModal} onOpenChange={setEditDeliveryModal}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>お届け先条件を調整</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">階数</label>
-                                    <select
-                                        className="w-full h-10 px-3 border border-gray-300 rounded-md"
-                                        value={adjFloorDelivery}
-                                        onChange={(e) => setAdjFloorDelivery(Number(e.target.value))}
-                                    >
-                                        {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
-                                            <option key={n} value={n}>{n}階</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">エレベーター</label>
-                                    <select
-                                        className="w-full h-10 px-3 border border-gray-300 rounded-md"
-                                        value={adjHasElevatorDelivery ? 'true' : 'false'}
-                                        onChange={(e) => setAdjHasElevatorDelivery(e.target.value === 'true')}
-                                    >
-                                        <option value="false">なし</option>
-                                        <option value="true">あり</option>
-                                    </select>
-                                </div>
+                {/* プラン編集モーダル */}
+                <Dialog open={editPlanModal} onOpenChange={setEditPlanModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>プラン・オプションを調整</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">プラン</label>
+                                <select
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                    value={adjPlan}
+                                    onChange={(e) => setAdjPlan(e.target.value)}
+                                >
+                                    <option value="helper">ヘルパープラン</option>
+                                    <option value="full">お任せプラン</option>
+                                </select>
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setEditDeliveryModal(false)}>キャンセル</Button>
-                                <Button onClick={handleDeliveryAdjustment}>保存</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* メモ追加モーダル */}
-                    <Dialog open={addMemoModal} onOpenChange={setAddMemoModal}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>メモを追加</DialogTitle>
-                            </DialogHeader>
-                            <Textarea
-                                value={memoContent}
-                                onChange={(e) => setMemoContent(e.target.value)}
-                                placeholder="メモを入力..."
-                                rows={4}
-                            />
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setAddMemoModal(false)}>キャンセル</Button>
-                                <Button onClick={handleMemoSubmit}>追加</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* メモ編集モーダル */}
-                    <Dialog open={editMemoModal} onOpenChange={setEditMemoModal}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>メモを編集</DialogTitle>
-                            </DialogHeader>
-                            <Textarea
-                                value={memoContent}
-                                onChange={(e) => setMemoContent(e.target.value)}
-                                placeholder="メモを入力..."
-                                rows={4}
-                            />
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setEditMemoModal(false)}>キャンセル</Button>
-                                <Button onClick={handleMemoUpdate}>保存</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* メモ削除確認モーダル */}
-                    <Dialog open={deleteMemoModal} onOpenChange={setDeleteMemoModal}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>メモを削除</DialogTitle>
-                                <DialogDescription>このメモを削除します。よろしいですか？</DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setDeleteMemoModal(false)}>キャンセル</Button>
-                                <Button variant="destructive" onClick={handleMemoDelete}>削除</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* 送信確認モーダル */}
-                    <Dialog open={sendModal !== null} onOpenChange={() => setSendModal(null)}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>{sendModal === 'invite' ? '申込案内を送信' : '決済案内を送信'}</DialogTitle>
-                                <DialogDescription>
-                                    LINEで{sendModal === 'invite' ? '申込案内' : '決済案内'}を送信します。よろしいですか？
-                                </DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setSendModal(null)}>キャンセル</Button>
-                                <Button onClick={() => sendModal && handleSend(sendModal)}>送信</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* キャンセル確認モーダル */}
-                    <Dialog open={cancelModal} onOpenChange={setCancelModal}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>キャンセル確認</DialogTitle>
-                                <DialogDescription>この見積もりをキャンセルします。よろしいですか？</DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setCancelModal(false)}>戻る</Button>
-                                <Button variant="destructive" onClick={handleCancel}>キャンセルする</Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-
-                    {/* 再提案メッセージモーダル */}
-                    <Dialog open={proposalMessageModal} onOpenChange={setProposalMessageModal}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>再提案を送信</DialogTitle>
-                                <DialogDescription>
-                                    現在の顧客カルテの内容でLINEに再提案を送信します。メッセージを添えることもできます。
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                <div className="bg-gray-50 p-3 rounded text-sm">
-                                    <div><strong>金額:</strong> {formatFee(estimate.final_fee || estimate.total_fee)}</div>
-                                    <div><strong>集荷日:</strong> {formatDate(estimate.adjusted_pickup_date || estimate.pickup_date)}</div>
-                                    <div><strong>お届け日:</strong> {formatDate(estimate.adjusted_delivery_date || estimate.delivery_date)}</div>
-                                    <div><strong>プラン:</strong> {planLabels[estimate.adjusted_plan || estimate.plan || ''] || 'ヘルパープラン'}</div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">メッセージ（任意）</label>
-                                    <Textarea
-                                        value={proposalMessage}
-                                        onChange={(e) => setProposalMessage(e.target.value)}
-                                        placeholder="例: 日程を調整しました。ご確認ください。"
-                                        rows={3}
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">梱包サービス</label>
+                                <select
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                    value={adjNeedsPacking ? 'true' : 'false'}
+                                    onChange={(e) => setAdjNeedsPacking(e.target.value === 'true')}
+                                >
+                                    <option value="false">利用しない</option>
+                                    <option value="true">利用する</option>
+                                </select>
                             </div>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setProposalMessageModal(false)}>キャンセル</Button>
-                                <Button onClick={handleSendProposal} disabled={proposalLoading}>
-                                    {proposalLoading ? '送信中...' : '送信する'}
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-            </AdminLayout>
-        </RequireAuth>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditPlanModal(false)}>キャンセル</Button>
+                            <Button onClick={handlePlanAdjustment}>保存</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* 集荷条件編集モーダル */}
+                <Dialog open={editPickupModal} onOpenChange={setEditPickupModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>集荷先条件を調整</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">階数</label>
+                                <select
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                    value={adjFloorPickup}
+                                    onChange={(e) => setAdjFloorPickup(Number(e.target.value))}
+                                >
+                                    {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                                        <option key={n} value={n}>{n}階</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">エレベーター</label>
+                                <select
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                    value={adjHasElevatorPickup ? 'true' : 'false'}
+                                    onChange={(e) => setAdjHasElevatorPickup(e.target.value === 'true')}
+                                >
+                                    <option value="false">なし</option>
+                                    <option value="true">あり</option>
+                                </select>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditPickupModal(false)}>キャンセル</Button>
+                            <Button onClick={handlePickupAdjustment}>保存</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* お届け条件編集モーダル */}
+                <Dialog open={editDeliveryModal} onOpenChange={setEditDeliveryModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>お届け先条件を調整</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">階数</label>
+                                <select
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                    value={adjFloorDelivery}
+                                    onChange={(e) => setAdjFloorDelivery(Number(e.target.value))}
+                                >
+                                    {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                                        <option key={n} value={n}>{n}階</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">エレベーター</label>
+                                <select
+                                    className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                    value={adjHasElevatorDelivery ? 'true' : 'false'}
+                                    onChange={(e) => setAdjHasElevatorDelivery(e.target.value === 'true')}
+                                >
+                                    <option value="false">なし</option>
+                                    <option value="true">あり</option>
+                                </select>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditDeliveryModal(false)}>キャンセル</Button>
+                            <Button onClick={handleDeliveryAdjustment}>保存</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* メモ追加モーダル */}
+                <Dialog open={addMemoModal} onOpenChange={setAddMemoModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>メモを追加</DialogTitle>
+                        </DialogHeader>
+                        <Textarea
+                            value={memoContent}
+                            onChange={(e) => setMemoContent(e.target.value)}
+                            placeholder="メモを入力..."
+                            rows={4}
+                        />
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setAddMemoModal(false)}>キャンセル</Button>
+                            <Button onClick={handleMemoSubmit}>追加</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* メモ編集モーダル */}
+                <Dialog open={editMemoModal} onOpenChange={setEditMemoModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>メモを編集</DialogTitle>
+                        </DialogHeader>
+                        <Textarea
+                            value={memoContent}
+                            onChange={(e) => setMemoContent(e.target.value)}
+                            placeholder="メモを入力..."
+                            rows={4}
+                        />
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setEditMemoModal(false)}>キャンセル</Button>
+                            <Button onClick={handleMemoUpdate}>保存</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* メモ削除確認モーダル */}
+                <Dialog open={deleteMemoModal} onOpenChange={setDeleteMemoModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>メモを削除</DialogTitle>
+                            <DialogDescription>このメモを削除します。よろしいですか？</DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setDeleteMemoModal(false)}>キャンセル</Button>
+                            <Button variant="destructive" onClick={handleMemoDelete}>削除</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* 送信確認モーダル */}
+                <Dialog open={sendModal !== null} onOpenChange={() => setSendModal(null)}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{sendModal === 'invite' ? '申込案内を送信' : '決済案内を送信'}</DialogTitle>
+                            <DialogDescription>
+                                LINEで{sendModal === 'invite' ? '申込案内' : '決済案内'}を送信します。よろしいですか？
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setSendModal(null)}>キャンセル</Button>
+                            <Button onClick={() => sendModal && handleSend(sendModal)}>送信</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* キャンセル確認モーダル */}
+                <Dialog open={cancelModal} onOpenChange={setCancelModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>キャンセル確認</DialogTitle>
+                            <DialogDescription>この見積もりをキャンセルします。よろしいですか？</DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setCancelModal(false)}>戻る</Button>
+                            <Button variant="destructive" onClick={handleCancel}>キャンセルする</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* 再提案メッセージモーダル */}
+                <Dialog open={proposalMessageModal} onOpenChange={setProposalMessageModal}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>再提案を送信</DialogTitle>
+                            <DialogDescription>
+                                現在の顧客カルテの内容でLINEに再提案を送信します。メッセージを添えることもできます。
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div className="bg-gray-50 p-3 rounded text-sm">
+                                <div><strong>金額:</strong> {formatFee(estimate.final_fee || estimate.total_fee)}</div>
+                                <div><strong>集荷日:</strong> {formatDate(estimate.adjusted_pickup_date || estimate.pickup_date)}</div>
+                                <div><strong>お届け日:</strong> {formatDate(estimate.adjusted_delivery_date || estimate.delivery_date)}</div>
+                                <div><strong>プラン:</strong> {planLabels[estimate.adjusted_plan || estimate.plan || ''] || 'ヘルパープラン'}</div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">メッセージ（任意）</label>
+                                <Textarea
+                                    value={proposalMessage}
+                                    onChange={(e) => setProposalMessage(e.target.value)}
+                                    placeholder="例: 日程を調整しました。ご確認ください。"
+                                    rows={3}
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setProposalMessageModal(false)}>キャンセル</Button>
+                            <Button onClick={handleSendProposal} disabled={proposalLoading}>
+                                {proposalLoading ? '送信中...' : '送信する'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </AdminLayout>
+        </RequireAuth >
     );
 }
