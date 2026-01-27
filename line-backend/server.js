@@ -445,15 +445,6 @@ app.post("/api/link", async (req, res) => {
   }
 });
 
-res.json({ success: true, message: "Linked and message sent successfully" });
-  } catch (error) {
-  console.error("Error linking estimate:", error);
-  res
-    .status(500)
-    .json({ success: false, error: error?.message || String(error) });
-}
-});
-
 // 見積もり取得（async対応）
 app.get("/api/estimates/:id", async (req, res) => {
   try {
