@@ -757,6 +757,16 @@ export default function EstimateDetail() {
             needsPacking: estimate.adjusted_needs_packing ?? estimate.needs_packing ?? false,
             totalFee: estimate.final_fee || estimate.total_fee || 0,
             expresswayFee: estimate.expressway_fee || 0,
+            baseFee: estimate.base_fee || 0,
+            planFee: estimate.plan_fee || 0,
+            packingFee: estimate.packing_fee || 0,
+            timeSlotFee: estimate.time_slot_fee || 0,
+            weekendHolidayFee: estimate.weekend_holiday_fee || 0,
+            floorPickupFee: estimate.floor_pickup_fee || 0,
+            floorDeliveryFee: estimate.floor_delivery_fee || 0,
+            storageFee: estimate.storage_fee || 0,
+            busySeasonFee: estimate.busy_season_fee || 0,
+            distanceFee: estimate.distance_fee || 0,
             message: proposalMessage,
         };
 
