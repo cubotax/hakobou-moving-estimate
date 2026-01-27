@@ -132,9 +132,15 @@ function AdminDashboard() {
         const success = await deleteEstimate(deleteTarget.id);
         if (success) {
             setDeleteTarget(null);
-            fetchEstimates();
+            // 現在のページのデータが1件だけの場合、前のページに戻る
+            if (estimates.length === 1 && page > 1) {
+                setPage(page - 1);
+            } else {
+                fetchEstimates();
+            }
         }
     };
+
 
     return (
         <RequireAuth>
