@@ -474,7 +474,7 @@ export default function EstimateDetail() {
     const estimateId = params?.id;
 
     // Hooks
-    const { getEstimate, updateStatus, updateFee, updateAdjustment, saveSnapshot, loading } = useEstimates();
+    const { getEstimate, updateStatus, deleteEstimate, updateFee, updateAdjustment, saveSnapshot, loading } = useEstimates();
     const { getMemos, addMemo, updateMemo, deleteMemo } = useMemos();
     const { getLogs, sendInvite, sendPayment } = useMessages();
     const { getProposals, createProposal, sendProposal, loading: proposalLoading } = useProposals();
@@ -495,6 +495,7 @@ export default function EstimateDetail() {
     const [selectedMemo, setSelectedMemo] = useState<Memo | null>(null);
     const [sendModal, setSendModal] = useState<'invite' | 'payment' | null>(null);
     const [cancelModal, setCancelModal] = useState(false);
+    const [deleteModal, setDeleteModal] = useState(false);
     const [editDateModal, setEditDateModal] = useState(false);
     const [editPlanModal, setEditPlanModal] = useState(false);
     const [editPickupModal, setEditPickupModal] = useState(false);
@@ -685,6 +686,17 @@ export default function EstimateDetail() {
         fetchData();
     };
 
+    // 削除
+    const handleDelete = async () => {
+        if (!estimateId) return;
+        const success = await deleteEstimate(estimateId);
+        if (success) {
+            setDeleteModal(false);
+            // 一覧ページにリダイレクト
+            window.location.href = '/admin/estimates';
+        }
+    };
+
     // 日程調整
     const handleDateAdjustment = async () => {
         if (!estimateId) return;
@@ -868,6 +880,15 @@ export default function EstimateDetail() {
                             >
                                 <XCircle className="w-4 h-4 mr-2" />
                                 キャンセル
+                            </Button>
+                            <Button
+                                onClick={() => setDeleteModal(true)}
+                                variant="outline"
+                                className="w-full py-3 text-sm text-red-600 border-red-300 hover:bg-red-50"
+                                size="default"
+                            >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                削除
                             </Button>
                         </div>
                     </Section>
@@ -1290,6 +1311,22 @@ export default function EstimateDetail() {
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setCancelModal(false)}>戻る</Button>
                                 <Button variant="destructive" onClick={handleCancel}>キャンセルする</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* 削除確認モーダル */}
+                    <Dialog open={deleteModal} onOpenChange={setDeleteModal}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>見積もりを削除</DialogTitle>
+                                <DialogDescription>
+                                    この見積もりを完全に削除します。関連するすべてのデータ（変更履歴、メモ、送信履歴など）も削除されます。この操作は取り消せません。
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setDeleteModal(false)}>キャンセル</Button>
+                                <Button variant="destructive" onClick={handleDelete}>削除する</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>

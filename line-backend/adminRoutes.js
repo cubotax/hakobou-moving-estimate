@@ -198,6 +198,32 @@ router.put('/estimates/:id/status', authMiddleware, async (req, res) => {
 });
 
 /**
+ * 見積もり削除（関連データも含めて完全削除）
+ */
+router.delete('/estimates/:id', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const supabase = getSupabase();
+
+        // 紐づくデータを先に削除
+        await supabase.from('estimate_proposals').delete().eq('estimate_id', id);
+        await supabase.from('estimate_memos').delete().eq('estimate_id', id);
+        await supabase.from('message_logs').delete().eq('estimate_id', id);
+        await supabase.from('action_logs').delete().eq('estimate_id', id);
+
+        // 見積もり本体を削除
+        const { error } = await supabase.from('estimates').delete().eq('id', id);
+
+        if (error) throw error;
+
+        res.json({ success: true, message: 'Estimate deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting estimate:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
  * 見積もり金額更新
  */
 router.put('/estimates/:id/fee', authMiddleware, async (req, res) => {
