@@ -995,9 +995,14 @@ export default function EstimateDetail() {
                                         </label>
                                         <div className="flex items-center gap-2">
                                             <input
-                                                type="number"
+                                                type="text"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
                                                 value={feeBreakdown[key] || ''}
-                                                onChange={(e) => updateFeeItem(key, e.target.value)}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                                    updateFeeItem(key, val);
+                                                }}
                                                 placeholder="0"
                                                 className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right placeholder:text-gray-400"
                                             />
