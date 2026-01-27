@@ -15,12 +15,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -30,7 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeft, ChevronRight, MoreVertical, Search, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Trash2 } from 'lucide-react';
 
 // ステータスラベル
 const statusLabels: Record<string, string> = {
@@ -97,7 +91,7 @@ function formatFee(fee: number | null | undefined) {
 }
 
 function AdminDashboard() {
-    const { loading, error, getEstimates } = useEstimates();
+    const { loading, error, getEstimates, deleteEstimate } = useEstimates();
     const { sendInvite, sendPayment, loading: sendingLoading } = useMessages();
 
     const [estimates, setEstimates] = useState<Estimate[]>([]);
@@ -109,10 +103,7 @@ function AdminDashboard() {
     const [periodFilter, setPeriodFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const [confirmModal, setConfirmModal] = useState<{
-        type: 'invite' | 'payment';
-        estimate: Estimate;
-    } | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<Estimate | null>(null);
 
     // データ取得
     const fetchEstimates = useCallback(async () => {
@@ -135,46 +126,12 @@ function AdminDashboard() {
         fetchEstimates();
     }, [fetchEstimates]);
 
-    // アクションボタンの表示判定
-    const getActionButton = (estimate: Estimate) => {
-        switch (estimate.status) {
-            case 'consulting':
-                return {
-                    label: '申込案内を送信',
-                    action: () => setConfirmModal({ type: 'invite', estimate }),
-                    disabled: false,
-                };
-            case 'invite_sent':
-                return {
-                    label: '決済案内を送信',
-                    action: () => setConfirmModal({ type: 'payment', estimate }),
-                    disabled: false,
-                };
-            case 'applied':
-                return {
-                    label: '決済案内を送信',
-                    action: () => setConfirmModal({ type: 'payment', estimate }),
-                    disabled: false,
-                };
-            case 'payment_sent':
-                return { label: '送信済み', disabled: true };
-            case 'paid':
-                return { label: '✓ 完了', disabled: true, success: true };
-            default:
-                return null;
-        }
-    };
-
-    // 送信処理
-    const handleSend = async () => {
-        if (!confirmModal) return;
-
-        const success = confirmModal.type === 'invite'
-            ? await sendInvite(confirmModal.estimate.id)
-            : await sendPayment(confirmModal.estimate.id);
-
+    // 削除処理
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        const success = await deleteEstimate(deleteTarget.id);
         if (success) {
-            setConfirmModal(null);
+            setDeleteTarget(null);
             fetchEstimates();
         }
     };
@@ -272,73 +229,54 @@ function AdminDashboard() {
                                             <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">集荷日</th>
                                             <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">お届け日</th>
                                             <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">ステータス</th>
-                                            <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">操作</th>
+                                            <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">削除</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
-                                        {estimates.map((estimate) => {
-                                            const actionButton = getActionButton(estimate);
-
-                                            return (
-                                                <tr key={estimate.id} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-3 text-sm">
-                                                        {formatDateTime(estimate.created_at)}
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <Link
-                                                            href={`/admin/estimates/${estimate.id}`}
-                                                            className="font-mono text-sm text-blue-600 hover:underline"
-                                                        >
-                                                            {estimate.id.slice(0, 8)}
-                                                        </Link>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm">
-                                                        {estimate.pickup_prefecture}{estimate.pickup_city.slice(0, 4)}...
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm">
-                                                        {estimate.delivery_prefecture}{estimate.delivery_city.slice(0, 4)}...
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-right font-medium">
-                                                        {formatFee(estimate.final_fee || estimate.total_fee)}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-center">
-                                                        {formatDate(estimate.pickup_date)}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-center">
-                                                        {formatDate(estimate.delivery_date)}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-center">
-                                                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusStyles[estimate.status] || 'bg-gray-100'}`}>
-                                                            {statusLabels[estimate.status] || estimate.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-center">
-                                                        {actionButton ? (
-                                                            actionButton.disabled ? (
-                                                                <span className={`text-xs ${actionButton.success ? 'text-green-600' : 'text-gray-400'}`}>
-                                                                    {actionButton.label}
-                                                                </span>
-                                                            ) : (
-                                                                <DropdownMenu>
-                                                                    <DropdownMenuTrigger asChild>
-                                                                        <button className="p-1 hover:bg-gray-100 rounded">
-                                                                            <MoreVertical size={18} className="text-gray-500" />
-                                                                        </button>
-                                                                    </DropdownMenuTrigger>
-                                                                    <DropdownMenuContent>
-                                                                        <DropdownMenuItem onClick={actionButton.action}>
-                                                                            {actionButton.label}
-                                                                        </DropdownMenuItem>
-                                                                    </DropdownMenuContent>
-                                                                </DropdownMenu>
-                                                            )
-                                                        ) : (
-                                                            <span className="text-gray-300">-</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                        {estimates.map((estimate) => (
+                                            <tr key={estimate.id} className="hover:bg-gray-50">
+                                                <td className="px-4 py-3 text-sm">
+                                                    {formatDateTime(estimate.created_at)}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <Link
+                                                        href={`/admin/estimates/${estimate.id}`}
+                                                        className="font-mono text-sm text-blue-600 hover:underline"
+                                                    >
+                                                        {estimate.id.slice(0, 8)}
+                                                    </Link>
+                                                </td>
+                                                <td className="px-4 py-3 text-sm">
+                                                    {estimate.pickup_prefecture}{estimate.pickup_city?.slice(0, 4)}...
+                                                </td>
+                                                <td className="px-4 py-3 text-sm">
+                                                    {estimate.delivery_prefecture}{estimate.delivery_city?.slice(0, 4)}...
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-right font-medium">
+                                                    {formatFee(estimate.final_fee || estimate.total_fee)}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-center">
+                                                    {formatDate(estimate.pickup_date)}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-center">
+                                                    {formatDate(estimate.delivery_date)}
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusStyles[estimate.status] || 'bg-gray-100'}`}>
+                                                        {statusLabels[estimate.status] || estimate.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <button
+                                                        onClick={() => setDeleteTarget(estimate)}
+                                                        className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-600"
+                                                        title="削除"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -371,28 +309,26 @@ function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* 送信確認モーダル */}
-                <Dialog open={!!confirmModal} onOpenChange={() => setConfirmModal(null)}>
+                {/* 削除確認モーダル */}
+                <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>
-                                {confirmModal?.type === 'invite' ? '申込案内を送信' : '決済案内を送信'}
-                            </DialogTitle>
+                            <DialogTitle>見積もりを削除</DialogTitle>
                             <DialogDescription>
-                                以下の内容でLINEメッセージを送信します。よろしいですか？
+                                この見積もりを完全に削除します。関連するすべてのデータ（変更履歴、メモ、送信履歴など）も削除されます。この操作は取り消せません。
                             </DialogDescription>
                         </DialogHeader>
 
-                        {confirmModal && (
+                        {deleteTarget && (
                             <div className="py-4 space-y-2 text-sm">
                                 <div className="flex justify-between py-2 border-b border-gray-100">
-                                    <span className="text-gray-500">送信先:</span>
-                                    <span className="font-mono">{confirmModal.estimate.id}</span>
+                                    <span className="text-gray-500">見積もりID:</span>
+                                    <span className="font-mono">{deleteTarget.id}</span>
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-gray-100">
                                     <span className="text-gray-500">金額:</span>
                                     <span className="font-medium">
-                                        {formatFee(confirmModal.estimate.final_fee || confirmModal.estimate.total_fee)}
+                                        {formatFee(deleteTarget.final_fee || deleteTarget.total_fee)}
                                     </span>
                                 </div>
                             </div>
@@ -401,17 +337,17 @@ function AdminDashboard() {
                         <DialogFooter>
                             <Button
                                 variant="outline"
-                                onClick={() => setConfirmModal(null)}
-                                disabled={sendingLoading}
+                                onClick={() => setDeleteTarget(null)}
+                                disabled={loading}
                             >
                                 キャンセル
                             </Button>
                             <Button
-                                onClick={handleSend}
-                                disabled={sendingLoading}
-                                className="bg-green-600 hover:bg-green-700"
+                                variant="destructive"
+                                onClick={handleDelete}
+                                disabled={loading}
                             >
-                                {sendingLoading ? '送信中...' : '送信する'}
+                                {loading ? '削除中...' : '削除する'}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
