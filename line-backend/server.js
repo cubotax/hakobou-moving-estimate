@@ -330,7 +330,7 @@ app.post("/api/estimates", async (req, res) => {
   }
 });
 
-// 見積もりとLINEユーザーの紐づけ + メッセージ送信
+// 見積もりとLINEユーザーの紐づけ + メッセージ送信 + 初回proposal作成
 app.post("/api/link", async (req, res) => {
   try {
     const { estimateId, lineUserId } = req.body || {};
@@ -360,6 +360,66 @@ app.post("/api/link", async (req, res) => {
         .json({ success: false, error: "Failed to link estimate" });
     }
 
+    // 初回proposal（LINE連携時のスナップショット）を作成
+    try {
+      const { getSupabase } = await import('./adminDb.js');
+      const supabase = getSupabase();
+
+      await supabase
+        .from('estimate_proposals')
+        .insert({
+          id: `prop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          estimate_id: estimateId,
+          proposal_number: 1,
+          pickup_date: estimate.pickup_date,
+          delivery_date: estimate.delivery_date,
+          pickup_time_slot: estimate.pickup_time_slot || '',
+          delivery_time_slot: estimate.delivery_time_slot || '',
+          floor_pickup: estimate.floor_pickup ?? 1,
+          has_elevator_pickup: estimate.has_elevator_pickup ?? false,
+          floor_delivery: estimate.floor_delivery ?? 1,
+          has_elevator_delivery: estimate.has_elevator_delivery ?? false,
+          plan: estimate.plan || 'helper',
+          needs_packing: estimate.needs_packing ?? false,
+          total_fee: estimate.total_fee || 0,
+          expressway_fee: estimate.expressway_fee || 0,
+          base_fee: estimate.base_fee || 0,
+          plan_fee: estimate.plan_fee || 0,
+          packing_fee: estimate.packing_fee || 0,
+          time_slot_fee: estimate.time_slot_fee || 0,
+          weekend_holiday_fee: estimate.weekend_holiday_fee || 0,
+          floor_pickup_fee: estimate.floor_pickup_fee || 0,
+          floor_delivery_fee: estimate.floor_delivery_fee || 0,
+          storage_fee: estimate.storage_fee || 0,
+          busy_season_fee: estimate.busy_season_fee || 0,
+          distance_fee: estimate.distance_fee || 0,
+          // 住所情報
+          pickup_prefecture: estimate.pickup_prefecture || '',
+          pickup_city: estimate.pickup_city || '',
+          pickup_town: estimate.pickup_town || '',
+          pickup_address_detail: estimate.pickup_address_detail || '',
+          pickup_building: estimate.pickup_building || '',
+          delivery_prefecture: estimate.delivery_prefecture || '',
+          delivery_city: estimate.delivery_city || '',
+          delivery_town: estimate.delivery_town || '',
+          delivery_address_detail: estimate.delivery_address_detail || '',
+          delivery_building: estimate.delivery_building || '',
+          // 顧客情報
+          last_name: estimate.last_name || '',
+          first_name: estimate.first_name || '',
+          last_name_kana: estimate.last_name_kana || '',
+          first_name_kana: estimate.first_name_kana || '',
+          phone: estimate.phone || '',
+          notes: estimate.notes || '',
+          message: '',
+          status: 'sent',
+        });
+      console.log("Initial proposal created for estimate:", estimateId);
+    } catch (proposalError) {
+      console.error("Error creating initial proposal:", proposalError);
+      // proposalの作成に失敗してもLINE連携は続行
+    }
+
     // Messaging APIでプッシュメッセージを送信（Flex + 詳細テキスト）
     if (client) {
       const detailUrl = buildLiffDetailUrl(estimateId);
@@ -383,6 +443,15 @@ app.post("/api/link", async (req, res) => {
       .status(500)
       .json({ success: false, error: error?.message || String(error) });
   }
+});
+
+res.json({ success: true, message: "Linked and message sent successfully" });
+  } catch (error) {
+  console.error("Error linking estimate:", error);
+  res
+    .status(500)
+    .json({ success: false, error: error?.message || String(error) });
+}
 });
 
 // 見積もり取得（async対応）

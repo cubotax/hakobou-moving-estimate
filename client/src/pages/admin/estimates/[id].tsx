@@ -767,6 +767,24 @@ export default function EstimateDetail() {
             storageFee: estimate.storage_fee || 0,
             busySeasonFee: estimate.busy_season_fee || 0,
             distanceFee: estimate.distance_fee || 0,
+            // 住所情報
+            pickupPrefecture: estimate.pickup_prefecture || '',
+            pickupCity: estimate.pickup_city || '',
+            pickupTown: estimate.pickup_town || '',
+            pickupAddressDetail: estimate.pickup_address_detail || '',
+            pickupBuilding: estimate.pickup_building || '',
+            deliveryPrefecture: estimate.delivery_prefecture || '',
+            deliveryCity: estimate.delivery_city || '',
+            deliveryTown: estimate.delivery_town || '',
+            deliveryAddressDetail: estimate.delivery_address_detail || '',
+            deliveryBuilding: estimate.delivery_building || '',
+            // 顧客情報
+            lastName: estimate.last_name || '',
+            firstName: estimate.first_name || '',
+            lastNameKana: estimate.last_name_kana || '',
+            firstNameKana: estimate.first_name_kana || '',
+            phone: estimate.phone || '',
+            notes: estimate.notes || '',
             message: proposalMessage,
         };
 
@@ -969,6 +987,24 @@ export default function EstimateDetail() {
                                         storage_fee: proposal.storage_fee || 0,
                                         busy_season_fee: proposal.busy_season_fee || 0,
                                         distance_fee: proposal.distance_fee || 0,
+                                        // 住所情報（proposalに保存されている場合はそちらを使用）
+                                        pickup_prefecture: proposal.pickup_prefecture || estimate.pickup_prefecture,
+                                        pickup_city: proposal.pickup_city || estimate.pickup_city,
+                                        pickup_town: proposal.pickup_town || estimate.pickup_town,
+                                        pickup_address_detail: proposal.pickup_address_detail || estimate.pickup_address_detail,
+                                        pickup_building: proposal.pickup_building || estimate.pickup_building,
+                                        delivery_prefecture: proposal.delivery_prefecture || estimate.delivery_prefecture,
+                                        delivery_city: proposal.delivery_city || estimate.delivery_city,
+                                        delivery_town: proposal.delivery_town || estimate.delivery_town,
+                                        delivery_address_detail: proposal.delivery_address_detail || estimate.delivery_address_detail,
+                                        delivery_building: proposal.delivery_building || estimate.delivery_building,
+                                        // 顧客情報
+                                        last_name: proposal.last_name || estimate.last_name,
+                                        first_name: proposal.first_name || estimate.first_name,
+                                        last_name_kana: proposal.last_name_kana || estimate.last_name_kana,
+                                        first_name_kana: proposal.first_name_kana || estimate.first_name_kana,
+                                        phone: proposal.phone || estimate.phone,
+                                        notes: proposal.notes || estimate.notes,
                                         created_at: proposal.created_at,
                                     };
 
