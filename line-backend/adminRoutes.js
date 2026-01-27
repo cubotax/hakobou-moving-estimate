@@ -202,14 +202,14 @@ router.put('/estimates/:id/status', authMiddleware, async (req, res) => {
  */
 router.put('/estimates/:id/fee', authMiddleware, async (req, res) => {
     try {
-        const { finalFee, feeChangeReason, expresswayFee } = req.body;
+        const { finalFee, feeChangeReason, expresswayFee, feeBreakdown } = req.body;
 
         if (finalFee === undefined) {
             return res.status(400).json({ success: false, error: 'Final fee is required' });
         }
 
-        const estimate = await updateEstimateFee(req.params.id, { finalFee, feeChangeReason, expresswayFee });
-        await addActionLog(req.params.id, 'fee_changed', `金額を変更しました（${finalFee}円）${feeChangeReason ? '：' + feeChangeReason : ''}`); cat / Users / cooboo / dev / hakobou / hakobou - mitsumori / client / src / components / Admin / ActionLogs.tsx
+        const estimate = await updateEstimateFee(req.params.id, { finalFee, feeChangeReason, expresswayFee, feeBreakdown });
+        await addActionLog(req.params.id, 'fee_changed', `金額を変更しました（${finalFee}円）${feeChangeReason ? '：' + feeChangeReason : ''}`);
 
         res.json({ success: true, estimate });
     } catch (err) {
