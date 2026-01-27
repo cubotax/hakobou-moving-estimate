@@ -813,33 +813,33 @@ export default function EstimateDetail() {
 
                     {/* アクションボタン */}
                     <Section title="アクション">
-                        <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex flex-col gap-3">
                             <Button
                                 onClick={() => setSendModal('invite')}
                                 disabled={!estimate.line_user_id}
-                                className="flex-1 text-xs sm:text-sm"
-                                size="sm"
+                                className="w-full py-3 text-sm"
+                                size="default"
                             >
-                                <Send className="w-4 h-4 mr-1 flex-shrink-0" />
-                                <span>申込案内</span>
+                                <Send className="w-4 h-4 mr-2" />
+                                申込案内
                             </Button>
                             <Button
                                 onClick={() => setSendModal('payment')}
                                 disabled={!estimate.line_user_id}
-                                className="flex-1 text-xs sm:text-sm"
-                                size="sm"
+                                className="w-full py-3 text-sm"
+                                size="default"
                             >
-                                <Send className="w-4 h-4 mr-1 flex-shrink-0" />
-                                <span>決済案内</span>
+                                <Send className="w-4 h-4 mr-2" />
+                                決済案内
                             </Button>
                             <Button
                                 onClick={() => setCancelModal(true)}
                                 variant="destructive"
-                                className="flex-1 text-xs sm:text-sm"
-                                size="sm"
+                                className="w-full py-3 text-sm"
+                                size="default"
                             >
-                                <XCircle className="w-4 h-4 mr-1 flex-shrink-0" />
-                                <span>キャンセル</span>
+                                <XCircle className="w-4 h-4 mr-2" />
+                                キャンセル
                             </Button>
                         </div>
                     </Section>
