@@ -1005,16 +1005,12 @@ export default function EstimateDetail() {
                                         </label>
                                         <div className="flex items-center gap-2">
                                             <input
-                                                type="text"
-                                                inputMode="numeric"
-                                                pattern="[0-9]*"
-                                                value={feeBreakdown[key] || ''}
-                                                onChange={(e) => {
-                                                    const val = e.target.value.replace(/[^0-9]/g, '');
-                                                    updateFeeItem(key, val);
-                                                }}
+                                                type="number"
+                                                min="0"
+                                                value={feeBreakdown[key] ?? ''}
+                                                onChange={(e) => updateFeeItem(key, e.target.value)}
                                                 placeholder="0"
-                                                className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right placeholder:text-gray-400"
+                                                className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right placeholder:text-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                             />
                                             <span className="text-gray-500 shrink-0">円</span>
                                         </div>
