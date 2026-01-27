@@ -1144,9 +1144,52 @@ router.post('/estimates/:id/proposals/:proposalId/send', authMiddleware, async (
         }
 
         // LINE Flex Messageを送信
+        const feeBreakdownItems = [];
+        if (proposal.base_fee > 0) feeBreakdownItems.push({ label: '基本料金', value: proposal.base_fee });
+        if (proposal.plan_fee > 0) feeBreakdownItems.push({ label: 'お任せプラン', value: proposal.plan_fee });
+        if (proposal.packing_fee > 0) feeBreakdownItems.push({ label: '梱包サービス', value: proposal.packing_fee });
+        if (proposal.time_slot_fee > 0) feeBreakdownItems.push({ label: '時間指定', value: proposal.time_slot_fee });
+        if (proposal.weekend_holiday_fee > 0) feeBreakdownItems.push({ label: '土日祝加算', value: proposal.weekend_holiday_fee });
+        if (proposal.floor_pickup_fee > 0) feeBreakdownItems.push({ label: '集荷先階数料金', value: proposal.floor_pickup_fee });
+        if (proposal.floor_delivery_fee > 0) feeBreakdownItems.push({ label: '届け先階数料金', value: proposal.floor_delivery_fee });
+        if (proposal.storage_fee > 0) feeBreakdownItems.push({ label: '積み置き料金', value: proposal.storage_fee });
+        if (proposal.busy_season_fee > 0) feeBreakdownItems.push({ label: '繁忙期加算', value: proposal.busy_season_fee });
+        if (proposal.expressway_fee > 0) feeBreakdownItems.push({ label: '高速道路料金', value: proposal.expressway_fee });
+        if (proposal.distance_fee > 0) feeBreakdownItems.push({ label: '距離超過料金', value: proposal.distance_fee });
+
+        // 内訳のFlex要素
+        const feeBreakdownContents = feeBreakdownItems.length > 0 ? [
+            { type: 'separator', margin: 'md' },
+            { type: 'text', text: '💰 料金内訳', size: 'sm', color: '#555555', weight: 'bold', margin: 'md' },
+            ...feeBreakdownItems.map(item => ({
+                type: 'box',
+                layout: 'horizontal',
+                contents: [
+                    { type: 'text', text: item.label, size: 'xs', color: '#888888', flex: 2 },
+                    { type: 'text', text: `¥${item.value.toLocaleString()}`, size: 'xs', color: '#111111', align: 'end', flex: 1 },
+                ],
+            })),
+        ] : [];
+
+        // 集荷先・お届け先の情報
+        const pickupAddress = [estimate.pickup_prefecture, estimate.pickup_city, estimate.pickup_town].filter(Boolean).join('') || '未入力';
+        const deliveryAddress = [estimate.delivery_prefecture, estimate.delivery_city, estimate.delivery_town].filter(Boolean).join('') || '未入力';
+        const pickupCondition = `${proposal.floor_pickup || 1}階 / エレベーター：${proposal.has_elevator_pickup ? 'あり' : 'なし'}`;
+        const deliveryCondition = `${proposal.floor_delivery || 1}階 / エレベーター：${proposal.has_elevator_delivery ? 'あり' : 'なし'}`;
+        const planLabel = proposal.plan === 'full' ? 'お任せプラン' : 'ヘルパープラン';
+        const packingLabel = proposal.needs_packing ? '希望する' : '希望しない';
+
+        // 日付フォーマット
+        const formatDateJP = (dateStr) => {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+        };
+
+        // LINE Flex Messageを送信
         const flexMessage = {
             type: 'flex',
-            altText: '新しいお見積もりのご提案',
+            altText: '新プランのご案内',
             contents: {
                 type: 'bubble',
                 header: {
@@ -1155,7 +1198,7 @@ router.post('/estimates/:id/proposals/:proposalId/send', authMiddleware, async (
                     contents: [
                         {
                             type: 'text',
-                            text: '📋 新しいお見積もり',
+                            text: '🚚 新プランのご案内',
                             weight: 'bold',
                             size: 'lg',
                             color: '#ffffff',
@@ -1170,55 +1213,87 @@ router.post('/estimates/:id/proposals/:proposalId/send', authMiddleware, async (
                     contents: [
                         {
                             type: 'text',
-                            text: `提案 #${proposal.proposal_number}`,
-                            weight: 'bold',
-                            size: 'md',
-                            margin: 'md',
+                            text: '新しい引越しプランを作成しましたので、内容をご確認ください！',
+                            size: 'sm',
+                            wrap: true,
+                            color: '#333333',
                         },
                         {
-                            type: 'separator',
+                            type: 'text',
+                            text: `¥${proposal.total_fee.toLocaleString()}`,
+                            weight: 'bold',
+                            size: '3xl',
+                            color: '#FF6B35',
+                            align: 'center',
                             margin: 'lg',
                         },
+                        { type: 'separator', margin: 'lg' },
                         {
                             type: 'box',
                             layout: 'vertical',
                             margin: 'lg',
+                            spacing: 'sm',
                             contents: [
+                                // 集荷日
                                 {
                                     type: 'box',
                                     layout: 'horizontal',
                                     contents: [
-                                        { type: 'text', text: 'お見積もり金額', size: 'sm', color: '#555555', flex: 1 },
-                                        { type: 'text', text: `¥${proposal.total_fee.toLocaleString()}`, size: 'lg', weight: 'bold', color: '#FF6B35', flex: 1, align: 'end' },
+                                        { type: 'text', text: '📅 集荷日', size: 'sm', color: '#555555', flex: 0 },
+                                        { type: 'text', text: formatDateJP(proposal.pickup_date), size: 'sm', color: '#111111', align: 'end' },
                                     ],
                                 },
+                                // お届け日
+                                {
+                                    type: 'box',
+                                    layout: 'horizontal',
+                                    contents: [
+                                        { type: 'text', text: '📅 お届け日', size: 'sm', color: '#555555', flex: 0 },
+                                        { type: 'text', text: formatDateJP(proposal.delivery_date), size: 'sm', color: '#111111', align: 'end' },
+                                    ],
+                                },
+                                // 集荷先
+                                {
+                                    type: 'box',
+                                    layout: 'horizontal',
+                                    contents: [
+                                        { type: 'text', text: '📍 集荷先', size: 'sm', color: '#555555', flex: 0 },
+                                        { type: 'text', text: pickupAddress, size: 'sm', color: '#111111', align: 'end', wrap: true, flex: 2 },
+                                    ],
+                                },
+                                { type: 'text', text: `   ${pickupCondition}`, size: 'xs', color: '#888888' },
+                                // お届け先
+                                {
+                                    type: 'box',
+                                    layout: 'horizontal',
+                                    contents: [
+                                        { type: 'text', text: '🏠 お届け先', size: 'sm', color: '#555555', flex: 0 },
+                                        { type: 'text', text: deliveryAddress, size: 'sm', color: '#111111', align: 'end', wrap: true, flex: 2 },
+                                    ],
+                                },
+                                { type: 'text', text: `   ${deliveryCondition}`, size: 'xs', color: '#888888' },
+                                { type: 'separator', margin: 'md' },
+                                // プラン
                                 {
                                     type: 'box',
                                     layout: 'horizontal',
                                     margin: 'md',
                                     contents: [
-                                        { type: 'text', text: 'プラン', size: 'sm', color: '#555555', flex: 1 },
-                                        { type: 'text', text: proposal.plan === 'full' ? 'お任せプラン' : 'ヘルパープラン', size: 'sm', flex: 1, align: 'end' },
+                                        { type: 'text', text: '📋 プラン', size: 'sm', color: '#555555', flex: 0 },
+                                        { type: 'text', text: planLabel, size: 'sm', color: '#111111', align: 'end' },
                                     ],
                                 },
+                                // 梱包サービス
                                 {
                                     type: 'box',
                                     layout: 'horizontal',
-                                    margin: 'md',
                                     contents: [
-                                        { type: 'text', text: '集荷日', size: 'sm', color: '#555555', flex: 1 },
-                                        { type: 'text', text: proposal.pickup_date || '-', size: 'sm', flex: 1, align: 'end' },
+                                        { type: 'text', text: '📦 梱包サービス', size: 'sm', color: '#555555', flex: 0 },
+                                        { type: 'text', text: packingLabel, size: 'sm', color: '#111111', align: 'end' },
                                     ],
                                 },
-                                {
-                                    type: 'box',
-                                    layout: 'horizontal',
-                                    margin: 'md',
-                                    contents: [
-                                        { type: 'text', text: 'お届け日', size: 'sm', color: '#555555', flex: 1 },
-                                        { type: 'text', text: proposal.delivery_date || '-', size: 'sm', flex: 1, align: 'end' },
-                                    ],
-                                },
+                                // 料金内訳
+                                ...feeBreakdownContents,
                             ],
                         },
                         proposal.message ? {
@@ -1226,7 +1301,7 @@ router.post('/estimates/:id/proposals/:proposalId/send', authMiddleware, async (
                             layout: 'vertical',
                             margin: 'lg',
                             contents: [
-                                { type: 'text', text: 'メッセージ', size: 'sm', color: '#555555' },
+                                { type: 'text', text: '💬 メッセージ', size: 'sm', color: '#555555', weight: 'bold' },
                                 { type: 'text', text: proposal.message, size: 'sm', wrap: true, margin: 'sm' },
                             ],
                         } : null,
@@ -1235,11 +1310,28 @@ router.post('/estimates/:id/proposals/:proposalId/send', authMiddleware, async (
                 footer: {
                     type: 'box',
                     layout: 'vertical',
+                    spacing: 'sm',
                     contents: [
+                        {
+                            type: 'text',
+                            text: '上記内容でお間違いなければ、【この内容で申し込む】を押してください。担当スタッフより日程確認のご連絡をいたします。',
+                            size: 'sm',
+                            color: '#666666',
+                            wrap: true,
+                        },
+                        {
+                            type: 'text',
+                            text: '※この時点では予約は確定しませんのでご安心ください。',
+                            size: 'xs',
+                            color: '#888888',
+                            wrap: true,
+                            margin: 'sm',
+                        },
                         {
                             type: 'button',
                             style: 'primary',
                             color: '#FF6B35',
+                            margin: 'lg',
                             action: {
                                 type: 'postback',
                                 label: 'この内容で申し込む',
