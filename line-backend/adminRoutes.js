@@ -415,6 +415,40 @@ function buildInviteFlexMessage(estimate) {
     const needsPackingValue = estimate.adjusted_needs_packing ?? estimate.needs_packing;
     const packingLabel = needsPackingValue ? '希望する' : '希望しない';
 
+    // 料金内訳
+    const feeBreakdownItems = [];
+    if (estimate.base_fee > 0) feeBreakdownItems.push({ label: '基本料金', value: estimate.base_fee });
+    if (estimate.plan_fee > 0) feeBreakdownItems.push({ label: 'お任せプラン', value: estimate.plan_fee });
+    if (estimate.packing_fee > 0) feeBreakdownItems.push({ label: '梱包サービス', value: estimate.packing_fee });
+    if (estimate.time_slot_fee > 0) feeBreakdownItems.push({ label: '時間指定', value: estimate.time_slot_fee });
+    if (estimate.weekend_holiday_fee > 0) feeBreakdownItems.push({ label: '土日祝加算', value: estimate.weekend_holiday_fee });
+    if (estimate.floor_pickup_fee > 0) feeBreakdownItems.push({ label: '集荷先階数料金', value: estimate.floor_pickup_fee });
+    if (estimate.floor_delivery_fee > 0) feeBreakdownItems.push({ label: '届け先階数料金', value: estimate.floor_delivery_fee });
+    if (estimate.storage_fee > 0) feeBreakdownItems.push({ label: '積み置き料金', value: estimate.storage_fee });
+    if (estimate.busy_season_fee > 0) feeBreakdownItems.push({ label: '繁忙期加算', value: estimate.busy_season_fee });
+    if (estimate.expressway_fee > 0) feeBreakdownItems.push({ label: '高速道路料金', value: estimate.expressway_fee });
+    if (estimate.distance_fee > 0) feeBreakdownItems.push({ label: '距離超過料金', value: estimate.distance_fee });
+
+    const feeBreakdownContents = feeBreakdownItems.length > 0 ? [
+        { type: 'separator', margin: 'lg' },
+        {
+            type: 'text',
+            text: '💰 料金内訳',
+            size: 'sm',
+            weight: 'bold',
+            color: '#555555',
+            margin: 'lg',
+        },
+        ...feeBreakdownItems.map(item => ({
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+                { type: 'text', text: item.label, size: 'xs', color: '#888888', flex: 2 },
+                { type: 'text', text: `¥${item.value.toLocaleString()}`, size: 'xs', color: '#333333', align: 'end', flex: 1 },
+            ],
+        })),
+    ] : [];
+
     return {
         type: 'flex',
         altText: '📋 日程調整が完了しました！',
@@ -530,6 +564,8 @@ function buildInviteFlexMessage(estimate) {
                                     { type: 'text', text: packingLabel, size: 'sm', color: '#111111', align: 'end' },
                                 ],
                             },
+                            // 料金内訳（動的に追加）
+                            ...feeBreakdownContents,
                         ],
                     },
                     {
