@@ -82,7 +82,7 @@ function Field({ label, id, value, onChange, type = 'number', prefix, suffix, no
                     onFocus={(e) => e.target.select()}
                     min={type === 'number' ? '0' : undefined}
                     placeholder={placeholder}
-                    className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right placeholder:text-gray-400"
+                    className="w-24 sm:w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border text-right placeholder:text-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 {suffix && <span className="text-gray-500 shrink-0">{suffix}</span>}
             </div>

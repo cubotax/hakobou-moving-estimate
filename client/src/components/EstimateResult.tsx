@@ -395,8 +395,7 @@ export function EstimateResult() {
             <>
               <div className="flex justify-between items-start py-2 border-b-2 border-dashed border-gray-200">
                 <div>
-                  <p className="font-bold">トラック台数</p>
-                  <p className="text-sm text-gray-500">× {(estimateResult as any).truckCount}台分</p>
+                  <p className="font-bold">トラック追加（{(estimateResult as any).truckCount - 1}台）</p>
                 </div>
                 <span className="font-black text-lg whitespace-nowrap ml-4">
                   {formatCurrency(estimateResult.breakdown.reduce((sum, item) => sum + item.amount, 0) * ((estimateResult as any).truckCount - 1))}
