@@ -127,7 +127,7 @@ function calculateDistanceFee(distanceKm: number): {
 /**
  * 基本料金を計算（ヘルパープラン・お任せプラン共通）
  */
-function calculateBaseFee(dates: MovingDates, plan: 'helper' | 'full', distanceKm: number = 0): {
+function calculateBaseFee(dates: MovingDates, plan: 'helper' | 'full'): {
   fee: number;
   breakdown: FeeBreakdownItem[];
   baseFee: number;
@@ -171,29 +171,14 @@ function calculateBaseFee(dates: MovingDates, plan: 'helper' | 'full', distanceK
     totalFee += weekendHolidaySurcharge;
   }
 
-  // お任せプランの場合、追加料金（50km超過ごとに追加）
+  // お任せプランの場合、追加料金
   if (plan === 'full') {
-    let omakaseFee = settings.omakase_base_fee;
-    let note = '作業員2名';
-
-    // 50km超過ごとに追加料金（50km未満は切り捨て）
-    // 例: 323km → 300km ÷ 50 = 6回分、8000 + 4000 × (6-1) = 28000円
-    // 例: 71km → 50km ÷ 50 = 1回分（基本のみ）= 8000円
-    // 例: 100km → 100km ÷ 50 = 2回分、8000 + 4000 × (2-1) = 12000円
-    const distanceUnits = Math.floor(distanceKm / 50);
-    if (distanceUnits > 1) {
-      const additionalCount = distanceUnits - 1;
-      const additionalFee = additionalCount * settings.omakase_additional_fee;
-      omakaseFee += additionalFee;
-      note = `作業員2名 + 距離加算(${additionalCount}回)`;
-    }
-
     breakdown.push({
       name: 'お任せプラン',
-      amount: omakaseFee,
-      note,
+      amount: settings.omakase_base_fee,
+      note: '作業員2名',
     });
-    totalFee += omakaseFee;
+    totalFee += settings.omakase_base_fee;
   }
 
   return {
@@ -463,8 +448,8 @@ export function calculateEstimate(
     deliveryDate: new Date().toISOString().split('T')[0],
   };
 
-  // 各料金を計算（お任せプランの距離加算のためdistanceKmを渡す）
-  const baseFeeResult = calculateBaseFee(movingDates, plan, distance.distanceKm);
+  // 各料金を計算
+  const baseFeeResult = calculateBaseFee(movingDates, plan);
   const distanceFeeResult = calculateDistanceFee(distance.distanceKm);
   const floorFeeResult = calculateFloorFees(options);
   const optionFeeResult = calculateOptionFees(options);

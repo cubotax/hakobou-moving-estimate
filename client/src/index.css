@@ -51,7 +51,7 @@
 
   /* Custom colors for pop design */
   --color-pop-yellow: oklch(0.95 0.15 95);
-  --color-pop-pink: oklch(0.5 0.25 340);
+  --color-pop-pink: oklch(0.75 0.2 0);
   --color-pop-green: oklch(0.75 0.2 145);
   --color-pop-orange: oklch(0.8 0.18 60);
 }
@@ -251,12 +251,12 @@
 
   /* カラフルなバッジ */
   .badge-pink {
-    @apply bg-[#DF0376] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
+    @apply bg-[#FF6DA9] text-white font-bold px-3 py-1 rounded-full text-sm border-2 border-black;
     box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
   }
 
   .badge-pink-no-border {
-    @apply bg-[#DF0376] text-white font-bold px-3 py-1 rounded-full text-sm;
+    @apply bg-[#FF6DA9] text-white font-bold px-3 py-1 rounded-full text-sm;
   }
 
   .badge-green {

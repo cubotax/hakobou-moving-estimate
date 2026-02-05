@@ -428,11 +428,6 @@ function buildInviteFlexMessage(estimate) {
     if (estimate.busy_season_fee > 0) feeBreakdownItems.push({ label: '繁忙期加算', value: estimate.busy_season_fee });
     if (estimate.expressway_fee > 0) feeBreakdownItems.push({ label: '高速道路料金', value: estimate.expressway_fee });
     if (estimate.distance_fee > 0) feeBreakdownItems.push({ label: '距離超過料金', value: estimate.distance_fee });
-    if (estimate.truck_count > 1) {
-        const singleTruckFee = Math.round(estimate.total_fee / estimate.truck_count);
-        const additionalTruckFee = estimate.total_fee - singleTruckFee;
-        feeBreakdownItems.push({ label: `トラック追加（${estimate.truck_count - 1}台）`, value: additionalTruckFee });
-    }
 
     const feeBreakdownContents = feeBreakdownItems.length > 0 ? [
         { type: 'separator', margin: 'lg' },
