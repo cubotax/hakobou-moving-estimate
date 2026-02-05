@@ -565,7 +565,7 @@ export function ConditionForm() {
                 </Label>
                 <div className="flex items-center gap-3">
                   <Select
-                    value={String(field.value)}
+                    value={String(field.value || 1)}
                     onValueChange={(value) => field.onChange(Number(value))}
                   >
                     <SelectTrigger
