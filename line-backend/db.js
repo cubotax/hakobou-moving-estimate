@@ -51,6 +51,7 @@ export async function insertEstimate(estimate) {
       time_slot_fee: estimate.timeSlotFee || 0,
       storage_fee: estimate.storageFee || 0,
       plan_fee: estimate.planFee || 0,
+      truck_count: estimate.truckCount || 1,
     })
     .select()
     .single();
