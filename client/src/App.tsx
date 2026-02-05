@@ -10,6 +10,7 @@ import Step1 from "./pages/Step1";
 import Step2 from "./pages/Step2";
 import Result from "./pages/Result";
 import LiffRedirect from "./pages/LiffRedirect";
+import EstimateDetail from "./pages/estimate/[id]";
 import ApplyForm from "./pages/apply/ApplyForm";
 import Confirm from "./pages/apply/Confirm";
 import Complete from "./pages/apply/Complete";
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/step1" component={Step1} />
       <Route path="/step2" component={Step2} />
       <Route path="/result" component={Result} />
+      <Route path="/estimate/:id" component={EstimateDetail} />
       <Route path="/apply" component={ApplyForm} />
       <Route path="/apply/confirm" component={Confirm} />
       <Route path="/apply/complete" component={Complete} />

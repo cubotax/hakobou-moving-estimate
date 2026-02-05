@@ -465,6 +465,142 @@ app.get("/api/estimates/:id", async (req, res) => {
   }
 });
 
+// 見積もりをメールで送信
+app.post("/api/estimates/:id/send-email", async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+    const estimateId = req.params.id;
+
+    if (!email) {
+      return res.status(400).json({ success: false, error: "メールアドレスは必須です" });
+    }
+
+    const estimate = await getEstimateById(estimateId);
+    if (!estimate) {
+      return res.status(404).json({ success: false, error: "見積もりが見つかりません" });
+    }
+
+    // 見積もりにメールアドレスと電話番号を保存
+    await supabase
+      .from("estimates")
+      .update({
+        email: email,
+        phone: phone || null,
+        email_sent_at: new Date().toISOString()
+      })
+      .eq("id", estimateId);
+
+    // メール送信
+    if (resend) {
+      const estimateUrl = `https://mitsumori.hakobou.com/estimate/${estimateId}`;
+      const breakdown = estimate.breakdown || [];
+      const breakdownText = breakdown.map(item => `  ${item.name}: ¥${item.amount.toLocaleString()}`).join('\n');
+
+      await resend.emails.send({
+        from: "ハコボウ見積もり <onboarding@resend.dev>",
+        to: email,
+        subject: `【ハコボウ】お見積もり内容のご案内`,
+        text: `
+お見積もりをご利用いただきありがとうございます。
+
+■ お見積もり金額
+${estimate.total_fee?.toLocaleString() || estimate.totalFee?.toLocaleString()}円
+
+■ 料金内訳
+${breakdownText}
+
+■ ルート
+集荷先: ${estimate.pickup_prefecture || ''} ${estimate.pickup_city || ''} ${estimate.pickup_town || ''}
+お届け先: ${estimate.delivery_prefecture || ''} ${estimate.delivery_city || ''} ${estimate.delivery_town || ''}
+距離: ${estimate.distance_km || estimate.distanceKm}km
+
+■ 日程
+集荷日: ${estimate.pickup_date || ''}
+お届け日: ${estimate.delivery_date || ''}
+
+▼ 見積もり詳細・お申込みはこちら
+${estimateUrl}
+
+ご不明な点がございましたら、LINEからもお気軽にご相談ください。
+https://line.me/R/ti/p/@602epmvz
+
+─────────────────
+ハコボウ
+─────────────────
+`.trim(),
+      });
+
+      console.log(`見積もりメール送信完了: ${estimateId} -> ${email}`);
+    }
+
+    // 管理者にも通知
+    await sendEstimateNotification(estimate, "メール見積もり送信");
+
+    res.json({ success: true, message: "メールを送信しました" });
+  } catch (error) {
+    console.error("メール送信エラー:", error);
+    res.status(500).json({ success: false, error: error?.message || String(error) });
+  }
+});
+
+// 日程調整リクエスト
+app.post("/api/estimates/:id/schedule-request", async (req, res) => {
+  try {
+    const estimateId = req.params.id;
+
+    const estimate = await getEstimateById(estimateId);
+    if (!estimate) {
+      return res.status(404).json({ success: false, error: "見積もりが見つかりません" });
+    }
+
+    // ステータスを更新
+    await supabase
+      .from("estimates")
+      .update({
+        status: "schedule_requested",
+        schedule_requested_at: new Date().toISOString()
+      })
+      .eq("id", estimateId);
+
+    // 管理者に通知
+    if (resend && notificationEmail) {
+      await resend.emails.send({
+        from: "ハコボウ通知 <onboarding@resend.dev>",
+        to: notificationEmail,
+        subject: `【日程調整リクエスト】${estimate.pickup_prefecture || ''} → ${estimate.delivery_prefecture || ''}`,
+        text: `
+日程調整のリクエストがありました。
+
+■ 見積もりID: ${estimateId}
+
+■ お客様情報
+メール: ${estimate.email || '未登録'}
+電話: ${estimate.phone || '未登録'}
+
+■ 見積もり金額: ${estimate.total_fee?.toLocaleString() || estimate.totalFee?.toLocaleString()}円
+
+■ ルート
+集荷先: ${estimate.pickup_prefecture || ''} ${estimate.pickup_city || ''} ${estimate.pickup_town || ''}
+お届け先: ${estimate.delivery_prefecture || ''} ${estimate.delivery_city || ''} ${estimate.delivery_town || ''}
+
+■ 日程
+集荷日: ${estimate.pickup_date || ''}
+お届け日: ${estimate.delivery_date || ''}
+
+お客様へのご連絡をお願いいたします。
+`.trim(),
+      });
+    }
+
+    console.log(`日程調整リクエスト: ${estimateId}`);
+
+    res.json({ success: true, message: "リクエストを受け付けました" });
+  } catch (error) {
+    console.error("日程調整リクエストエラー:", error);
+    res.status(500).json({ success: false, error: error?.message || String(error) });
+  }
+});
+
 // 申込データ作成（estimatesテーブルを更新）
 app.post("/api/apply", async (req, res) => {
   try {

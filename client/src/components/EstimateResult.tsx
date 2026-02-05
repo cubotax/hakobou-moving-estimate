@@ -25,7 +25,8 @@ import {
   Calendar,
   Clock,
   MessageCircle,
-  ClipboardList
+  ClipboardList,
+  Mail
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -104,7 +105,11 @@ export function EstimateResult() {
   const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
 
   const [isPosting, setIsPosting] = useState(false);
-
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailAddress, setEmailAddress] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const estimateId = localStorage.getItem("estimateId");
 
   const liffUrl =
@@ -124,6 +129,33 @@ export function EstimateResult() {
     } catch (e) {
       console.error(e);
       alert("LINEを開けませんでした");
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailAddress) {
+      alert('メールアドレスを入力してください');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/estimates/${estimateId}/send-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailAddress, phone: phoneNumber }),
+      });
+
+      if (!response.ok) {
+        throw new Error('送信に失敗しました');
+      }
+
+      setEmailSent(true);
+    } catch (error) {
+      console.error(error);
+      alert('送信に失敗しました。もう一度お試しください。');
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -223,6 +255,65 @@ export function EstimateResult() {
                 LINE で相談をはじめる
               </button>
             </div>
+          </div>
+
+          {/* メールで見積もりを受け取るボタン */}
+          <div className="mt-3">
+            {!showEmailForm && !emailSent && (
+              <button
+                type="button"
+                onClick={() => setShowEmailForm(true)}
+                className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-[3px] border-black transition-colors"
+              >
+                <Mail className="w-5 h-5" />
+                メールで見積もりを受け取る
+              </button>
+            )}
+
+            {showEmailForm && !emailSent && (
+              <div className="bg-white rounded-xl border-[3px] border-black p-4 space-y-3">
+                <p className="font-bold text-sm text-gray-700">見積もり内容をメールでお送りします</p>
+                <input
+                  type="email"
+                  placeholder="メールアドレス"
+                  value={emailAddress}
+                  onChange={(e) => setEmailAddress(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-medium focus:border-blue-500 focus:outline-none"
+                />
+                <input
+                  type="tel"
+                  placeholder="電話番号（任意）"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-medium focus:border-blue-500 focus:outline-none"
+                />
+                <p className="text-xs text-gray-500">※電話番号をご入力いただくと、担当者からお電話でもご連絡できます</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailForm(false)}
+                    className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl border-2 border-gray-300 transition-colors"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendEmail}
+                    disabled={isSendingEmail}
+                    className="flex-1 px-4 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold rounded-xl border-2 border-black transition-colors disabled:opacity-50"
+                  >
+                    {isSendingEmail ? '送信中...' : '送信'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {emailSent && (
+              <div className="bg-green-50 rounded-xl border-[3px] border-green-500 p-4 text-center">
+                <p className="font-bold text-green-700">✓ ご登録のメールアドレスに見積もり内容を送信しました</p>
+                <p className="text-sm text-green-600 mt-1">メールに記載のURLから詳細確認・お申込みができます</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

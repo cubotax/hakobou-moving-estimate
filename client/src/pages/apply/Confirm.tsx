@@ -225,7 +225,7 @@ export default function Confirm() {
                         {/* 詳細情報 */}
                         <div className="space-y-3 text-sm">
                             <div className="flex items-start gap-3 bg-white/60 rounded-lg p-3">
-                                <MapPin className="w-5 h-5 text-pink-500 shrink-0 mt-0.5" />
+                                <MapPin className="w-5 h-5 text-[#DF0376] shrink-0 mt-0.5" />
                                 <div>
                                     <p className="font-bold text-gray-700">集荷先</p>
                                     <p>{estimate.pickupPrefecture}{estimate.pickupCity}{estimate.pickupTown}</p>
@@ -302,7 +302,7 @@ export default function Confirm() {
                         {/* 集荷先詳細 */}
                         <div className="mb-6 pb-6 border-b-2 border-dashed border-gray-200">
                             <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                                <MapPin className="w-5 h-5 text-pink-500" />
+                                <MapPin className="w-5 h-5 text-[#DF0376]" />
                                 集荷先の詳細住所
                             </h3>
                             <div className="bg-gray-50 rounded-xl p-4 space-y-2">
