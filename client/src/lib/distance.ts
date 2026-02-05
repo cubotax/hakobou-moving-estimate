@@ -1,7 +1,7 @@
 /**
  * 距離計算サービス
  * 
- * NAVITIME API経由でバックエンドから距離を取得
+ * MapFan API経由でバックエンドから距離を取得
  */
 
 import type { Address, DistanceResult } from './types';
@@ -19,18 +19,18 @@ export interface DistanceProvider {
 }
 
 // ============================================
-// NAVITIME API プロバイダ（バックエンド経由）
+// MapFan API プロバイダ（バックエンド経由）
 // ============================================
 
 /**
- * NAVITIME APIを使用した距離計算プロバイダ
+ * MapFan APIを使用した距離計算プロバイダ
  * バックエンドの /api/distance エンドポイントを呼び出す
  */
-export class NavitimeDistanceProvider implements DistanceProvider {
+export class MapFanDistanceProvider implements DistanceProvider {
   async getDistance(origin: Address, destination: Address): Promise<DistanceResult> {
     try {
       // デバッグログ
-      console.log('=== NAVITIME Distance Provider ===');
+      console.log('=== MapFan Distance Provider ===');
       console.log('Origin:', origin);
       console.log('Destination:', destination);
       console.log('Origin postalCode:', origin?.postalCode);
@@ -68,7 +68,7 @@ export class NavitimeDistanceProvider implements DistanceProvider {
         isInterPrefecture: data.isInterPrefecture,
       };
     } catch (error) {
-      console.error('NAVITIME distance calculation failed:', error);
+      console.error('MapFan distance calculation failed:', error);
       throw error;
     }
   }
@@ -114,8 +114,8 @@ export function getDistanceProvider(): DistanceProvider {
   if (currentProvider) {
     return currentProvider;
   }
-  currentProvider = new NavitimeDistanceProvider();
-  console.log('Using NAVITIME distance provider');
+  currentProvider = new MapFanDistanceProvider();
+  console.log('Using MapFan distance provider');
   return currentProvider;
 }
 
