@@ -480,6 +480,7 @@ app.post("/api/estimates/:id/send-email", async (req, res) => {
       return res.status(404).json({ success: false, error: "見積もりが見つかりません" });
     }
 
+    const { getSupabase } = await import('./adminDb.js');
     const supabase = getSupabase();
 
     // 見積もりにメールアドレスと電話番号を保存
