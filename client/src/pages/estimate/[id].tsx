@@ -75,6 +75,12 @@ function buildBreakdown(estimate: EstimateData): Array<{ name: string; amount: n
     if (estimate.expressway_fee) items.push({ name: '高速代', amount: estimate.expressway_fee });
     if (estimate.distance_fee) items.push({ name: '距離料金', amount: estimate.distance_fee });
 
+    // トラック追加料金
+    if ((estimate.truck_count || 1) > 1) {
+        const subtotal = (estimate.base_fee || 0) + (estimate.plan_fee || 0) + (estimate.packing_fee || 0) + (estimate.time_slot_fee || 0) + (estimate.weekend_holiday_fee || 0) + (estimate.floor_pickup_fee || 0) + (estimate.floor_delivery_fee || 0) + (estimate.storage_fee || 0) + (estimate.busy_season_fee || 0) + (estimate.expressway_fee || 0) + (estimate.distance_fee || 0);
+        const truckAddFee = subtotal * ((estimate.truck_count || 1) - 1);
+        items.push({ name: `トラック追加（${(estimate.truck_count || 1) - 1}台）`, amount: truckAddFee });
+    }
     return items;
 }
 
