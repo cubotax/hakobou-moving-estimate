@@ -239,7 +239,7 @@ export function EstimateResult() {
           </p>
 
           <p className="text-black/60 text-sm mt-4 whitespace-pre-line font-bold">
-            この金額をもとにLINEから{'\n'}お気軽にご相談いただけます！
+            この金額をもとに{'\n'}お気軽にご相談いただけます！
           </p>
 
           {/* LINE相談ボタン */}
@@ -265,10 +265,10 @@ export function EstimateResult() {
                 <button
                   type="button"
                   onClick={() => setShowEmailForm(true)}
-                  className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-[3px] border-black transition-colors animate-float-btn"
+                  className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-[3px] border-black transition-colors"
                 >
                   <Mail className="w-5 h-5" />
-                  メールで相談を始める
+                  メールで相談をはじめる
                 </button>
               </div>
             )}
@@ -522,10 +522,10 @@ export function EstimateResult() {
               <button
                 type="button"
                 onClick={() => setShowEmailForm(true)}
-                className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-[3px] border-black transition-colors animate-float-btn"
+                className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-[3px] border-black transition-colors"
               >
                 <Mail className="w-5 h-5" />
-                メールで相談を始める
+                メールで相談をはじめる
               </button>
             </div>
           )}
