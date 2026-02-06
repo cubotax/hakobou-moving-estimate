@@ -335,8 +335,11 @@ export default function EstimateDetail() {
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
                             <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
                                 <h3 className="text-xl font-black mb-4 text-center">日程調整のリクエスト</h3>
-                                <p className="text-gray-600 text-center mb-6">
-                                    担当者より<span className="font-bold">1〜2営業日以内</span>にメールまたはお電話にてご連絡いたします。
+                                <p className="text-gray-600 text-center mb-2">
+                                    日程を確認して担当者よりメールでご連絡いたします。
+                                </p>
+                                <p className="text-sm text-gray-500 text-center mb-6">
+                                    ※この時点では申込は確定しませんのでご安心ください。
                                 </p>
                                 <div className="space-y-3">
                                     <button
@@ -345,7 +348,7 @@ export default function EstimateDetail() {
                                         disabled={isSubmitting}
                                         className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-2 border-black transition-colors disabled:opacity-50"
                                     >
-                                        {isSubmitting ? '送信中...' : 'リクエストを送信'}
+                                        {isSubmitting ? '送信中...' : '日程調整を依頼する'}
                                     </button>
                                     <button
                                         type="button"
