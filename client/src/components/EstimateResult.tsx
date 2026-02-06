@@ -249,7 +249,7 @@ export function EstimateResult() {
               <button
                 type="button"
                 onClick={handleLineConsult}
-                className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black transition-colors animate-float-btn"
+                className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black transition-colors"
               >
                 <MessageCircle className="w-5 h-5" />
                 LINE で相談をはじめる
@@ -507,7 +507,7 @@ export function EstimateResult() {
             <button
               type="button"
               onClick={handleLineConsult}
-              className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black transition-colors animate-float-btn"
+              className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black transition-colors"
             >
               <MessageCircle className="w-5 h-5" />
               LINE で相談をはじめる
