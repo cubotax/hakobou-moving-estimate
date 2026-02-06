@@ -317,34 +317,35 @@ export default function EstimateDetail() {
                     </div>
                 </div>
 
-            {/* 日程調整確認モーダル */}
-            {showScheduleConfirm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
-                        <h3 className="text-xl font-black mb-4 text-center">日程調整のリクエスト</h3>
-                        <p className="text-gray-600 text-center mb-6">
-                            担当者より<span className="font-bold">1〜2営業日以内</span>にメールまたはお電話にてご連絡いたします。
-                        </p>
-                        <div className="space-y-3">
-                            <button
-                                type="button"
-                                onClick={handleScheduleRequest}
-                                disabled={isSubmitting}
-                                className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-2 border-black transition-colors disabled:opacity-50"
-                            >
-                                {isSubmitting ? '送信中...' : 'リクエストを送信'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowScheduleConfirm(false)}
-                                className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl border-2 border-gray-300 transition-colors"
-                            >
-                                キャンセル
-                            </button>
+                {/* 日程調整確認モーダル */}
+                {showScheduleConfirm && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
+                            <h3 className="text-xl font-black mb-4 text-center">日程調整のリクエスト</h3>
+                            <p className="text-gray-600 text-center mb-6">
+                                担当者より<span className="font-bold">1〜2営業日以内</span>にメールまたはお電話にてご連絡いたします。
+                            </p>
+                            <div className="space-y-3">
+                                <button
+                                    type="button"
+                                    onClick={handleScheduleRequest}
+                                    disabled={isSubmitting}
+                                    className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-2 border-black transition-colors disabled:opacity-50"
+                                >
+                                    {isSubmitting ? '送信中...' : 'リクエストを送信'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowScheduleConfirm(false)}
+                                    className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl border-2 border-gray-300 transition-colors"
+                                >
+                                    キャンセル
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

@@ -206,7 +206,7 @@ https://mitsumori.hakobou.com/admin
 ━━━━━━━━━━━━━━━━━━━━━━`;
 
   try {
-    await resend.emails.send({ from: "ハコボウ通知 <onboarding@resend.dev>", to: notificationEmail, subject: subject, text: text });
+    await resend.emails.send({ from: "ハコボウ <info@hakobou.com>", to: notificationEmail, subject: subject, text: text });
     console.log("メール通知を送信しました:", estimate.id);
   } catch (error) {
     console.error("メール通知の送信に失敗しました:", error);
@@ -476,7 +476,7 @@ app.post("/api/estimates/:id/send-email", async (req, res) => {
       const totalFee = estimate.total_fee || 0;
 
       await resend.emails.send({
-        from: "ハコボウ見積もり <onboarding@resend.dev>",
+        from: "ハコボウ <info@hakobou.com>",
         to: email,
         subject: `【ハコボウ】お見積もり内容のご案内`,
         text: `
@@ -544,7 +544,7 @@ app.post("/api/estimates/:id/schedule-request", async (req, res) => {
     // 管理者に通知
     if (resend && notificationEmail) {
       await resend.emails.send({
-        from: "ハコボウ通知 <onboarding@resend.dev>",
+        from: "ハコボウ <info@hakobou.com>",
         to: notificationEmail,
         subject: `【日程調整リクエスト】${estimate.pickup_prefecture || ''} → ${estimate.delivery_prefecture || ''}`,
         text: `
@@ -1454,7 +1454,7 @@ async function sendPaymentNotification(estimate) {
 
   try {
     await resend.emails.send({
-      from: 'ハコボウ見積もり <noreply@and-and-and.com>',
+      from: "ハコボウ <info@hakobou.com>",
       to: notificationEmail,
       subject: `【決済完了】見積もりID: ${estimate.id}`,
       html: `
