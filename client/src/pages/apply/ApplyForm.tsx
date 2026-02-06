@@ -336,7 +336,7 @@ export default function ApplyForm() {
 
                         <div className="space-y-3 text-sm">
                             <div className="flex items-start gap-3 bg-white/60 rounded-lg p-3">
-                                <MapPin className="w-5 h-5 text-pink-500 shrink-0 mt-0.5" />
+                                <MapPin className="w-5 h-5 text-[#DF0376] shrink-0 mt-0.5" />
                                 <div>
                                     <p className="font-bold text-gray-700">集荷先</p>
                                     <p>{estimate?.pickupPrefecture}{estimate?.pickupCity}{estimate?.pickupTown}</p>
@@ -468,7 +468,6 @@ export default function ApplyForm() {
                                 </div>
                             </div>
 
-                            {/* 電話番号入力（ふりがなの下に配置） */}
                             <div className="mt-6">
                                 <label className="block text-sm font-bold mb-1 flex items-center gap-2">
                                     <Phone className="w-4 h-4" /> 電話番号 <span className="text-red-500">*</span>
@@ -493,8 +492,8 @@ export default function ApplyForm() {
 
                         <div className="mb-8">
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
-                                    <MapPin className="w-4 h-4 text-pink-500" />
+                                <div className="w-8 h-8 rounded-full bg-[#DF0376]/10 flex items-center justify-center">
+                                    <MapPin className="w-4 h-4 text-[#DF0376]" />
                                 </div>
                                 集荷先の詳細住所
                             </h3>

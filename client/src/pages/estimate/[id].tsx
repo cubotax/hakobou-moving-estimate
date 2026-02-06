@@ -61,7 +61,7 @@ function formatDate(dateStr: string): string {
 
 function buildBreakdown(estimate: EstimateData): Array<{ name: string; amount: number }> {
     const items: Array<{ name: string; amount: number }> = [];
-    
+
     if (estimate.base_fee) items.push({ name: '基本料金', amount: estimate.base_fee });
     if (estimate.plan_fee) items.push({ name: 'プラン料金', amount: estimate.plan_fee });
     if (estimate.packing_fee) items.push({ name: '梱包オプション', amount: estimate.packing_fee });
@@ -73,7 +73,7 @@ function buildBreakdown(estimate: EstimateData): Array<{ name: string; amount: n
     if (estimate.busy_season_fee) items.push({ name: '繁忙期割増', amount: estimate.busy_season_fee });
     if (estimate.expressway_fee) items.push({ name: '高速代', amount: estimate.expressway_fee });
     if (estimate.distance_fee) items.push({ name: '距離料金', amount: estimate.distance_fee });
-    
+
     return items;
 }
 

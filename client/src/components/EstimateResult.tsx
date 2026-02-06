@@ -103,9 +103,9 @@ export function EstimateResult() {
   const [step2Data, setStep2Data] = useState<Step2FormData | null>(null);
   const [distanceData, setDistanceData] = useState<DistanceResult | null>(null);
   const [estimateResult, setEstimateResult] = useState<EstimateResultType | null>(null);
-
-  const [isPosting, setIsPosting] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showEmailFormBottom, setShowEmailFormBottom] = useState(false);  // この行を追加
+  const [isPosting, setIsPosting] = useState(false);
   const [emailAddress, setEmailAddress] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -514,19 +514,54 @@ export function EstimateResult() {
             </button>
           </div>
         </div>
+
         {/* メールで相談を始めるボタン（下部） */}
         <div className="mt-6">
-          {!showEmailForm && !emailSent && (
+          {!showEmailFormBottom && !emailSent && (
             <div className="relative">
               <div className="absolute inset-0 bg-black rounded-xl transform translate-x-[3px] translate-y-[3px]" />
               <button
                 type="button"
-                onClick={() => setShowEmailForm(true)}
+                onClick={() => setShowEmailFormBottom(true)}
                 className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-[3px] border-black transition-colors"
               >
                 <Mail className="w-5 h-5" />
                 メールで相談をはじめる
               </button>
+            </div>
+          )}
+
+          {showEmailFormBottom && !emailSent && (
+            <div className="bg-blue-50 rounded-xl border-[3px] border-blue-300 p-4">
+              <form onSubmit={handleEmailSubmit} className="space-y-3">
+                <div>
+                  <label className="block text-sm font-bold mb-1">メールアドレス</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="example@email.com"
+                    className="w-full px-4 py-3 border-[3px] border-black rounded-xl font-medium"
+                    required
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailFormBottom(false)}
+                    className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 font-bold rounded-xl border-[3px] border-black transition-colors"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold rounded-xl border-[3px] border-black transition-colors disabled:opacity-50"
+                  >
+                    {isSubmitting ? '送信中...' : '送信する'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 
