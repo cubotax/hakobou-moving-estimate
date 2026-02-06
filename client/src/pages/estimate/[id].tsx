@@ -308,21 +308,14 @@ export default function EstimateDetail() {
                             このプランで日程調整する
                         </button>
                     </div>
-
-                    {/* LINE相談ボタン */}
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-black rounded-xl transform translate-x-[3px] translate-y-[3px]" />
-                        <button
-                            type="button"
-                            onClick={handleLineConsult}
-                            className="relative inline-flex items-center justify-center w-full gap-2 py-4 bg-[#00B900] hover:bg-[#009D00] text-white font-black rounded-xl border-[3px] border-black transition-colors"
-                        >
-                            <MessageCircle className="w-5 h-5" />
-                            LINEで相談する
-                        </button>
+                    {/* 見積もり有効期限のお知らせ */}
+                    <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200 text-center">
+                        <p className="text-sm text-gray-600 font-medium">
+                            この見積もり金額は3日間有効です。<br />
+                            ご不明点やプランの変更は、担当者が丁寧にご対応いたします。
+                        </p>
                     </div>
                 </div>
-            </div>
 
             {/* 日程調整確認モーダル */}
             {showScheduleConfirm && (

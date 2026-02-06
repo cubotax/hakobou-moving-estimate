@@ -306,7 +306,7 @@ export function EstimateResult() {
             {emailSent && (
               <div className="bg-green-50 rounded-xl border-[3px] border-green-500 p-4 text-center">
                 <p className="font-bold text-green-700">✓ ご登録のメールアドレスに見積もり内容を送信しました</p>
-                <p className="text-sm text-green-600 mt-1">メールに記載のURLから詳細確認・お申込みができます</p>
+                <p className="text-sm text-green-600 mt-1">メールに記載のURLから日程調整を依頼できます</p>
               </div>
             )}
           </div>
@@ -540,7 +540,7 @@ export function EstimateResult() {
                     type="email"
                     value={emailAddress}
                     onChange={(e) => setEmailAddress(e.target.value)}
-                    placeholder="example@email.com"
+                    placeholder="メールアドレスをご入力ください"
                     className="w-full px-4 py-3 border-[3px] border-black rounded-xl font-medium"
                     required
                   />
@@ -568,7 +568,7 @@ export function EstimateResult() {
           {emailSent && (
             <div className="bg-green-50 rounded-xl border-[3px] border-green-500 p-4 text-center">
               <p className="font-bold text-green-700">✓ ご登録のメールアドレスに見積もり内容を送信しました</p>
-              <p className="text-sm text-green-600 mt-1">メールに記載のURLから詳細確認・お申込みができます</p>
+              <p className="text-sm text-green-600 mt-1">メールに記載のURLから日程調整を依頼できます</p>
             </div>
           )}
         </div>
