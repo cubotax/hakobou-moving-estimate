@@ -161,14 +161,6 @@ async function sendEstimateNotification(estimate, notificationType = "新規見�
         const truckAddFee = subtotal * (truckCount - 1);
         feeBreakdownItems.push(`  トラック追加（${truckCount - 1}台）: ¥${truckAddFee.toLocaleString()}`);
       }
-  // トラック追加料金
-  const truckCount = estimate.truck_count || estimate.truckCount || 1;
-  if (truckCount > 1) {
-    const subtotal = baseFee + planFee + packingFee + timeSlotFee + weekendHolidayFee + floorPickupFee + floorDeliveryFee + storageFee + busySeasonFee + expresswayFee + distanceFee;
-    const truckAddFee = subtotal * (truckCount - 1);
-    feeBreakdownItems.push(`  トラック追加（${truckCount - 1}台）: ¥${truckAddFee.toLocaleString()}`);
-  }
-
   const breakdownText = feeBreakdownItems.length > 0
     ? feeBreakdownItems.join('\n')
     : '  （内訳情報なし）';
