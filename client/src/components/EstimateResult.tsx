@@ -258,7 +258,7 @@ export function EstimateResult() {
           </div>
 
           {/* メールで相談を始めるボタン */}
-          <div className="mt-3">
+          <div className="mt-6">
             {!showEmailForm && !emailSent && (
               <div className="relative">
                 <div className="absolute inset-0 bg-black rounded-xl transform translate-x-[3px] translate-y-[3px]" />
@@ -515,7 +515,7 @@ export function EstimateResult() {
           </div>
         </div>
         {/* メールで相談を始めるボタン（下部） */}
-        <div className="mt-3">
+        <div className="mt-6">
           {!showEmailForm && !emailSent && (
             <div className="relative">
               <div className="absolute inset-0 bg-black rounded-xl transform translate-x-[3px] translate-y-[3px]" />
