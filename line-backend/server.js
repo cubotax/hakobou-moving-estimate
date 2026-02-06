@@ -154,6 +154,13 @@ async function sendEstimateNotification(estimate, notificationType = "新規見�
   if (expresswayFee > 0) feeBreakdownItems.push(`  高速道路料金: ¥${expresswayFee.toLocaleString()}`);
   if (distanceFee > 0) feeBreakdownItems.push(`  距離超過料金: ¥${distanceFee.toLocaleString()}`);
 
+      // トラック追加料金
+      const truckCount = estimate.truck_count || 1;
+      if (truckCount > 1) {
+        const subtotal = (estimate.base_fee || 0) + (estimate.plan_fee || 0) + (estimate.packing_fee || 0) + (estimate.time_slot_fee || 0) + (estimate.weekend_holiday_fee || 0) + (estimate.floor_pickup_fee || 0) + (estimate.floor_delivery_fee || 0) + (estimate.storage_fee || 0) + (estimate.busy_season_fee || 0) + (estimate.expressway_fee || 0) + (estimate.distance_fee || 0);
+        const truckAddFee = subtotal * (truckCount - 1);
+        feeBreakdownItems.push(`  トラック追加（${truckCount - 1}台）: ¥${truckAddFee.toLocaleString()}`);
+      }
   // トラック追加料金
   const truckCount = estimate.truck_count || estimate.truckCount || 1;
   if (truckCount > 1) {
@@ -468,6 +475,13 @@ app.post("/api/estimates/:id/send-email", async (req, res) => {
       if (estimate.expressway_fee > 0) feeBreakdownItems.push(`  高速道路料金: ¥${estimate.expressway_fee.toLocaleString()}`);
       if (estimate.distance_fee > 0) feeBreakdownItems.push(`  距離超過料金: ¥${estimate.distance_fee.toLocaleString()}`);
 
+      // トラック追加料金
+      const truckCount = estimate.truck_count || 1;
+      if (truckCount > 1) {
+        const subtotal = (estimate.base_fee || 0) + (estimate.plan_fee || 0) + (estimate.packing_fee || 0) + (estimate.time_slot_fee || 0) + (estimate.weekend_holiday_fee || 0) + (estimate.floor_pickup_fee || 0) + (estimate.floor_delivery_fee || 0) + (estimate.storage_fee || 0) + (estimate.busy_season_fee || 0) + (estimate.expressway_fee || 0) + (estimate.distance_fee || 0);
+        const truckAddFee = subtotal * (truckCount - 1);
+        feeBreakdownItems.push(`  トラック追加（${truckCount - 1}台）: ¥${truckAddFee.toLocaleString()}`);
+      }
       const breakdownText = feeBreakdownItems.length > 0
         ? feeBreakdownItems.join('\n')
         : '  （内訳情報なし）';

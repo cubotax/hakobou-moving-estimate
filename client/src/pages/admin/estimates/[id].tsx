@@ -290,7 +290,12 @@ const CustomerCard = ({
                         <span className="text-gray-600">距離超過料金</span>
                         <span className="font-medium">{formatFee(estimate.distance_fee || 0)}</span>
                     </div>
-                </div>
+                    {(estimate.truck_count || 1) > 1 && (
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">トラック追加（{(estimate.truck_count || 1) - 1}台）</span>
+                            <span className="font-medium">{formatFee(((estimate.base_fee || 0) + (estimate.plan_fee || 0) + (estimate.packing_fee || 0) + (estimate.time_slot_fee || 0) + (estimate.weekend_holiday_fee || 0) + (estimate.floor_pickup_fee || 0) + (estimate.floor_delivery_fee || 0) + (estimate.storage_fee || 0) + (estimate.busy_season_fee || 0) + (estimate.expressway_fee || 0) + (estimate.distance_fee || 0)) * ((estimate.truck_count || 1) - 1))}</span>
+                        </div>
+                    )}                </div>
             </div>
 
             {/* 日程 */}
@@ -849,7 +854,8 @@ export default function EstimateDetail() {
                     <Section title="基本情報">
                         <InfoRow label="見積ID" value={estimate.id} />
                         <InfoRow label="LINE連携" value={estimate.line_user_id ? '連携済み' : '未連携'} />
-                    </Section>
+                        <InfoRow label="メールアドレス" value={estimate.email || '未登録'} />
+                        <InfoRow label="連携元" value={estimate.email ? 'メール' : (estimate.line_user_id ? 'LINE' : '不明')} />                    </Section>
 
                     {/* アクションボタン */}
                     <Section title="アクション">

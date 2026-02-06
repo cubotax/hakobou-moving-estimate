@@ -64,6 +64,7 @@ export interface Estimate {
     needs_packing: boolean;
     plan?: string;
     phone?: string;
+    email?: string;
     pickup_time_slot?: string;
     delivery_time_slot?: string;
     notes?: string;
