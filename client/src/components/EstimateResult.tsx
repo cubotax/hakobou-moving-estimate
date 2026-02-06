@@ -257,17 +257,20 @@ export function EstimateResult() {
             </div>
           </div>
 
-          {/* メールで見積もりを受け取るボタン */}
+          {/* メールで相談を始めるボタン */}
           <div className="mt-3">
             {!showEmailForm && !emailSent && (
-              <button
-                type="button"
-                onClick={() => setShowEmailForm(true)}
-                className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-[3px] border-black transition-colors"
-              >
-                <Mail className="w-5 h-5" />
-                メールで見積もりを受け取る
-              </button>
+              <div className="relative">
+                <div className="absolute inset-0 bg-black rounded-xl transform translate-x-[3px] translate-y-[3px]" />
+                <button
+                  type="button"
+                  onClick={() => setShowEmailForm(true)}
+                  className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-[3px] border-black transition-colors animate-float-btn"
+                >
+                  <Mail className="w-5 h-5" />
+                  メールで相談を始める
+                </button>
+              </div>
             )}
 
             {showEmailForm && !emailSent && (
@@ -280,14 +283,6 @@ export function EstimateResult() {
                   onChange={(e) => setEmailAddress(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-medium focus:border-blue-500 focus:outline-none"
                 />
-                <input
-                  type="tel"
-                  placeholder="電話番号（任意）"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-medium focus:border-blue-500 focus:outline-none"
-                />
-                <p className="text-xs text-gray-500">※電話番号をご入力いただくと、担当者からお電話でもご連絡できます</p>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -518,6 +513,29 @@ export function EstimateResult() {
               LINE で相談をはじめる
             </button>
           </div>
+        </div>
+        {/* メールで相談を始めるボタン（下部） */}
+        <div className="mt-3">
+          {!showEmailForm && !emailSent && (
+            <div className="relative">
+              <div className="absolute inset-0 bg-black rounded-xl transform translate-x-[3px] translate-y-[3px]" />
+              <button
+                type="button"
+                onClick={() => setShowEmailForm(true)}
+                className="relative inline-flex items-center justify-center w-full gap-2 px-6 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-black rounded-xl border-[3px] border-black transition-colors animate-float-btn"
+              >
+                <Mail className="w-5 h-5" />
+                メールで相談を始める
+              </button>
+            </div>
+          )}
+
+          {emailSent && (
+            <div className="bg-green-50 rounded-xl border-[3px] border-green-500 p-4 text-center">
+              <p className="font-bold text-green-700">✓ ご登録のメールアドレスに見積もり内容を送信しました</p>
+              <p className="text-sm text-green-600 mt-1">メールに記載のURLから詳細確認・お申込みができます</p>
+            </div>
+          )}
         </div>
 
         {/* 積み置き料金メッセージ (表示フラグ制御) */}
