@@ -14,11 +14,8 @@ import {
     Calendar,
     MessageCircle,
     CheckCircle,
-    Phone,
-    Mail,
     Loader2
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 // LIFF ID
@@ -26,21 +23,30 @@ const LIFF_ID = '2008810460-IvjGbCbG';
 
 interface EstimateData {
     id: string;
-    totalFee: number;
-    distanceKm: number;
-    pickupPrefecture: string;
-    pickupCity: string;
-    pickupTown: string;
-    deliveryPrefecture: string;
-    deliveryCity: string;
-    deliveryTown: string;
-    pickupDate: string;
-    deliveryDate: string;
+    total_fee: number;
+    distance_km: number;
+    pickup_prefecture: string;
+    pickup_city: string;
+    pickup_town: string;
+    delivery_prefecture: string;
+    delivery_city: string;
+    delivery_town: string;
+    pickup_date: string;
+    delivery_date: string;
     plan: string;
-    needsPacking: boolean;
-    breakdown: Array<{ name: string; amount: number; note?: string }>;
-    storageDays?: number;
-    truckCount?: number;
+    needs_packing: boolean;
+    base_fee: number;
+    plan_fee: number;
+    packing_fee: number;
+    time_slot_fee: number;
+    weekend_holiday_fee: number;
+    floor_pickup_fee: number;
+    floor_delivery_fee: number;
+    storage_fee: number;
+    busy_season_fee: number;
+    expressway_fee: number;
+    distance_fee: number;
+    truck_count?: number;
 }
 
 function formatDate(dateStr: string): string {
@@ -51,6 +57,24 @@ function formatDate(dateStr: string): string {
         month: 'long',
         day: 'numeric',
     });
+}
+
+function buildBreakdown(estimate: EstimateData): Array<{ name: string; amount: number }> {
+    const items: Array<{ name: string; amount: number }> = [];
+    
+    if (estimate.base_fee) items.push({ name: '基本料金', amount: estimate.base_fee });
+    if (estimate.plan_fee) items.push({ name: 'プラン料金', amount: estimate.plan_fee });
+    if (estimate.packing_fee) items.push({ name: '梱包オプション', amount: estimate.packing_fee });
+    if (estimate.time_slot_fee) items.push({ name: '時間帯指定', amount: estimate.time_slot_fee });
+    if (estimate.weekend_holiday_fee) items.push({ name: '土日祝割増', amount: estimate.weekend_holiday_fee });
+    if (estimate.floor_pickup_fee) items.push({ name: '集荷階段料金', amount: estimate.floor_pickup_fee });
+    if (estimate.floor_delivery_fee) items.push({ name: '配達階段料金', amount: estimate.floor_delivery_fee });
+    if (estimate.storage_fee) items.push({ name: '積み置き料金', amount: estimate.storage_fee });
+    if (estimate.busy_season_fee) items.push({ name: '繁忙期割増', amount: estimate.busy_season_fee });
+    if (estimate.expressway_fee) items.push({ name: '高速代', amount: estimate.expressway_fee });
+    if (estimate.distance_fee) items.push({ name: '距離料金', amount: estimate.distance_fee });
+    
+    return items;
 }
 
 export default function EstimateDetail() {
@@ -158,6 +182,8 @@ export default function EstimateDetail() {
         );
     }
 
+    const breakdown = buildBreakdown(estimate);
+
     return (
         <div className="min-h-screen bg-[oklch(0.98_0.01_90)]">
             <div className="max-w-lg mx-auto p-4 space-y-6">
@@ -171,7 +197,7 @@ export default function EstimateDetail() {
                 <div className="pop-card bg-[oklch(0.92_0.16_95)] p-6 text-center">
                     <p className="text-black/70 font-black mb-2">お見積もり金額</p>
                     <p className="text-4xl font-black text-black">
-                        {formatCurrency(estimate.totalFee)}
+                        {formatCurrency(estimate.total_fee)}
                     </p>
                 </div>
 
@@ -201,11 +227,11 @@ export default function EstimateDetail() {
                     <div className="grid grid-cols-2 gap-3">
                         <div className="p-3 bg-gray-50 rounded-xl border-2 border-gray-200">
                             <p className="text-xs text-gray-500 font-medium">集荷日</p>
-                            <p className="font-bold">{formatDate(estimate.pickupDate)}</p>
+                            <p className="font-bold">{formatDate(estimate.pickup_date)}</p>
                         </div>
                         <div className="p-3 bg-gray-50 rounded-xl border-2 border-gray-200">
                             <p className="text-xs text-gray-500 font-medium">お届け日</p>
-                            <p className="font-bold">{formatDate(estimate.deliveryDate)}</p>
+                            <p className="font-bold">{formatDate(estimate.delivery_date)}</p>
                         </div>
                     </div>
                 </div>
@@ -225,7 +251,7 @@ export default function EstimateDetail() {
                             </div>
                             <div>
                                 <p className="text-xs text-gray-500">集荷先</p>
-                                <p className="font-bold">{estimate.pickupPrefecture} {estimate.pickupCity} {estimate.pickupTown}</p>
+                                <p className="font-bold">{estimate.pickup_prefecture} {estimate.pickup_city} {estimate.pickup_town}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -234,14 +260,14 @@ export default function EstimateDetail() {
                             </div>
                             <div>
                                 <p className="text-xs text-gray-500">お届け先</p>
-                                <p className="font-bold">{estimate.deliveryPrefecture} {estimate.deliveryCity} {estimate.deliveryTown}</p>
+                                <p className="font-bold">{estimate.delivery_prefecture} {estimate.delivery_city} {estimate.delivery_town}</p>
                             </div>
                         </div>
                     </div>
                     <Separator className="my-4" />
                     <div className="flex justify-between items-center">
                         <span className="text-gray-600 font-medium">走行距離</span>
-                        <span className="text-xl font-black">{formatDistance(estimate.distanceKm)}</span>
+                        <span className="text-xl font-black">{formatDistance(estimate.distance_km)}</span>
                     </div>
                 </div>
 
@@ -254,7 +280,7 @@ export default function EstimateDetail() {
                         <h3 className="text-lg font-black">料金内訳</h3>
                     </div>
                     <div className="space-y-3">
-                        {estimate.breakdown.map((item, index) => (
+                        {breakdown.map((item, index) => (
                             <div key={index} className="flex justify-between items-center py-2 border-b border-dashed border-gray-200 last:border-0">
                                 <span className="font-medium">{item.name}</span>
                                 <span className="font-black">{formatCurrency(item.amount)}</span>
@@ -264,7 +290,7 @@ export default function EstimateDetail() {
                     <div className="mt-4 p-3 bg-[oklch(0.92_0.16_95)] rounded-xl border-2 border-black">
                         <div className="flex justify-between items-center">
                             <span className="font-black">合計</span>
-                            <span className="text-2xl font-black">{formatCurrency(estimate.totalFee)}</span>
+                            <span className="text-2xl font-black">{formatCurrency(estimate.total_fee)}</span>
                         </div>
                     </div>
                 </div>
