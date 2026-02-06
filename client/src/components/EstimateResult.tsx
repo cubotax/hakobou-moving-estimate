@@ -278,7 +278,7 @@ export function EstimateResult() {
                 <p className="font-bold text-sm text-gray-700">見積もり内容をメールでお送りします</p>
                 <input
                   type="email"
-                  placeholder="メールアドレス"
+                  placeholder="メールアドレスをご入力ください"
                   value={emailAddress}
                   onChange={(e) => setEmailAddress(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl font-medium focus:border-blue-500 focus:outline-none"
@@ -533,13 +533,13 @@ export function EstimateResult() {
 
           {showEmailFormBottom && !emailSent && (
             <div className="bg-blue-50 rounded-xl border-[3px] border-blue-300 p-4">
-              <form onSubmit={handleEmailSubmit} className="space-y-3">
+              <form onSubmit={(e) => { e.preventDefault(); handleSendEmail(); }} className="space-y-3">
                 <div>
                   <label className="block text-sm font-bold mb-1">メールアドレス</label>
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={emailAddress}
+                    onChange={(e) => setEmailAddress(e.target.value)}
                     placeholder="example@email.com"
                     className="w-full px-4 py-3 border-[3px] border-black rounded-xl font-medium"
                     required
@@ -555,10 +555,10 @@ export function EstimateResult() {
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSendingEmail}
                     className="flex-1 px-4 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold rounded-xl border-[3px] border-black transition-colors disabled:opacity-50"
                   >
-                    {isSubmitting ? '送信中...' : '送信する'}
+                    {isSendingEmail ? '送信中...' : '送信する'}
                   </button>
                 </div>
               </form>
