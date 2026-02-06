@@ -70,7 +70,7 @@ export default function EstimateDetail() {
                     throw new Error('見積もりが見つかりませんでした');
                 }
                 const data = await response.json();
-                setEstimate(data);
+                setEstimate(data.estimate);
             } catch (err) {
                 setError(err instanceof Error ? err.message : '読み込みに失敗しました');
             } finally {

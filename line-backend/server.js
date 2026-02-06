@@ -80,7 +80,7 @@ function isEstimateValid(estimate) {
 /**
  * 見積もり作成時のメール通知
  */
-async function sendEstimateNotification(estimate) {
+async function sendEstimateNotification(estimate, notificationType = "新規見積もり") {
   const notificationEmail = process.env.NOTIFICATION_EMAIL;
   if (!notificationEmail || !resend) {
     console.log("メール通知設定がありません。スキップします。");
@@ -110,7 +110,7 @@ async function sendEstimateNotification(estimate) {
     needsPacking: estimate.needs_packing,
   };
 
-  const planName = estimate.plan === "helper" ? "ヘルパープラン" : estimate.plan === "omakase" ? "お任せプラン" : "未選択";
+  const planName = estimate.plan === "helper" ? "ヘルパープラン" : estimate.plan === "full" ? "お任せプラン" : "未選択";
   const packingService = conditions.needsPacking ? "希望する" : "希望しない";
   const elevatorPickup = conditions.hasElevatorPickup ? "あり" : "なし";
   const elevatorDelivery = conditions.hasElevatorDelivery ? "あり" : "なし";
@@ -119,16 +119,57 @@ async function sendEstimateNotification(estimate) {
   const deliveryAddressStr = `${deliveryAddress.prefecture || ''}${deliveryAddress.city || ''}${deliveryAddress.town || ''}`;
 
   const totalFee = estimate.totalFee || estimate.total_fee || 0;
+  const distanceKm = estimate.distanceKm || estimate.distance_km || 0;
+
+  // 日付フォーマット関数
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '未設定';
+    const date = new Date(dateStr);
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+  };
+
+  // 料金内訳を生成（0円でない項目のみ）
+  const feeBreakdownItems = [];
+  const baseFee = estimate.base_fee || estimate.baseFee || 0;
+  const planFee = estimate.plan_fee || estimate.planFee || 0;
+  const packingFee = estimate.packing_fee || estimate.packingFee || 0;
+  const timeSlotFee = estimate.time_slot_fee || estimate.timeSlotFee || 0;
+  const weekendHolidayFee = estimate.weekend_holiday_fee || estimate.weekendHolidayFee || 0;
+  const floorPickupFee = estimate.floor_pickup_fee || estimate.floorPickupFee || 0;
+  const floorDeliveryFee = estimate.floor_delivery_fee || estimate.floorDeliveryFee || 0;
+  const storageFee = estimate.storage_fee || estimate.storageFee || 0;
+  const busySeasonFee = estimate.busy_season_fee || estimate.busySeasonFee || 0;
+  const expresswayFee = estimate.expressway_fee || estimate.expresswayFee || 0;
+  const distanceFee = estimate.distance_fee || estimate.distanceFee || 0;
+
+  if (baseFee > 0) feeBreakdownItems.push(`  基本料金: ¥${baseFee.toLocaleString()}`);
+  if (planFee > 0) feeBreakdownItems.push(`  お任せプラン: ¥${planFee.toLocaleString()}`);
+  if (packingFee > 0) feeBreakdownItems.push(`  梱包サービス: ¥${packingFee.toLocaleString()}`);
+  if (timeSlotFee > 0) feeBreakdownItems.push(`  時間指定: ¥${timeSlotFee.toLocaleString()}`);
+  if (weekendHolidayFee > 0) feeBreakdownItems.push(`  土日祝加算: ¥${weekendHolidayFee.toLocaleString()}`);
+  if (floorPickupFee > 0) feeBreakdownItems.push(`  集荷先階数料金: ¥${floorPickupFee.toLocaleString()}`);
+  if (floorDeliveryFee > 0) feeBreakdownItems.push(`  届け先階数料金: ¥${floorDeliveryFee.toLocaleString()}`);
+  if (storageFee > 0) feeBreakdownItems.push(`  積み置き料金: ¥${storageFee.toLocaleString()}`);
+  if (busySeasonFee > 0) feeBreakdownItems.push(`  繁忙期加算: ¥${busySeasonFee.toLocaleString()}`);
+  if (expresswayFee > 0) feeBreakdownItems.push(`  高速道路料金: ¥${expresswayFee.toLocaleString()}`);
+  if (distanceFee > 0) feeBreakdownItems.push(`  距離超過料金: ¥${distanceFee.toLocaleString()}`);
+
+  const breakdownText = feeBreakdownItems.length > 0
+    ? feeBreakdownItems.join('\n')
+    : '  （内訳情報なし）';
 
   const subject = `【ハコボウ】概算見積通知（ID: ${estimate.id}）`;
   const text = `━━━━━━━━━━━━━━━━━━━━━━
-新規見積もりのお知らせ
+${notificationType}のお知らせ
 ━━━━━━━━━━━━━━━━━━━━━━
 
 以下の内容で見積もりが作成されました。
 
 ■ 見積もりID: ${estimate.id}
-■ 見積もり金額: ¥${(totalFee).toLocaleString()}
+■ 見積もり金額: ¥${totalFee.toLocaleString()}
+
+■ 料金内訳
+${breakdownText}
 
 【集荷先】
 ${pickupAddressStr}
@@ -138,9 +179,12 @@ ${conditions.floorPickup || 1}階 / エレベーター：${elevatorPickup}
 ${deliveryAddressStr}
 ${conditions.floorDelivery || 1}階 / エレベーター：${elevatorDelivery}
 
+【ルート】
+距離: ${distanceKm}km
+
 【日程】
-集荷日: ${dates.pickupDate || '未設定'}
-お届け日: ${dates.deliveryDate || '未設定'}
+集荷日: ${formatDate(dates.pickupDate)}
+お届け日: ${formatDate(dates.deliveryDate)}
 
 【プラン】
 ${planName} / 梱包サービス：${packingService}
@@ -160,108 +204,6 @@ https://mitsumori.hakobou.com/admin
     console.error("メール通知の送信に失敗しました:", error);
   }
 }
-
-/**
- * 申込確定時のメール通知
- */
-async function sendApplicationNotification(estimate, application) {
-  const notificationEmail = process.env.NOTIFICATION_EMAIL;
-  if (!notificationEmail || !resend) {
-    console.log("メール通知設定がありません。スキップします。");
-    return;
-  }
-
-  const fullName = `${application.lastName || ''} ${application.firstName || ''}`.trim() || '未入力';
-  const fullNameKana = `${application.lastNameKana || ''} ${application.firstNameKana || ''}`.trim() || '未入力';
-
-  const pickupFull = [
-    estimate.pickup_prefecture,
-    estimate.pickup_city,
-    estimate.pickup_town,
-    application.pickupAddressDetail,
-    application.pickupBuilding
-  ].filter(Boolean).join('') || '未入力';
-
-  const deliveryFull = [
-    estimate.delivery_prefecture,
-    estimate.delivery_city,
-    estimate.delivery_town,
-    application.deliveryAddressDetail,
-    application.deliveryBuilding
-  ].filter(Boolean).join('') || '未入力';
-
-  const pickupDate = estimate.pickup_date || '未設定';
-  const deliveryDate = estimate.delivery_date || '未設定';
-
-  const floorPickup = estimate.floor_pickup || 1;
-  const elevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
-  const floorDelivery = estimate.floor_delivery || 1;
-  const elevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
-
-  const planName = estimate.plan === "helper" ? "ヘルパープラン" : estimate.plan === "omakase" ? "お任せプラン" : "未選択";
-  const packingService = estimate.needs_packing ? "希望する" : "希望しない";
-
-  // 時間帯の日本語変換
-  const timeSlotLabels = {
-    'anytime': 'どちらでも',
-    'morning': '午前',
-    'afternoon': '午後',
-    '': '指定なし'
-  };
-  const pickupTimeSlot = timeSlotLabels[application.pickupTimeSlot] || application.pickupTimeSlot || '指定なし';
-  const deliveryTimeSlot = timeSlotLabels[application.deliveryTimeSlot] || application.deliveryTimeSlot || '指定なし';
-
-  const subject = `【ハコボウ】日程調整の申込依頼（ID: ${estimate.id}）`;
-  const text = `━━━━━━━━━━━━━━━━━━━━━━
-🎉 日程調整申込のお知らせ
-━━━━━━━━━━━━━━━━━━━━━━
-
-以下の内容で申込がありました。
-
-■ 見積もりID: ${estimate.id}
-■ 見積もり金額: ¥${(estimate.total_fee || 0).toLocaleString()}
-
-【お客様情報】
-お名前: ${fullName}
-フリガナ: ${fullNameKana}
-電話番号: ${application.phone || '未入力'}
-
-【集荷】
-住所: ${pickupFull}
-階数: ${floorPickup}階
-エレベーター: ${elevatorPickup}
-集荷日: ${pickupDate}
-希望時間帯: ${pickupTimeSlot}
-
-【お届け】
-住所: ${deliveryFull}
-階数: ${floorDelivery}階
-エレベーター: ${elevatorDelivery}
-お届け日: ${deliveryDate}
-希望時間帯: ${deliveryTimeSlot}
-
-【プラン】
-${planName} / 梱包サービス：${packingService}
-
-【備考】
-${application.notes || 'なし'}
-
-━━━━━━━━━━━━━━━━━━━━━━
-管理者は日程調整後にユーザーに決済案内を送信して下さい。
-━━━━━━━━━━━━━━━━━━━━━━
-
-管理画面で確認:
-https://mitsumori.hakobou.com/admin
-`;
-
-  try {
-    await resend.emails.send({ from: "ハコボウ通知 <onboarding@resend.dev>", to: notificationEmail, subject: subject, text: text });
-    console.log("申込通知メールを送信しました:", estimate.id);
-  } catch (error) {
-    console.error("申込通知メールの送信に失敗しました:", error);
-  }
-}
-
 
 // __dirname の代替（ESM用）
 const __filename = fileURLToPath(import.meta.url);
@@ -496,8 +438,34 @@ app.post("/api/estimates/:id/send-email", async (req, res) => {
     // メール送信
     if (resend) {
       const estimateUrl = `https://mitsumori.hakobou.com/estimate/${estimateId}`;
-      const breakdown = estimate.breakdown || [];
-      const breakdownText = breakdown.map(item => `  ${item.name}: ¥${item.amount.toLocaleString()}`).join('\n');
+
+      // 日付フォーマット関数
+      const formatDate = (dateStr) => {
+        if (!dateStr) return '未定';
+        const date = new Date(dateStr);
+        return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+      };
+
+      // 料金内訳を生成（0円でない項目のみ）
+      const feeBreakdownItems = [];
+      if (estimate.base_fee > 0) feeBreakdownItems.push(`  基本料金: ¥${estimate.base_fee.toLocaleString()}`);
+      if (estimate.plan_fee > 0) feeBreakdownItems.push(`  お任せプラン: ¥${estimate.plan_fee.toLocaleString()}`);
+      if (estimate.packing_fee > 0) feeBreakdownItems.push(`  梱包サービス: ¥${estimate.packing_fee.toLocaleString()}`);
+      if (estimate.time_slot_fee > 0) feeBreakdownItems.push(`  時間指定: ¥${estimate.time_slot_fee.toLocaleString()}`);
+      if (estimate.weekend_holiday_fee > 0) feeBreakdownItems.push(`  土日祝加算: ¥${estimate.weekend_holiday_fee.toLocaleString()}`);
+      if (estimate.floor_pickup_fee > 0) feeBreakdownItems.push(`  集荷先階数料金: ¥${estimate.floor_pickup_fee.toLocaleString()}`);
+      if (estimate.floor_delivery_fee > 0) feeBreakdownItems.push(`  届け先階数料金: ¥${estimate.floor_delivery_fee.toLocaleString()}`);
+      if (estimate.storage_fee > 0) feeBreakdownItems.push(`  積み置き料金: ¥${estimate.storage_fee.toLocaleString()}`);
+      if (estimate.busy_season_fee > 0) feeBreakdownItems.push(`  繁忙期加算: ¥${estimate.busy_season_fee.toLocaleString()}`);
+      if (estimate.expressway_fee > 0) feeBreakdownItems.push(`  高速道路料金: ¥${estimate.expressway_fee.toLocaleString()}`);
+      if (estimate.distance_fee > 0) feeBreakdownItems.push(`  距離超過料金: ¥${estimate.distance_fee.toLocaleString()}`);
+
+      const breakdownText = feeBreakdownItems.length > 0
+        ? feeBreakdownItems.join('\n')
+        : '  （内訳情報なし）';
+
+      const distanceKm = estimate.distance_km || 0;
+      const totalFee = estimate.total_fee || 0;
 
       await resend.emails.send({
         from: "ハコボウ見積もり <onboarding@resend.dev>",
@@ -507,7 +475,7 @@ app.post("/api/estimates/:id/send-email", async (req, res) => {
 お見積もりをご利用いただきありがとうございます。
 
 ■ お見積もり金額
-${estimate.total_fee?.toLocaleString() || estimate.totalFee?.toLocaleString()}円
+${totalFee.toLocaleString()}円
 
 ■ 料金内訳
 ${breakdownText}
@@ -515,11 +483,11 @@ ${breakdownText}
 ■ ルート
 集荷先: ${estimate.pickup_prefecture || ''} ${estimate.pickup_city || ''} ${estimate.pickup_town || ''}
 お届け先: ${estimate.delivery_prefecture || ''} ${estimate.delivery_city || ''} ${estimate.delivery_town || ''}
-距離: ${estimate.distance_km || estimate.distanceKm}km
+距離: ${distanceKm}km
 
 ■ 日程
-集荷日: ${estimate.pickup_date || ''}
-お届け日: ${estimate.delivery_date || ''}
+集荷日: ${formatDate(estimate.pickup_date)}
+お届け日: ${formatDate(estimate.delivery_date)}
 
 ▼ 見積もり詳細・お申込みはこちら
 ${estimateUrl}
