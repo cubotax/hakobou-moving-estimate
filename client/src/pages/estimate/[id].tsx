@@ -138,7 +138,7 @@ export default function EstimateDetail() {
     if (loading) {
         return (
             <Layout>
-                <div className="min-h-screen flex items-center justify-center bg-[oklch(0.93_0.03_90)]">
+                <div className="min-h-screen flex items-center justify-center bg-[oklch(0.92_0.04_90)]">
                     <div className="text-center">
                         <Loader2 className="w-12 h-12 animate-spin text-gray-400 mx-auto" />
                         <p className="mt-4 text-gray-600 font-medium">読み込み中...</p>
@@ -151,7 +151,7 @@ export default function EstimateDetail() {
     if (error || !estimate) {
         return (
             <Layout>
-                <div className="min-h-screen flex items-center justify-center bg-[oklch(0.98_0.01_90)] p-4">
+                <div className="min-h-screen flex items-center justify-center bg-[oklch(0.92_0.04_90)] p-4">
                     <div className="pop-card p-8 text-center max-w-md">
                         <p className="text-red-500 font-bold text-lg mb-4">{error || '見積もりが見つかりませんでした'}</p>
                         <a href="/" className="text-blue-500 underline font-medium">トップページへ戻る</a>
@@ -164,7 +164,7 @@ export default function EstimateDetail() {
     if (isComplete) {
         return (
             <Layout>
-                <div className="min-h-screen flex items-center justify-center bg-[oklch(0.98_0.01_90)] p-4">
+                <div className="min-h-screen flex items-center justify-center bg-[oklch(0.92_0.04_90)] p-4">
                     <div className="pop-card p-8 text-center max-w-md">
                         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
                             <CheckCircle className="w-12 h-12 text-green-500" />
@@ -199,7 +199,7 @@ export default function EstimateDetail() {
 
     return (
         <Layout>
-            <div className="min-h-screen bg-[oklch(0.98_0.01_90)]">
+            <div className="min-h-screen bg-[oklch(0.92_0.04_90)]">
                 <div className="max-w-lg mx-auto p-4 space-y-6">
                     {/* ヘッダー */}
                     <div className="text-center pt-4">
