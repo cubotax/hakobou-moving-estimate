@@ -326,10 +326,10 @@ export default function EstimateDetail() {
                             <p className="text-sm text-gray-600 font-medium text-left">
                                 この見積もり金額は3日間有効です。ご不明点やプランの変更は、担当者が丁寧にご対応いたします。
                             </p>
-                            <p className="text-xs text-gray-400 mt-2 text-center">
-                                見積もりID: {estimate.id}
-                            </p>
                         </div>
+                        <p className="text-xs text-gray-400 mt-2 text-center">
+                            見積もりID: {estimate.id}
+                        </p>
                     </div>
 
                     {/* 日程調整確認モーダル */}
