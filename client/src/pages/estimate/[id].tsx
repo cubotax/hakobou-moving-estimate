@@ -138,7 +138,7 @@ export default function EstimateDetail() {
     if (loading) {
         return (
             <Layout>
-                <div className="min-h-screen flex items-center justify-center bg-[oklch(0.96_0.02_90)]">
+                <div className="min-h-screen flex items-center justify-center bg-[oklch(0.93_0.03_90)]">
                     <div className="text-center">
                         <Loader2 className="w-12 h-12 animate-spin text-gray-400 mx-auto" />
                         <p className="mt-4 text-gray-600 font-medium">読み込み中...</p>
