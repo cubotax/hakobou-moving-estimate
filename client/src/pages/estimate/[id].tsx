@@ -204,7 +204,6 @@ export default function EstimateDetail() {
                     {/* ヘッダー */}
                     <div className="text-center pt-4">
                         <h1 className="text-2xl font-black">お見積もり内容</h1>
-                        <p className="text-gray-500 text-sm mt-1">見積もりID: {estimate.id}</p>
                     </div>
 
                     {/* 見積もり金額 */}
@@ -326,6 +325,9 @@ export default function EstimateDetail() {
                         <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
                             <p className="text-sm text-gray-600 font-medium text-left">
                                 この見積もり金額は3日間有効です。ご不明点やプランの変更は、担当者が丁寧にご対応いたします。
+                            </p>
+                            <p className="text-xs text-gray-400 mt-2 text-center">
+                                見積もりID: {estimate.id}
                             </p>
                         </div>
                     </div>

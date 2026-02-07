@@ -10,23 +10,24 @@ export function Layout({ children, showHeader = true, showFooter = true }: Layou
     return (
         <div className="min-h-screen flex flex-col">
             {showHeader && (
-                <header className="bg-white border-b border-gray-200 py-3 px-4">
+                <header className="bg-header border-b border-gray-200 py-3 px-4">
+
                     <div className="max-w-lg mx-auto">
                         <a href="/">
-                            <img 
-                                src="/logo-horizontal.png" 
-                                alt="ハコボウ" 
+                            <img
+                                src="/logo-horizontal.png"
+                                alt="ハコボウ"
                                 className="h-10"
                             />
                         </a>
                     </div>
                 </header>
             )}
-            
+
             <main className="flex-1">
                 {children}
             </main>
-            
+
             {showFooter && (
                 <footer className="bg-black text-white py-8 px-4">
                     <div className="max-w-lg mx-auto">

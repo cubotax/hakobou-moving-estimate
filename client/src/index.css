@@ -502,3 +502,8 @@
 .bg-page {
   background-color: oklch(0.98 0.02 85);
 }
+
+/* ヘッダー背景色 */
+.bg-header {
+  background-color: oklch(0.98 0.02 85);
+}
