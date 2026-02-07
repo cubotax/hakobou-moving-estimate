@@ -335,14 +335,9 @@ export default function EstimateDetail() {
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
                             <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
                                 <h3 className="text-xl font-black mb-4 text-center">日程調整のリクエスト</h3>
-                                <div className="mb-6">
-                                    <p className="text-gray-600">
-                                        日程を確認して担当者よりメールでご連絡いたします。
-                                    </p>
-                                    <p className="text-sm text-gray-500 mt-2">
-                                        ※この時点では申込は確定しませんのでご安心ください。
-                                    </p>
-                                </div>
+                                <p className="text-gray-600 mb-6">
+                                    日程を確認して担当者よりメールでご連絡いたします。
+                                </p>
                                 <div className="space-y-3">
                                     <button
                                         type="button"
@@ -360,6 +355,9 @@ export default function EstimateDetail() {
                                         キャンセル
                                     </button>
                                 </div>
+                                <p className="text-xs text-gray-400 mt-4 text-center">
+                                    ※この時点では申込は確定しませんのでご安心ください。
+                                </p>
                             </div>
                         </div>
                     )}
