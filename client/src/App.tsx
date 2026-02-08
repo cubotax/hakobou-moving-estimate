@@ -14,6 +14,10 @@ import EstimateDetail from "./pages/estimate/[id]";
 import ApplyForm from "./pages/apply/ApplyForm";
 import Confirm from "./pages/apply/Confirm";
 import Complete from "./pages/apply/Complete";
+import Company from "./pages/Company";
+import Privacy from "./pages/Privacy";
+import Tokushoho from "./pages/Tokushoho";
+import Contact from "./pages/Contact";
 
 // 管理画面
 import AdminLogin from "./pages/admin/login";
@@ -47,6 +51,13 @@ function Router() {
       <Route path="/apply/confirm" component={Confirm} />
       <Route path="/apply/complete" component={Complete} />
       <Route path="/liff" component={LiffRedirect} />
+
+      {/* 共通ページ */}
+      <Route path="/company" component={Company} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/tokushoho" component={Tokushoho} />
+      <Route path="/contact" component={Contact} />
+
 
       {/* 管理画面 */}
       <Route path="/admin/login" component={AdminLogin} />

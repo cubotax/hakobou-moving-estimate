@@ -19,13 +19,13 @@ export default function Step1() {
             <div className="inline-flex items-center gap-2 mb-4">
               <span className="badge-pink">ステップ2</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-black text-black mb-4 relative text-center">
-              <div>
-                <span>ハコボウの</span><br />
-                <span>オンライン見積</span>
-              </div>
-              <Truck className="inline-block w-10 h-10 mt-2 text-[oklch(0.75_0.2_145)]" />
-            </h1>
+            <div className="mb-4 text-center">
+              <img
+                src="/mitsumori_logo.png"
+                alt="ハコボウのオンライン見積"
+                className="h-18 sm:h-24 mx-auto"
+              />
+            </div>
           </header>
 
           {/* ステップインジケーター */}
