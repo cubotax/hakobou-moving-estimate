@@ -75,13 +75,27 @@ function buildBreakdown(estimate: EstimateData): Array<{ name: string; amount: n
     if (estimate.expressway_fee) items.push({ name: '高速代', amount: estimate.expressway_fee });
     if (estimate.distance_fee) items.push({ name: '距離料金', amount: estimate.distance_fee });
 
-    // トラック追加料金
     if ((estimate.truck_count || 1) > 1) {
         const subtotal = (estimate.base_fee || 0) + (estimate.plan_fee || 0) + (estimate.packing_fee || 0) + (estimate.time_slot_fee || 0) + (estimate.weekend_holiday_fee || 0) + (estimate.floor_pickup_fee || 0) + (estimate.floor_delivery_fee || 0) + (estimate.storage_fee || 0) + (estimate.busy_season_fee || 0) + (estimate.expressway_fee || 0) + (estimate.distance_fee || 0);
         const truckAddFee = subtotal * ((estimate.truck_count || 1) - 1);
         items.push({ name: `トラック追加（${(estimate.truck_count || 1) - 1}台）`, amount: truckAddFee });
     }
     return items;
+}
+
+// 独自ヘッダーコンポーネント（リンクなし）
+function SimpleHeader() {
+    return (
+        <header className="bg-white border-b border-gray-200 py-4 px-4">
+            <div className="max-w-lg mx-auto flex justify-center">
+                <img
+                    src="/logo-horizontal.png"
+                    alt="ハコボウ"
+                    className="h-10"
+                />
+            </div>
+        </header>
+    );
 }
 
 export default function EstimateDetail() {
@@ -137,7 +151,8 @@ export default function EstimateDetail() {
 
     if (loading) {
         return (
-            <Layout>
+            <Layout showHeader={false}>
+                <SimpleHeader />
                 <div className="min-h-screen flex items-center justify-center bg-page">
                     <div className="text-center">
                         <Loader2 className="w-12 h-12 animate-spin text-gray-400 mx-auto" />
@@ -150,7 +165,8 @@ export default function EstimateDetail() {
 
     if (error || !estimate) {
         return (
-            <Layout>
+            <Layout showHeader={false}>
+                <SimpleHeader />
                 <div className="min-h-screen flex items-center justify-center bg-page p-4">
                     <div className="pop-card p-8 text-center max-w-md">
                         <p className="text-red-500 font-bold text-lg mb-4">{error || '見積もりが見つかりませんでした'}</p>
@@ -163,7 +179,8 @@ export default function EstimateDetail() {
 
     if (isComplete) {
         return (
-            <Layout>
+            <Layout showHeader={false}>
+                <SimpleHeader />
                 <div className="min-h-screen flex items-center justify-center bg-page p-4">
                     <div className="pop-card p-8 text-center max-w-md">
                         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -198,7 +215,8 @@ export default function EstimateDetail() {
     const breakdown = buildBreakdown(estimate);
 
     return (
-        <Layout>
+        <Layout showHeader={false}>
+            <SimpleHeader />
             <div className="min-h-screen bg-page">
                 <div className="max-w-lg mx-auto p-4 space-y-6">
                     {/* ヘッダー */}
@@ -310,7 +328,6 @@ export default function EstimateDetail() {
 
                     {/* アクションボタン */}
                     <div className="space-y-4 pb-8">
-                        {/* 日程調整ボタン */}
                         <div className="relative">
                             <div className="absolute inset-0 bg-black rounded-xl transform translate-x-[3px] translate-y-[3px]" />
                             <button
@@ -321,7 +338,6 @@ export default function EstimateDetail() {
                                 このプランで日程調整する
                             </button>
                         </div>
-                        {/* 見積もり有効期限のお知らせ */}
                         <div className="p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
                             <p className="text-sm text-gray-600 font-medium text-left">
                                 この見積もり金額は3日間有効です。ご不明点やプランの変更は、担当者が丁寧にご対応いたします。
