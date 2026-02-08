@@ -59,11 +59,20 @@ export default function Step2() {
               <span className="badge-pink">ステップ3</span>
             </div>
             <div className="mb-4 text-center">
-              <img
-                src="/mitsumori_logo.png"
-                alt="ハコボウのオンライン見積"
-                className="h-18 sm:h-24 mx-auto"
-              />
+              <picture>
+                <source
+                  srcSet="/mitsumori_logo-1x.webp 545w, /mitsumori_logo-2x.webp 1090w, /mitsumori_logo-3x.webp 1636w"
+                  sizes="(max-width: 640px) 408px, 545px"
+                  type="image/webp"
+                />
+                <img
+                  src="/mitsumori_logo-fallback.png"
+                  alt="ハコボウのオンライン見積"
+                  className="h-18 sm:h-24 mx-auto"
+                  width="545"
+                  height="96"
+                />
+              </picture>
             </div>
           </header>
 
