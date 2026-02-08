@@ -15,15 +15,15 @@ export default function Step0() {
         {/* ヘッダー */}
         <header className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
-            <span className="badge-pink">すぐわかる</span>
-            <span className="badge-yellow">カンタン</span>
+            <span className="badge-pink">カンタン</span>
+            <span className="badge-yellow">無料</span>
             <span className="badge-blue">3ステップ</span>
           </div>
           <div className="mb-4 text-center">
             <img
               src="/mitsumori_logo.png"
               alt="ハコボウのオンライン見積"
-              className="h-24 sm:h-32 mx-auto"
+              className="h-12 sm:h-16 mx-auto"
             />
           </div>
           <p className="text-gray-600 text-base sm:text-lg px-4">
