@@ -23,7 +23,7 @@ export default function Step0() {
             <img
               src="/mitsumori_logo.png"
               alt="ハコボウのオンライン見積"
-              className="h-12 sm:h-16 mx-auto"
+              className="h-18 sm:h-24 mx-auto"
             />
           </div>
           <p className="text-gray-600 text-base sm:text-lg px-4">
