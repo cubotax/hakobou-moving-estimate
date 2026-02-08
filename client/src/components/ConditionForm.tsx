@@ -95,6 +95,26 @@ export function ConditionForm() {
   const [, navigate] = useLocation();
   const [showTruckGuide, setShowTruckGuide] = useState(false);
 
+  const [freeFloorLimit, setFreeFloorLimit] = useState(2); // デフォルト2階
+
+  // 料金設定を取得
+  useEffect(() => {
+    const fetchPricingSettings = async () => {
+      try {
+        const response = await fetch('/api/pricing-settings');
+        if (response.ok) {
+          const settings = await response.json();
+          if (settings.free_floor_limit) {
+            setFreeFloorLimit(Number(settings.free_floor_limit));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch pricing settings:', error);
+      }
+    };
+    fetchPricingSettings();
+  }, []);
+
   // ページ読み込み時にトップにスクロール
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -354,7 +374,7 @@ export function ConditionForm() {
             {errors.floorPickup && (
               <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{errors.floorPickup.message}</p>
             )}
-            {floorPickup >= 2 && !hasElevatorPickup ? (
+            {floorPickup > freeFloorLimit && !hasElevatorPickup ? (
               <p className="text-sm text-[oklch(0.8_0.18_60)] font-medium flex items-center gap-1">
                 <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.8_0.18_60)]"></span>
                 階段作業の追加料金が発生します
@@ -443,7 +463,7 @@ export function ConditionForm() {
             {errors.floorDelivery && (
               <p className="text-sm text-[oklch(0.75_0.2_0)] font-medium">{errors.floorDelivery.message}</p>
             )}
-            {floorDelivery >= 2 && !hasElevatorDelivery ? (
+            {floorDelivery > freeFloorLimit && !hasElevatorDelivery ? (
               <p className="text-sm text-[oklch(0.8_0.18_60)] font-medium flex items-center gap-1">
                 <span className="inline-block w-2 h-2 rounded-full bg-[oklch(0.8_0.18_60)]"></span>
                 階段作業の追加料金が発生します

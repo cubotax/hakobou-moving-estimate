@@ -10,8 +10,7 @@ export default function Privacy() {
                     {/* 前文 */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <p className="text-sm text-gray-600 leading-relaxed">
-                            ハコボウ（以下「当社」といいます）は、お客様の個人情報の保護を重要な責務と考え、以下のとおりプライバシーポリシーをhead -3 ~/dev/hakobou/hakobou-mitsumori/client/src/pages/Company.tsx
-                            定め、適切に管理いたします。
+                            ハコボウ（以下「当社」といいます）は、お客様の個人情報の保護を重要な責務と考え、以下のとおりプライバシーポリシーを定め、適切に管理いたします。
                         </p>
                     </div>
 
