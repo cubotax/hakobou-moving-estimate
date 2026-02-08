@@ -7,7 +7,7 @@
 import { Layout } from '@/components/Layout';
 import { DateForm } from '@/components/DateForm';
 import { StepIndicator, ESTIMATE_STEPS } from '@/components/StepIndicator';
-import { Truck } from 'lucide-react';
+import { Truck, Sparkles } from 'lucide-react';
 
 export default function Step0() {
   return (
@@ -22,11 +22,20 @@ export default function Step0() {
               <span className="badge-blue">3ステップ</span>
             </div>
             <div className="mb-4 text-center">
-              <img
-                src="/mitsumori_logo.png"
-                alt="ハコボウのオンライン見積"
-                className="h-18 sm:h-24 mx-auto"
-              />
+              <picture>
+                <source
+                  srcSet="/mitsumori_logo-1x.webp 545w, /mitsumori_logo-2x.webp 1090w, /mitsumori_logo-3x.webp 1636w"
+                  sizes="(max-width: 640px) 408px, 545px"
+                  type="image/webp"
+                />
+                <img
+                  src="/mitsumori_logo-fallback.png"
+                  alt="ハコボウのオンライン見積"
+                  className="h-18 sm:h-24 mx-auto"
+                  width="545"
+                  height="96"
+                />
+              </picture>
             </div>
             <p className="text-gray-600 text-base sm:text-lg px-4">
               住所と条件を入力するだけで<br />
