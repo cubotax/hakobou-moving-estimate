@@ -19,12 +19,13 @@ export default function Step0() {
             <span className="badge-yellow">カンタン</span>
             <span className="badge-blue">3ステップ</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-black mb-4 relative text-center">
-            <div>
-              <span>ハコボウの</span><br />
-              <span>オンライン見積</span>
-            </div>
-          </h1>
+          <div className="mb-4 text-center">
+            <img
+              src="/mitsumori_logo.png"
+              alt="ハコボウのオンライン見積"
+              className="h-24 sm:h-32 mx-auto"
+            />
+          </div>
           <p className="text-gray-600 text-base sm:text-lg px-4">
             住所と条件を入力するだけで<br />
             すぐに概算料金がわかる！
