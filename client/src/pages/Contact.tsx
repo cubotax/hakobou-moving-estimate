@@ -70,9 +70,13 @@ export default function Contact() {
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 全角を半角に変換
-    const value = toHalfWidth(e.target.value);
-    setFormData(prev => ({ ...prev, email: value }));
+    setFormData(prev => ({ ...prev, email: e.target.value }));
+  };
+
+  const handleEmailBlur = () => {
+    // フォーカスが外れた時に全角を半角に変換
+    const converted = toHalfWidth(formData.email);
+    setFormData(prev => ({ ...prev, email: converted }));
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -256,6 +260,7 @@ export default function Contact() {
                   name="email"
                   value={formData.email}
                   onChange={handleEmailChange}
+                  onBlur={handleEmailBlur}
                   required
                   className="w-full px-4 py-3 pr-12 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
                   style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
