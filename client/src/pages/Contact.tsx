@@ -11,6 +11,25 @@ interface ContactFormData {
   agreeToPrivacy: boolean;
 }
 
+// カタカナをひらがなに変換
+const katakanaToHiragana = (str: string): string => {
+  return str.replace(/[\u30A1-\u30F6]/g, (match) => {
+    return String.fromCharCode(match.charCodeAt(0) - 0x60);
+  });
+};
+
+// ひらがなのみかチェック
+const isHiraganaOnly = (str: string): boolean => {
+  return /^[\u3040-\u309Fー\s]*$/.test(str);
+};
+
+// 全角を半角に変換
+const toHalfWidth = (str: string): string => {
+  return str.replace(/[Ａ-Ｚａ-ｚ０-９＠．＿－]/g, (match) => {
+    return String.fromCharCode(match.charCodeAt(0) - 0xFEE0);
+  }).replace(/ー/g, '-');
+};
+
 export default function Contact() {
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
@@ -21,11 +40,33 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [furiganaError, setFuriganaError] = useState('');
   usePageTitle('お問い合わせ');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFuriganaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    // カタカナをひらがなに変換
+    value = katakanaToHiragana(value);
+
+    // ひらがな以外が含まれているかチェック
+    if (value && !isHiraganaOnly(value)) {
+      setFuriganaError('ひらがなで入力してください');
+    } else {
+      setFuriganaError('');
+    }
+
+    setFormData(prev => ({ ...prev, furigana: value }));
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 全角を半角に変換
+    const value = toHalfWidth(e.target.value);
+    setFormData(prev => ({ ...prev, email: value }));
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -42,6 +83,10 @@ export default function Contact() {
     e.preventDefault();
     if (!formData.agreeToPrivacy) {
       alert('個人情報の取り扱いについて同意してください');
+      return;
+    }
+    if (furiganaError) {
+      alert('ふりがなはひらがなで入力してください');
       return;
     }
     setIsSubmitting(true);
@@ -126,7 +171,7 @@ export default function Contact() {
 
         {/* メールお問い合わせフォーム */}
         <div className="pop-card p-6 mb-6">
-          <h2 className="text-xl font-black mb-6">メールでのお問い合わせ</h2>
+          <h2 className="text-xl font-black mb-6 text-center">メールでのお問い合わせ</h2>
 
           <form onSubmit={handleSubmit} className="space-y-7">
             {/* お名前 */}
@@ -159,12 +204,15 @@ export default function Contact() {
                 id="furigana"
                 name="furigana"
                 value={formData.furigana}
-                onChange={handleChange}
+                onChange={handleFuriganaChange}
                 required
-                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
-                style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all ${furiganaError ? 'border-red-500' : 'border-black'}`}
+                style={{ boxShadow: furiganaError ? '3px 3px 0px 0px rgba(239, 68, 68, 1)' : '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                 placeholder="やまだたろう"
               />
+              {furiganaError && (
+                <p className="text-red-500 text-sm mt-1">{furiganaError}</p>
+              )}
             </div>
 
             {/* メールアドレス */}
@@ -178,7 +226,7 @@ export default function Contact() {
                 id="email"
                 name="email"
                 value={formData.email}
-                onChange={handleChange}
+                onChange={handleEmailChange}
                 required
                 className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
                 style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
@@ -259,9 +307,9 @@ export default function Contact() {
             {/* 送信ボタン */}
             <button
               type="submit"
-              disabled={isSubmitting || !formData.agreeToPrivacy}
+              disabled={isSubmitting || !formData.agreeToPrivacy || !!furiganaError}
               className="w-full bg-[#FFE14D] hover:bg-[#FFD700] disabled:bg-gray-300 disabled:border-gray-400 text-black font-black py-4 px-6 rounded-full border-2 border-black transition-colors"
-              style={{ boxShadow: formData.agreeToPrivacy ? '4px 4px 0px 0px rgba(0, 0, 0, 1)' : 'none' }}
+              style={{ boxShadow: formData.agreeToPrivacy && !furiganaError ? '4px 4px 0px 0px rgba(0, 0, 0, 1)' : 'none' }}
             >
               {isSubmitting ? '送信中...' : '送信する'}
             </button>
