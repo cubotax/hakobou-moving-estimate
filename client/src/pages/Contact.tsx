@@ -87,6 +87,7 @@ export default function Contact() {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block bg-[#FFE14D] text-black font-black py-3 px-8 rounded-full border-2 border-black hover:bg-[#FFD700] transition-colors"
+            style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
           >
             LINEで友だち追加
           </a>
@@ -101,7 +102,7 @@ export default function Contact() {
             <h2 className="text-xl font-black">メールでのお問い合わせ</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-7">
             {/* お名前 */}
             <div>
               <label htmlFor="name" className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
