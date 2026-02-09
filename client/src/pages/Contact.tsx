@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import { Phone, Mail, MessageCircle } from 'lucide-react';
+import { MessageCircle, Mail, User, AtSign, FileText } from 'lucide-react';
 
 interface ContactFormData {
   name: string;
@@ -50,10 +50,10 @@ export default function Contact() {
   if (submitSuccess) {
     return (
       <Layout>
-        <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-green-800 mb-4">送信完了</h2>
-            <p className="text-green-700">
+        <div className="max-w-lg mx-auto px-4 py-16 text-center">
+          <div className="pop-card p-8">
+            <h2 className="text-2xl font-black text-gray-800 mb-4">送信完了</h2>
+            <p className="text-gray-600">
               お問い合わせありがとうございます。<br />
               内容を確認の上、担当者よりご連絡いたします。
             </p>
@@ -65,40 +65,45 @@ export default function Contact() {
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-lg mx-auto px-4 py-8">
         {/* ページタイトル */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">お問い合わせ</h1>
+          <h1 className="text-3xl font-black text-gray-800 mb-2">お問い合わせ</h1>
           <p className="text-sm text-gray-500">CONTACT</p>
         </div>
 
         {/* LINE お問い合わせセクション */}
-        <div className="bg-[#06C755] rounded-lg p-6 mb-8 text-center text-white">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <MessageCircle className="w-6 h-6" />
-            <span className="font-bold">LINEでのお問い合わせはこちら</span>
+        <div className="bg-[#06C755] rounded-2xl border-3 border-black p-6 mb-6 text-center text-white" style={{ borderWidth: '3px', boxShadow: '4px 4px 0px 0px rgba(0, 0, 0, 1)' }}>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center border-2 border-black">
+              <MessageCircle className="w-5 h-5 text-[#06C755]" />
+            </div>
+            <span className="font-black text-lg">LINEでのお問い合わせ</span>
           </div>
           <a
             href={lineUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-white text-[#06C755] font-bold py-3 px-8 rounded-full hover:bg-gray-100 transition-colors mt-2"
+            className="inline-block bg-white text-[#06C755] font-black py-3 px-8 rounded-full border-2 border-black hover:bg-gray-100 transition-colors"
           >
             LINEで友だち追加
           </a>
         </div>
 
         {/* メールお問い合わせフォーム */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">
-            メールでのお問い合わせはこちら
-          </h2>
+        <div className="pop-card p-6 mb-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-full bg-[#4A90D9] flex items-center justify-center border-2 border-black">
+              <Mail className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-xl font-black">メールでのお問い合わせ</h2>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* お名前 */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded mr-2">必須</span>
+              <label htmlFor="name" className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">必須</span>
                 お名前
               </label>
               <input
@@ -108,15 +113,15 @@ export default function Contact() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                placeholder="久保田 泰寛"
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
+                placeholder="山田太郎"
               />
             </div>
 
             {/* ふりがな */}
             <div>
-              <label htmlFor="furigana" className="block text-sm font-medium text-gray-700 mb-1">
-                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded mr-2">必須</span>
+              <label htmlFor="furigana" className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">必須</span>
                 ふりがな
               </label>
               <input
@@ -126,15 +131,15 @@ export default function Contact() {
                 value={formData.furigana}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                placeholder="くぼた やすひろ"
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
+                placeholder="やまだたろう"
               />
             </div>
 
             {/* メールアドレス */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded mr-2">必須</span>
+              <label htmlFor="email" className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">必須</span>
                 メールアドレス
               </label>
               <input
@@ -144,15 +149,15 @@ export default function Contact() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
                 placeholder="info@example.com"
               />
             </div>
 
             {/* お問い合わせ内容 */}
             <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded mr-2">必須</span>
+              <label htmlFor="message" className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
+                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">必須</span>
                 お問い合わせ内容
               </label>
               <textarea
@@ -161,16 +166,16 @@ export default function Contact() {
                 value={formData.message}
                 onChange={handleChange}
                 required
-                rows={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+                rows={5}
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all resize-none"
                 placeholder="お問い合わせ内容をご記入ください"
               />
             </div>
 
             {/* 個人情報の取り扱い */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-bold text-gray-800 mb-3">個人情報の取り扱い</h3>
-              <div className="text-sm text-gray-600 space-y-3 max-h-48 overflow-y-auto pr-2">
+            <div className="bg-gray-50 rounded-xl border-2 border-gray-200 p-4">
+              <h3 className="font-black text-gray-800 mb-3">個人情報の取り扱い</h3>
+              <div className="text-sm text-gray-600 space-y-3 max-h-40 overflow-y-auto pr-2">
                 <p>
                   ハコボウ（以下「当社」といいます）は、以下のとおり個人情報保護方針を定め、個人情報保護の仕組みを構築し、個人情報の保護を推進いたします。
                 </p>
@@ -187,9 +192,6 @@ export default function Contact() {
                   <p>
                     本ウェブサイトでは、お客様からのお問い合わせ時に、お名前、メールアドレス等の個人情報をご登録いただく場合がございますが、これらの個人情報はご提供いただく際の目的以外では利用いたしません。
                   </p>
-                  <p>
-                    お客さまからお預かりした個人情報は、当社からのご連絡や業務のご案内やご質問に対する回答として、電子メールや資料のご送付に利用いたします。
-                  </p>
                 </div>
 
                 <div>
@@ -197,11 +199,6 @@ export default function Contact() {
                   <p>
                     当社は、お客さまよりお預かりした個人情報を適切に管理し、次のいずれかに該当する場合を除き、個人情報を第三者に開示いたしません。
                   </p>
-                  <ul className="list-disc list-inside ml-2">
-                    <li>お客さまの同意がある場合</li>
-                    <li>お客さまが希望されるサービスを行なうために当社が業務を委託する業者に対して開示する場合</li>
-                    <li>法令に基づき開示することが必要である場合</li>
-                  </ul>
                 </div>
 
                 <div>
@@ -210,33 +207,19 @@ export default function Contact() {
                     当社は、個人情報の正確性及び安全性確保のために、セキュリティに万全の対策を講じています。
                   </p>
                 </div>
-
-                <div>
-                  <p className="font-semibold text-gray-700">ご本人の照会</p>
-                  <p>
-                    お客さまがご本人の個人情報の照会・修正・削除などをご希望される場合には、ご本人であることを確認の上、対応させていただきます。
-                  </p>
-                </div>
-
-                <div>
-                  <p className="font-semibold text-gray-700">法令、規範の遵守と見直し</p>
-                  <p>
-                    当社は、保有する個人情報に関して適用される日本の法令、その他規範を遵守するとともに、本ポリシーの内容を適宜見直し、その改善に努めます。
-                  </p>
-                </div>
               </div>
             </div>
 
             {/* 同意チェックボックス */}
-            <div className="flex items-center justify-center">
-              <label className="flex items-center gap-2 cursor-pointer">
+            <div className="flex items-center justify-center py-2">
+              <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.agreeToPrivacy}
                   onChange={handleCheckboxChange}
-                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="w-5 h-5 rounded border-2 border-black text-blue-600 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-700">「個人情報の取り扱い」について同意する</span>
+                <span className="text-sm font-bold text-gray-700">「個人情報の取り扱い」について同意する</span>
               </label>
             </div>
 
@@ -244,7 +227,8 @@ export default function Contact() {
             <button
               type="submit"
               disabled={isSubmitting || !formData.agreeToPrivacy}
-              className="w-full bg-gray-800 hover:bg-gray-900 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-lg transition-colors"
+              className="w-full bg-[#FFE14D] hover:bg-[#FFD700] disabled:bg-gray-300 disabled:border-gray-400 text-black font-black py-4 px-6 rounded-full border-2 border-black transition-colors"
+              style={{ boxShadow: formData.agreeToPrivacy ? '4px 4px 0px 0px rgba(0, 0, 0, 1)' : 'none' }}
             >
               {isSubmitting ? '送信中...' : '送信する'}
             </button>
