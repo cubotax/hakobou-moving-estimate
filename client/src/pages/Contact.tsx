@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Layout } from '@/components/Layout';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, CheckCircle2 } from 'lucide-react';
 
 interface ContactFormData {
   name: string;
@@ -30,6 +30,11 @@ const toHalfWidth = (str: string): string => {
   }).replace(/ー/g, '-');
 };
 
+// メールアドレスの簡易バリデーション
+const isValidEmail = (email: string): boolean => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
 export default function Contact() {
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
@@ -52,15 +57,16 @@ export default function Contact() {
     let value = e.target.value;
     // カタカナをひらがなに変換
     value = katakanaToHiragana(value);
-
-    // ひらがな以外が含まれているかチェック
-    if (value && !isHiraganaOnly(value)) {
-      setFuriganaError('ひらがなで入力してください');
-    } else {
-      setFuriganaError('');
-    }
-
+    // 入力中はエラーをクリア
+    setFuriganaError('');
     setFormData(prev => ({ ...prev, furigana: value }));
+  };
+
+  const handleFuriganaBlur = () => {
+    // 入力確定時にバリデーション
+    if (formData.furigana && !isHiraganaOnly(formData.furigana)) {
+      setFuriganaError('ひらがなで入力してください');
+    }
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,14 +87,19 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ふりがなのバリデーション
+    if (formData.furigana && !isHiraganaOnly(formData.furigana)) {
+      setFuriganaError('ひらがなで入力してください');
+      alert('ふりがなはひらがなで入力してください');
+      return;
+    }
+
     if (!formData.agreeToPrivacy) {
       alert('個人情報の取り扱いについて同意してください');
       return;
     }
-    if (furiganaError) {
-      alert('ふりがなはひらがなで入力してください');
-      return;
-    }
+
     setIsSubmitting(true);
 
     try {
@@ -121,6 +132,12 @@ export default function Contact() {
   };
 
   const lineUrl = 'https://line.me/R/ti/p/@602epmvz';
+
+  // 各フィールドの入力完了チェック
+  const isNameComplete = formData.name.trim().length > 0;
+  const isFuriganaComplete = formData.furigana.trim().length > 0 && !furiganaError && isHiraganaOnly(formData.furigana);
+  const isEmailComplete = formData.email.trim().length > 0 && isValidEmail(formData.email);
+  const isMessageComplete = formData.message.trim().length > 0;
 
   if (submitSuccess) {
     return (
@@ -180,17 +197,22 @@ export default function Contact() {
                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">必須</span>
                 お名前
               </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
-                style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
-                placeholder="山田太郎"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 pr-12 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
+                  style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
+                  placeholder="山田太郎"
+                />
+                {isNameComplete && (
+                  <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500" />
+                )}
+              </div>
             </div>
 
             {/* ふりがな */}
@@ -199,17 +221,23 @@ export default function Contact() {
                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">必須</span>
                 ふりがな
               </label>
-              <input
-                type="text"
-                id="furigana"
-                name="furigana"
-                value={formData.furigana}
-                onChange={handleFuriganaChange}
-                required
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all ${furiganaError ? 'border-red-500' : 'border-black'}`}
-                style={{ boxShadow: furiganaError ? '3px 3px 0px 0px rgba(239, 68, 68, 1)' : '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
-                placeholder="やまだたろう"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  id="furigana"
+                  name="furigana"
+                  value={formData.furigana}
+                  onChange={handleFuriganaChange}
+                  onBlur={handleFuriganaBlur}
+                  required
+                  className={`w-full px-4 py-3 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all ${furiganaError ? 'border-red-500' : 'border-black'}`}
+                  style={{ boxShadow: furiganaError ? '3px 3px 0px 0px rgba(239, 68, 68, 1)' : '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
+                  placeholder="やまだたろう"
+                />
+                {isFuriganaComplete && (
+                  <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500" />
+                )}
+              </div>
               {furiganaError && (
                 <p className="text-red-500 text-sm mt-1">{furiganaError}</p>
               )}
@@ -221,17 +249,22 @@ export default function Contact() {
                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">必須</span>
                 メールアドレス
               </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleEmailChange}
-                required
-                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
-                style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
-                placeholder="info@example.com"
-              />
+              <div className="relative">
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleEmailChange}
+                  required
+                  className="w-full px-4 py-3 pr-12 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
+                  style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
+                  placeholder="info@example.com"
+                />
+                {isEmailComplete && (
+                  <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-green-500" />
+                )}
+              </div>
             </div>
 
             {/* お問い合わせ内容 */}
@@ -239,6 +272,9 @@ export default function Contact() {
               <label htmlFor="message" className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">必須</span>
                 お問い合わせ内容
+                {isMessageComplete && (
+                  <CheckCircle2 className="w-5 h-5 text-green-500 ml-auto" />
+                )}
               </label>
               <textarea
                 id="message"
