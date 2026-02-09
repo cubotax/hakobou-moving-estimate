@@ -139,6 +139,11 @@ export default function Confirm() {
 
     return (
         <div className="min-h-screen bg-white">
+            <header className="bg-white border-b border-gray-200 py-3 px-4">
+                <div className="max-w-2xl mx-auto flex justify-start px-4">
+                    <img src="/logo-horizontal.png" alt="ハコボウ" className="h-10" />
+                </div>
+            </header>
             <div className="container py-6 sm:py-10">
                 {/* ヘッダー */}
                 <header className="text-center mb-6">
