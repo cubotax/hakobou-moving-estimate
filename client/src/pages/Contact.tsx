@@ -26,6 +26,12 @@ export default function Contact() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    handleChange(e);
+    e.target.style.height = 'auto';
+    e.target.style.height = e.target.scrollHeight + 'px';
+  };
+
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, agreeToPrivacy: e.target.checked }));
   };
@@ -49,7 +55,7 @@ export default function Contact() {
   if (submitSuccess) {
     return (
       <Layout>
-        <div className="max-w-lg mx-auto px-4 py-16 text-center">
+        <div className="max-w-2xl mx-auto px-4 py-16 text-center">
           <div className="pop-card p-8">
             <h2 className="text-2xl font-black text-gray-800 mb-4">送信完了</h2>
             <p className="text-gray-600">
@@ -64,7 +70,7 @@ export default function Contact() {
 
   return (
     <Layout>
-      <div className="max-w-lg mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto px-4 py-8">
         {/* ページタイトル */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-black text-gray-800 mb-2">お問い合わせ</h1>
@@ -170,10 +176,10 @@ export default function Contact() {
                 id="message"
                 name="message"
                 value={formData.message}
-                onChange={handleChange}
+                onChange={handleTextareaChange}
                 required
-                rows={5}
-                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all resize-none"
+                rows={3}
+                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all resize-none overflow-hidden"
                 style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                 placeholder="お問い合わせ内容をご記入ください"
               />
