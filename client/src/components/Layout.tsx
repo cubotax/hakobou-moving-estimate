@@ -12,7 +12,7 @@ export function Layout({ children, showHeader = true, showFooter = true }: Layou
             {showHeader && (
                 <header className="bg-header border-b border-gray-200 py-3 px-4">
 
-                    <div className="max-w-lg mx-auto">
+                    <div className="max-w-lg mx-auto flex justify-start">
                         <a href="/">
                             <img
                                 src="/logo-horizontal.png"
@@ -30,7 +30,7 @@ export function Layout({ children, showHeader = true, showFooter = true }: Layou
 
             {showFooter && (
                 <footer className="bg-black text-white py-8 px-4">
-                    <div className="max-w-lg mx-auto">
+                    <div className="max-w-lg mx-auto flex justify-start">
                         <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-400 mb-4">
                             <a href="https://line.me/R/ti/p/@602epmvz" className="hover:text-white">
                                 お問い合わせ

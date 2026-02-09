@@ -87,7 +87,7 @@ function buildBreakdown(estimate: EstimateData): Array<{ name: string; amount: n
 function SimpleHeader() {
     return (
         <header className="bg-white border-b border-gray-200 py-4 px-4">
-            <div className="max-w-lg mx-auto flex justify-center">
+            <div className="max-w-lg mx-auto flex justify-start">
                 <img
                     src="/logo-horizontal.png"
                     alt="ハコボウ"
