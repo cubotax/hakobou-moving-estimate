@@ -10,11 +10,11 @@ export default function Tokushoho() {
         { label: '電話番号', value: '050-6862-8994', type: 'tel' },
         { label: 'メールアドレス', value: 'info@hakobou.com', type: 'email' },
         { label: 'サービス料金', value: '見積もりページにて表示' },
-        { label: '料金以外の必要経費', value: '高速道路料金、有料道路料金（利用する場合）' },
+        { label: '料金以外の必要経費', value: 'なし（高速道路料金は見積もりに含まれています）' },
         { label: '支払い方法', value: '銀行振込、クレジットカード、現金' },
         { label: '支払い時期', value: '本申込から3日以内' },
         { label: 'サービス提供時期', value: '本申込で契約した日' },
-        { label: 'キャンセル料', value: '7日前まで無料、3日前まで50%、前日〜当日100%' },
+        { label: 'キャンセル料', value: '7日前まで：無料\n3日前まで：50%\n前日〜当日：100%' },
         { label: '返金について', value: '銀行振込での返金の場合、振込手数料はお客様のご負担となります' },
         { label: 'お届け先対応エリア', value: '関東地方まで' },
         { label: '営業時間', value: '9:00〜18:00' },
@@ -44,7 +44,7 @@ export default function Tokushoho() {
 
     usePageTitle('特定商取引法に基づく表記');
 
-  return (
+    return (
         <Layout>
             <div className="max-w-2xl mx-auto px-4 py-8">
                 <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">特定商取引法に基づく表記</h1>
@@ -77,8 +77,9 @@ export default function Tokushoho() {
                                                 {item.value}
                                             </a>
                                         ) : (
-                                            item.value
+                                            <span className="whitespace-pre-line">{item.value}</span>
                                         )}
+
                                     </td>
                                 </tr>
                             ))}
