@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { Layout } from '@/components/Layout';
 import { MapPin } from 'lucide-react';
 
@@ -41,7 +42,9 @@ export default function Tokushoho() {
         }
     ];
 
-    return (
+    usePageTitle('特定商取引法に基づく表記');
+
+  return (
         <Layout>
             <div className="max-w-2xl mx-auto px-4 py-8">
                 <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">特定商取引法に基づく表記</h1>

@@ -1,7 +1,10 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { Layout } from '@/components/Layout';
 
 export default function Privacy() {
-    return (
+    usePageTitle('プライバシーポリシー');
+
+  return (
         <Layout>
             <div className="max-w-2xl mx-auto px-4 py-8">
                 <h1 className="text-2xl font-bold text-gray-800 mb-2 text-center">プライバシーポリシー</h1>

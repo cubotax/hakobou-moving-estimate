@@ -5,6 +5,7 @@
  */
 
 import { Layout } from '@/components/Layout';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { useState, useEffect } from 'react';
 import { ConditionForm } from '@/components/ConditionForm';
 import { StepIndicator, ESTIMATE_STEPS } from '@/components/StepIndicator';
@@ -49,6 +50,7 @@ const AnimatedText = ({ lines }: { lines: string[] }) => {
 };
 
 export default function Step2() {
+  usePageTitle('条件入力');
   return (
     <Layout showHeader={false}>
       <div className="min-h-screen bg-white">

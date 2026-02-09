@@ -5,11 +5,13 @@
  */
 
 import { Layout } from '@/components/Layout';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { EstimateResult } from '@/components/EstimateResult';
 import { StepIndicator, ESTIMATE_STEPS } from '@/components/StepIndicator';
 import { Calculator, PartyPopper } from 'lucide-react';
 
 export default function Result() {
+  usePageTitle('見積もり結果');
   return (
     <Layout showHeader={false}>
       <div className="min-h-screen bg-white">

@@ -5,11 +5,13 @@
  */
 
 import { Layout } from '@/components/Layout';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { AddressForm } from '@/components/AddressForm';
 import { StepIndicator, ESTIMATE_STEPS } from '@/components/StepIndicator';
 import { Truck, Sparkles } from 'lucide-react';
 
 export default function Step1() {
+  usePageTitle('住所入力');
   return (
     <Layout showHeader={false}>
       <div className="min-h-screen bg-white">

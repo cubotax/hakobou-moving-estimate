@@ -1,6 +1,9 @@
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { Layout } from '@/components/Layout';
 
 export default function Company() {
+  usePageTitle('会社概要');
+
     const companyInfo = [
         { label: '屋号', value: 'ハコボウ' },
         { label: '代表者', value: '久保田 泰寛' },

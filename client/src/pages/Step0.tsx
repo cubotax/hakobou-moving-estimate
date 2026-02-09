@@ -5,11 +5,13 @@
  */
 
 import { Layout } from '@/components/Layout';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { DateForm } from '@/components/DateForm';
 import { StepIndicator, ESTIMATE_STEPS } from '@/components/StepIndicator';
 import { Truck, Sparkles } from 'lucide-react';
 
 export default function Step0() {
+  usePageTitle('引越し日程');
   return (
     <Layout showHeader={false}>
       <div className="min-h-screen bg-white">
