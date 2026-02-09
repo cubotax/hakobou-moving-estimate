@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { Layout } from '@/components/Layout';
-import { MessageCircle, Mail } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 
 interface ContactFormData {
   name: string;
@@ -45,11 +45,34 @@ export default function Contact() {
       return;
     }
     setIsSubmitting(true);
-    console.log('Form submitted:', formData);
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          furigana: formData.furigana,
+          email: formData.email,
+          message: formData.message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSubmitSuccess(true);
+      } else {
+        alert('送信に失敗しました。時間をおいて再度お試しください。');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      alert('送信に失敗しました。時間をおいて再度お試しください。');
+    } finally {
       setIsSubmitting(false);
-      setSubmitSuccess(true);
-    }, 1000);
+    }
   };
 
   const lineUrl = 'https://line.me/R/ti/p/@602epmvz';
@@ -62,7 +85,7 @@ export default function Contact() {
             <h2 className="text-2xl font-black text-gray-800 mb-4">送信完了</h2>
             <p className="text-gray-600">
               お問い合わせありがとうございます。<br />
-              内容を確認の上、担当者よりご連絡いたします。
+              1〜2営業日以内に担当者よりご連絡いたします。
             </p>
           </div>
         </div>
@@ -103,12 +126,7 @@ export default function Contact() {
 
         {/* メールお問い合わせフォーム */}
         <div className="pop-card p-6 mb-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-[#4A90D9] flex items-center justify-center border-2 border-black">
-              <Mail className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-xl font-black">メールでのお問い合わせ</h2>
-          </div>
+          <h2 className="text-xl font-black mb-6">メールでのお問い合わせ</h2>
 
           <form onSubmit={handleSubmit} className="space-y-7">
             {/* お名前 */}
