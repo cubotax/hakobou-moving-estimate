@@ -31,7 +31,7 @@ export function Layout({ children, showHeader = true, showFooter = true }: Layou
             {showFooter && (
                 <footer className="bg-black text-white py-8 px-4">
                     <div className="max-w-2xl mx-auto px-4">
-                        <div className="flex flex-col sm:flex-row sm:justify-center items-start sm:items-center gap-4 sm:gap-6 text-sm text-gray-400 mb-4">
+                        <div className="flex flex-col sm:flex-row sm:justify-center items-start sm:items-center gap-4 sm:gap-10 text-sm text-gray-400 mb-4">
                             <a href="/tokushoho" className="hover:text-white flex items-center gap-2">
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <circle cx="10" cy="10" r="9" stroke="#FFE14D" strokeWidth="2" />
