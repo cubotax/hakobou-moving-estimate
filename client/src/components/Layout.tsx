@@ -30,10 +30,10 @@ export function Layout({ children, showHeader = true, showFooter = true }: Layou
 
             {showFooter && (
                 <footer className="bg-black text-white py-8 px-4">
-                    <div className="max-w-2xl mx-auto flex justify-start px-4">
-                        <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-400 mb-4">
-                            <a href="/contact" className="hover:text-white">
-                                お問い合わせ
+                    <div className="max-w-2xl mx-auto px-4">
+                        <div className="flex flex-col items-center gap-3 text-sm text-gray-400 mb-4">
+                            <a href="/tokushoho" className="hover:text-white">
+                                特定商取引法
                             </a>
                             <a href="/company" className="hover:text-white">
                                 会社概要
@@ -41,8 +41,8 @@ export function Layout({ children, showHeader = true, showFooter = true }: Layou
                             <a href="/privacy" className="hover:text-white">
                                 プライバシーポリシー
                             </a>
-                            <a href="/tokushoho" className="hover:text-white">
-                                特定商取引法
+                            <a href="/contact" className="hover:text-white">
+                                お問い合わせ
                             </a>
                         </div>
                         <p className="text-center text-xs text-gray-500">
