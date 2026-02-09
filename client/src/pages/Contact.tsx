@@ -277,9 +277,6 @@ export default function Contact() {
               <label htmlFor="message" className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
                 <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">必須</span>
                 お問い合わせ内容
-                {isMessageComplete && (
-                  <CheckCircle2 className="w-5 h-5 text-green-500 ml-auto" />
-                )}
               </label>
               <textarea
                 id="message"
