@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import { MessageCircle, Mail, User, AtSign, FileText } from 'lucide-react';
+import { MessageCircle, Mail } from 'lucide-react';
 
 interface ContactFormData {
   name: string;
@@ -37,7 +37,6 @@ export default function Contact() {
       return;
     }
     setIsSubmitting(true);
-    // TODO: フォーム送信処理を実装
     console.log('Form submitted:', formData);
     setTimeout(() => {
       setIsSubmitting(false);
@@ -73,7 +72,10 @@ export default function Contact() {
         </div>
 
         {/* LINE お問い合わせセクション */}
-        <div className="bg-[#06C755] rounded-2xl border-3 border-black p-6 mb-6 text-center text-white" style={{ borderWidth: '3px', boxShadow: '4px 4px 0px 0px rgba(0, 0, 0, 1)' }}>
+        <div
+          className="bg-[#06C755] rounded-2xl p-6 mb-6 text-center text-white"
+          style={{ border: '3px solid black', boxShadow: '4px 4px 0px 0px rgba(0, 0, 0, 1)' }}
+        >
           <div className="flex items-center justify-center gap-2 mb-3">
             <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center border-2 border-black">
               <MessageCircle className="w-5 h-5 text-[#06C755]" />
@@ -84,7 +86,7 @@ export default function Contact() {
             href={lineUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-white text-[#06C755] font-black py-3 px-8 rounded-full border-2 border-black hover:bg-gray-100 transition-colors"
+            className="inline-block bg-[#FFE14D] text-black font-black py-3 px-8 rounded-full border-2 border-black hover:bg-[#FFD700] transition-colors"
           >
             LINEで友だち追加
           </a>
@@ -114,6 +116,7 @@ export default function Contact() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
+                style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                 placeholder="山田太郎"
               />
             </div>
@@ -132,6 +135,7 @@ export default function Contact() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
+                style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                 placeholder="やまだたろう"
               />
             </div>
@@ -150,6 +154,7 @@ export default function Contact() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
+                style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                 placeholder="info@example.com"
               />
             </div>
@@ -168,6 +173,7 @@ export default function Contact() {
                 required
                 rows={5}
                 className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all resize-none"
+                style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                 placeholder="お問い合わせ内容をご記入ください"
               />
             </div>
