@@ -10,7 +10,6 @@ export default function Tokushoho() {
         { label: '電話番号', value: '050-6862-8994', type: 'tel' },
         { label: 'メールアドレス', value: 'info@hakobou.com', type: 'email' },
         { label: 'サービス料金', value: '見積もりページにて表示' },
-        { label: '料金以外の必要経費', value: 'なし（高速道路料金は見積もりに含まれています）' },
         { label: '支払い方法', value: '銀行振込、クレジットカード、現金' },
         { label: '支払い時期', value: '本申込から3日以内' },
         { label: 'サービス提供時期', value: '本申込で契約した日' },
