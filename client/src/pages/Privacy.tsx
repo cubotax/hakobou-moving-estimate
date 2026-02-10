@@ -4,7 +4,7 @@ import { Layout } from '@/components/Layout';
 export default function Privacy() {
     usePageTitle('プライバシーポリシー');
 
-  return (
+    return (
         <Layout>
             <div className="max-w-2xl mx-auto px-4 py-8">
                 <h1 className="text-2xl font-bold text-gray-800 mb-2 text-center">プライバシーポリシー</h1>
@@ -191,16 +191,11 @@ export default function Privacy() {
                     {/* 13. お問い合わせ先 */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <h2 className="text-lg font-semibold text-gray-800 mb-3">13. お問い合わせ先</h2>
-                        <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                            本ポリシーに関するお問い合わせ、個人情報の開示・訂正・削除等のご請求は、下記までご連絡ください。
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                            本ポリシーに関するお問い合わせ、個人情報の開示・訂正・削除等のご請求は、<a href="/contact" className="text-blue-600 hover:underline font-semibold">お問い合わせページ</a>からご連絡ください。
                         </p>
-                        <div className="text-sm text-gray-600 space-y-1 bg-gray-50 p-4 rounded-lg">
-                            <p className="font-semibold">ハコボウ 個人情報お問い合わせ窓口</p>
-                            <p>メールアドレス：<a href="mailto:info@hakobou.com" className="text-blue-600 hover:underline">info@hakobou.com</a></p>
-                            <p>電話番号：<a href="tel:05068628994" className="text-blue-600 hover:underline">050-6862-8994</a></p>
-                            <p>受付時間：9:00〜18:00</p>
-                        </div>
                     </div>
+
 
                     {/* 制定日・改定日 */}
                     <div className="bg-white rounded-lg shadow-sm p-6">
