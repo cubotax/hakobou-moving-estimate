@@ -15,30 +15,8 @@ export default function Tokushoho() {
         { label: 'サービス提供時期', value: '本申込で契約した日' },
         { label: 'キャンセル料', value: '7日前まで：無料\n3日前まで：50%\n前日〜当日：100%' },
         { label: '返金について', value: '銀行振込での返金の場合、振込手数料はお客様のご負担となります' },
-        { label: 'お届け先対応エリア', value: '関東地方まで' },
         { label: '営業時間', value: '9:00〜18:00' },
         { label: '定休日', value: 'なし' },
-    ];
-
-    const pickupAreas = [
-        {
-            prefecture: '青森県',
-            cities: [
-                '青森市', '弘前市', '黒石市', '五所川原市', 'つがる市', '平川市'
-            ],
-            districts: [
-                { name: '南津軽郡', towns: ['藤崎町', '大鰐町', '田舎館村'] },
-                { name: '北津軽郡', towns: ['板柳町', '鶴田町', '中泊町'] },
-                { name: '東津軽郡', towns: ['平内町', '今別町', '蓬田村', '外ヶ浜町'] },
-                { name: '西津軽郡', towns: ['鰺ヶ沢町'] },
-                { name: '中津軽郡', towns: ['西目屋村'] },
-            ]
-        },
-        {
-            prefecture: '秋田県',
-            cities: ['大館市'],
-            districts: []
-        }
     ];
 
     usePageTitle('特定商取引法に基づく表記');
@@ -86,58 +64,6 @@ export default function Tokushoho() {
                     </table>
                 </div>
 
-                {/* 集荷対応エリア */}
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-blue-600" />
-                        集荷対応エリア一覧
-                    </h2>
-
-                    {pickupAreas.map((area) => (
-                        <div key={area.prefecture} className="mb-6 last:mb-0">
-                            <h3 className="text-lg font-bold text-gray-800 mb-3 pb-2 border-b-2 border-blue-600">
-                                📍 {area.prefecture}
-                            </h3>
-
-                            {/* 市 */}
-                            {area.cities.length > 0 && (
-                                <div className="mb-3">
-                                    <div className="flex flex-wrap gap-2">
-                                        {area.cities.map((city) => (
-                                            <span
-                                                key={city}
-                                                className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
-                                            >
-                                                {city}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* 郡 */}
-                            {area.districts.map((district) => (
-                                <div key={district.name} className="mb-3 ml-2">
-                                    <p className="text-sm font-semibold text-gray-600 mb-2">{district.name}</p>
-                                    <div className="flex flex-wrap gap-2 ml-2">
-                                        {district.towns.map((town) => (
-                                            <span
-                                                key={town}
-                                                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
-                                            >
-                                                {town}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-
-                    <p className="text-sm text-gray-500 mt-4 pt-4 border-t border-gray-200">
-                        ※ 上記以外のエリアについてはお問い合わせください。
-                    </p>
-                </div>
             </div>
         </Layout>
     );
