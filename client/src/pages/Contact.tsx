@@ -209,7 +209,7 @@ export default function Contact() {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 pr-12 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
+                  className="w-full px-4 py-3 pr-12 border-2 border-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
                   style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                   placeholder="山田太郎"
                 />
@@ -234,7 +234,7 @@ export default function Contact() {
                   onChange={handleFuriganaChange}
                   onBlur={handleFuriganaBlur}
                   required
-                  className={`w-full px-4 py-3 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all ${furiganaError ? 'border-red-500' : 'border-black'}`}
+                  className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all ${furiganaError ? 'border-red-500' : 'border-black'}`}
                   style={{ boxShadow: furiganaError ? '3px 3px 0px 0px rgba(239, 68, 68, 1)' : '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                   placeholder="やまだたろう"
                 />
@@ -262,7 +262,7 @@ export default function Contact() {
                   onChange={handleEmailChange}
                   onBlur={handleEmailBlur}
                   required
-                  className="w-full px-4 py-3 pr-12 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
+                  className="w-full px-4 py-3 pr-12 border-2 border-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all"
                   style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                   placeholder="info@example.com"
                 />
@@ -285,14 +285,14 @@ export default function Contact() {
                 onChange={handleTextareaChange}
                 required
                 rows={3}
-                className="w-full px-4 py-3 border-2 border-black rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all resize-none overflow-hidden"
+                className="w-full px-4 py-3 border-2 border-black rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-black outline-none transition-all resize-none overflow-hidden"
                 style={{ boxShadow: '3px 3px 0px 0px rgba(0, 0, 0, 1)' }}
                 placeholder="お問い合わせ内容をご記入ください"
               />
             </div>
 
             {/* 個人情報の取り扱い */}
-            <div className="bg-gray-50 rounded-xl border-2 border-gray-200 p-4">
+            <div className="bg-gray-50 rounded-lg border-2 border-gray-200 p-4">
               <h3 className="font-black text-gray-800 mb-3">個人情報の取り扱い</h3>
               <div className="text-sm text-gray-600 space-y-3 max-h-40 overflow-y-auto pr-2">
                 <p>
