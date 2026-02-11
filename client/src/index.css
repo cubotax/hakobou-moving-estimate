@@ -139,8 +139,9 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic Pro', 'BIZ UDGothic', sans-serif;
+    font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
   }
+
 
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -507,6 +508,7 @@
 .bg-header {
   background-color: white;
 }
+
 /* ブラウザの自動入力時の背景色を上書き */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
