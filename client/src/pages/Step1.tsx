@@ -31,7 +31,7 @@ export default function Step1() {
                 <img
                   src="/mitsumori_logo-fallback.png"
                   alt="ハコボウのオンライン見積"
-                  className="h-14 sm:h-20 mx-auto"
+                  className="h-auto w-[80%] sm:w-[400px] mx-auto"
                   width="545"
                   height="96"
                 />
