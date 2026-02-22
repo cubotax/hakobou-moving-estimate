@@ -186,6 +186,7 @@ export function ConditionForm() {
       try {
         // トラック台数で料金を掛け算
         const finalTotalFee = result.totalFee * data.truckCount;
+        console.log("DEBUG: result.totalFee =", result.totalFee, "truckCount =", data.truckCount, "finalTotalFee =", finalTotalFee);
 
         const response = await fetch(`${API_CONFIG.BASE_URL}/api/estimates`, {
           method: 'POST',
