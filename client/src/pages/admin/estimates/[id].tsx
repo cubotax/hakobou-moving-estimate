@@ -200,9 +200,16 @@ const CustomerCard = ({
 
             {/* お客様情報 - 常に表示 */}
                 <div className="bg-white rounded-lg p-4 mb-4 border border-orange-100">
-                    <div className="flex items-center gap-2 mb-3">
-                        <User className="w-5 h-5 text-orange-600" />
-                        <span className="font-medium text-gray-800">お客様情報</span>
+                    <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                            <User className="w-5 h-5 text-orange-600" />
+                            <span className="font-medium text-gray-800">お客様情報</span>
+                        </div>
+                        {editable && onEdit && (
+                            <button onClick={() => onEdit('customer')} className="text-gray-400 hover:text-orange-600">
+                                <Edit className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
                     <div className="space-y-2">
                         <div className="flex justify-between">
@@ -504,6 +511,19 @@ export default function EstimateDetail() {
     const [editPickupModal, setEditPickupModal] = useState(false);
     const [editDeliveryModal, setEditDeliveryModal] = useState(false);
     const [proposalMessageModal, setProposalMessageModal] = useState(false);
+    const [editCustomerModal, setEditCustomerModal] = useState(false);
+
+    // Customer Edit State
+    const [adjLastName, setAdjLastName] = useState('');
+    const [adjFirstName, setAdjFirstName] = useState('');
+    const [adjLastNameKana, setAdjLastNameKana] = useState('');
+    const [adjFirstNameKana, setAdjFirstNameKana] = useState('');
+    const [adjPhone, setAdjPhone] = useState('');
+    const [adjEmail, setAdjEmail] = useState('');
+
+    // Time Slot Adjustment State
+    const [adjPickupTimeSlot, setAdjPickupTimeSlot] = useState('');
+    const [adjDeliveryTimeSlot, setAdjDeliveryTimeSlot] = useState('');
 
     // 料金内訳 State
     const [feeBreakdown, setFeeBreakdown] = useState<FeeBreakdown>({
@@ -592,7 +612,18 @@ export default function EstimateDetail() {
             case 'date':
                 setAdjPickupDate(estimate.adjusted_pickup_date || estimate.pickup_date || '');
                 setAdjDeliveryDate(estimate.adjusted_delivery_date || estimate.delivery_date || '');
+                setAdjPickupTimeSlot(estimate.pickup_time_slot || '');
+                setAdjDeliveryTimeSlot(estimate.delivery_time_slot || '');
                 setEditDateModal(true);
+                break;
+            case 'customer':
+                setAdjLastName(estimate.last_name || '');
+                setAdjFirstName(estimate.first_name || '');
+                setAdjLastNameKana(estimate.last_name_kana || '');
+                setAdjFirstNameKana(estimate.first_name_kana || '');
+                setAdjPhone(estimate.phone || '');
+                setAdjEmail(estimate.email || '');
+                setEditCustomerModal(true);
                 break;
             case 'plan':
                 setAdjPlan(estimate.adjusted_plan || estimate.plan || 'helper');
@@ -703,14 +734,49 @@ export default function EstimateDetail() {
     // 日程調整
     const handleDateAdjustment = async () => {
         if (!estimateId) return;
-        // この行を削除: await saveSnapshot(estimateId);
         const data: AdjustmentData = {
             adjustedPickupDate: adjPickupDate || undefined,
             adjustedDeliveryDate: adjDeliveryDate || undefined,
         };
         await updateAdjustment(estimateId, data);
+        // 時間帯も更新
+        await fetch(`${window.location.origin}/api/admin/estimates/${estimateId}/customer`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                pickup_time_slot: adjPickupTimeSlot,
+                delivery_time_slot: adjDeliveryTimeSlot,
+            }),
+        });
         setEditDateModal(false);
         fetchData();
+    };
+
+    // お客様情報更新
+    const handleCustomerUpdate = async () => {
+        if (!estimateId) return;
+        try {
+            const res = await fetch(`${window.location.origin}/api/admin/estimates/${estimateId}/customer`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    last_name: adjLastName,
+                    first_name: adjFirstName,
+                    last_name_kana: adjLastNameKana,
+                    first_name_kana: adjFirstNameKana,
+                    phone: adjPhone,
+                    email: adjEmail,
+                }),
+            });
+            if (res.ok) {
+                setEditCustomerModal(false);
+                fetchData();
+            }
+        } catch (err) {
+            console.error('Customer update error:', err);
+        }
     };
 
     // プラン調整
@@ -1113,13 +1179,74 @@ export default function EstimateDetail() {
                                     <Input type="date" value={adjPickupDate} onChange={(e) => setAdjPickupDate(e.target.value)} />
                                 </div>
                                 <div>
+                                    <label className="block text-sm font-medium mb-1">集荷希望時間帯</label>
+                                    <select className="w-full h-10 px-3 border border-gray-300 rounded-md" value={adjPickupTimeSlot} onChange={(e) => setAdjPickupTimeSlot(e.target.value)}>
+                                        <option value="">未選択</option>
+                                        <option value="morning">午前</option>
+                                        <option value="afternoon">午後</option>
+                                        <option value="anytime">どちらでも</option>
+                                    </select>
+                                </div>
+                                <div>
                                     <label className="block text-sm font-medium mb-1">お届け日</label>
                                     <Input type="date" value={adjDeliveryDate} onChange={(e) => setAdjDeliveryDate(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">お届け希望時間帯</label>
+                                    <select className="w-full h-10 px-3 border border-gray-300 rounded-md" value={adjDeliveryTimeSlot} onChange={(e) => setAdjDeliveryTimeSlot(e.target.value)}>
+                                        <option value="">未選択</option>
+                                        <option value="morning">午前</option>
+                                        <option value="afternoon">午後</option>
+                                        <option value="anytime">どちらでも</option>
+                                    </select>
                                 </div>
                             </div>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setEditDateModal(false)}>キャンセル</Button>
                                 <Button onClick={handleDateAdjustment}>保存</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* お客様情報編集モーダル */}
+                    <Dialog open={editCustomerModal} onOpenChange={setEditCustomerModal}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>お客様情報を編集</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">姓</label>
+                                        <Input value={adjLastName} onChange={(e) => setAdjLastName(e.target.value)} placeholder="山田" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">名</label>
+                                        <Input value={adjFirstName} onChange={(e) => setAdjFirstName(e.target.value)} placeholder="太郎" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">姓（カナ）</label>
+                                        <Input value={adjLastNameKana} onChange={(e) => setAdjLastNameKana(e.target.value)} placeholder="ヤマダ" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">名（カナ）</label>
+                                        <Input value={adjFirstNameKana} onChange={(e) => setAdjFirstNameKana(e.target.value)} placeholder="タロウ" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">電話番号</label>
+                                    <Input value={adjPhone} onChange={(e) => setAdjPhone(e.target.value)} placeholder="090-1234-5678" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">メールアドレス</label>
+                                    <Input value={adjEmail} onChange={(e) => setAdjEmail(e.target.value)} placeholder="example@email.com" />
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setEditCustomerModal(false)}>キャンセル</Button>
+                                <Button onClick={handleCustomerUpdate}>保存</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>

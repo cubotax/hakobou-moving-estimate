@@ -261,6 +261,37 @@ router.put('/estimates/:id/adjust', authMiddleware, async (req, res) => {
     }
 });
 
+// お客様情報更新
+router.patch('/estimates/:id/customer', authMiddleware, async (req, res) => {
+    try {
+        const allowedFields = [
+            'last_name', 'first_name', 'last_name_kana', 'first_name_kana',
+            'phone', 'email', 'pickup_time_slot', 'delivery_time_slot'
+        ];
+        const updates = {};
+        for (const field of allowedFields) {
+            if (req.body[field] !== undefined) {
+                updates[field] = req.body[field];
+            }
+        }
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ success: false, error: 'No valid fields to update' });
+        }
+        const { data, error } = await getSupabase()
+            .from('estimates')
+            .update(updates)
+            .eq('id', req.params.id)
+            .select()
+            .single();
+        if (error) throw error;
+        await addActionLog(req.params.id, 'customer_updated', 'お客様情報を更新しました');
+        res.json({ success: true, estimate: data });
+    } catch (err) {
+        console.error('Error updating customer info:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // =====================================================
 // メモエンドポイント
 // =====================================================
