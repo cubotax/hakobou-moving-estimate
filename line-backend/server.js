@@ -212,6 +212,91 @@ https://mitsumori.hakobou.com/admin
   }
 }
 
+async function sendApplicationNotification(estimate, application) {
+  const notificationEmail = process.env.NOTIFICATION_EMAIL;
+  if (!notificationEmail || !resend) {
+    console.log("メール通知設定がありません。スキップします。");
+    return;
+  }
+
+  const fullName = `${application.lastName || ''} ${application.firstName || ''}`.trim() || '未入力';
+  const fullNameKana = `${application.lastNameKana || ''} ${application.firstNameKana || ''}`.trim() || '未入力';
+
+  const pickupFull = [
+    estimate.pickup_prefecture,
+    estimate.pickup_city,
+    estimate.pickup_town,
+    application.pickupAddressDetail,
+    application.pickupBuilding
+  ].filter(Boolean).join('') || '未入力';
+
+  const deliveryFull = [
+    estimate.delivery_prefecture,
+    estimate.delivery_city,
+    estimate.delivery_town,
+    application.deliveryAddressDetail,
+    application.deliveryBuilding
+  ].filter(Boolean).join('') || '未入力';
+
+  const pickupDate = estimate.pickup_date || '未設定';
+  const deliveryDate = estimate.delivery_date || '未設定';
+
+  const floorPickup = estimate.floor_pickup || 1;
+  const elevatorPickup = estimate.has_elevator_pickup ? "あり" : "なし";
+  const floorDelivery = estimate.floor_delivery || 1;
+  const elevatorDelivery = estimate.has_elevator_delivery ? "あり" : "なし";
+
+  const planName = estimate.plan === "helper" ? "ヘルパープラン" : estimate.plan === "omakase" ? "お任せプラン" : "未選択";
+  const packingService = estimate.needs_packing ? "希望する" : "希望しない";
+
+  const subject = `【ハコボウ】申込がありました（ID: ${estimate.id}）`;
+  const text = `━━━━━━━━━━━━━━━━━━━━━━
+🎉 新規申込のお知らせ
+━━━━━━━━━━━━━━━━━━━━━━
+
+以下の内容で申込がありました。
+
+■ 見積もりID: ${estimate.id}
+■ 見積もり金額: ¥${(estimate.total_fee || 0).toLocaleString()}
+
+【お客様情報】
+お名前: ${fullName}
+フリガナ: ${fullNameKana}
+電話番号: ${application.phone || '未入力'}
+
+【集荷先】
+${pickupFull}
+${floorPickup}階 / エレベーター：${elevatorPickup}
+希望時間帯: ${application.pickupTimeSlot || '指定なし'}
+
+【お届け先】
+${deliveryFull}
+${floorDelivery}階 / エレベーター：${elevatorDelivery}
+希望時間帯: ${application.deliveryTimeSlot || '指定なし'}
+
+【日程】
+集荷日: ${pickupDate}
+お届け日: ${deliveryDate}
+
+【プラン】
+${planName} / 梱包サービス：${packingService}
+
+【備考】
+${application.notes || 'なし'}
+
+━━━━━━━━━━━━━━━━━━━━━━
+管理画面で確認:
+https://mitsumori.hakobou.com/admin
+━━━━━━━━━━━━━━━━━━━━━━`;
+
+  try {
+    await resend.emails.send({ from: "ハコボウ通知 <noreply@send.hakobou.com>", to: notificationEmail, subject: subject, text: text });
+    console.log("申込通知メールを送信しました:", estimate.id);
+  } catch (error) {
+    console.error("申込通知メールの送信に失敗しました:", error);
+  }
+}
+
 // __dirname の代替（ESM用）
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
