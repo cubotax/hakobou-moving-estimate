@@ -198,37 +198,35 @@ const CustomerCard = ({
                 </div>
             )}
 
-            {/* お客様情報 */}
-            {(fullName || estimate.phone) && (
+            {/* お客様情報 - 常に表示 */}
                 <div className="bg-white rounded-lg p-4 mb-4 border border-orange-100">
                     <div className="flex items-center gap-2 mb-3">
                         <User className="w-5 h-5 text-orange-600" />
                         <span className="font-medium text-gray-800">お客様情報</span>
                     </div>
                     <div className="space-y-2">
-                        {fullName && (
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">氏名</span>
-                                <span className="font-medium">{fullName}</span>
-                            </div>
-                        )}
-                        {fullNameKana && (
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">フリガナ</span>
-                                <span className="text-sm">{fullNameKana}</span>
-                            </div>
-                        )}
-                        {estimate.phone && (
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">電話番号</span>
-                                <span className="font-medium">{estimate.phone}</span>
-                            </div>
-                        )}
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">氏名</span>
+                            <span className={`font-medium ${fullName ? '' : 'text-red-400'}`}>{fullName || '未収集'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">フリガナ</span>
+                            <span className={`font-medium ${fullNameKana ? '' : 'text-gray-400'}`}>{fullNameKana || '未入力'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">電話番号</span>
+                            <span className={`font-medium ${estimate.phone ? '' : 'text-red-400'}`}>{estimate.phone || '未収集'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">メールアドレス</span>
+                            <span className={`font-medium ${estimate.email ? '' : 'text-gray-400'}`}>{estimate.email || '未入力'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">LINE連携</span>
+                            <span className={`font-medium ${estimate.line_user_id ? 'text-green-600' : 'text-gray-400'}`}>{estimate.line_user_id ? '連携済み' : '未連携'}</span>
+                        </div>
                     </div>
                 </div>
-            )}
-
-            {/* 金額 */}
             <div className="bg-white rounded-lg p-4 mb-4 border border-orange-100">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
