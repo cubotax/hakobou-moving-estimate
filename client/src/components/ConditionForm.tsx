@@ -213,7 +213,7 @@ export function ConditionForm() {
             truckCount: data.truckCount,
 
             // 料金内訳を追加
-            baseFee: result.baseFee || 0,
+            baseFee: (result.baseFee || 0) - (result.busySeasonFee || 0) - (result.weekendHolidayFee || 0),
             distanceFee: result.breakdown?.find(b => b.name === '距離超過料金')?.amount || 0,
             busySeasonFee: result.busySeasonFee || 0,
             weekendHolidayFee: result.weekendHolidayFee || 0,
