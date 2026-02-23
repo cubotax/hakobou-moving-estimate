@@ -122,7 +122,7 @@ export default function AdminMembers() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-xs px-2 py-1 rounded-full ${member.role === 'owner' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'}`}>
-                                        {member.role === 'owner' ? 'オーナー' : '管理者'}
+                                        {member.role === 'owner' ? '管理者' : 'スタッフ'}
                                     </span>
                                     {member.role !== 'owner' && (
                                         <button onClick={() => setDeleteModal(member)} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
@@ -154,7 +154,7 @@ export default function AdminMembers() {
                             <div>
                                 <label className="block text-sm font-medium mb-1">権限</label>
                                 <select className="w-full h-10 px-3 border border-gray-300 rounded-md" value={newRole} onChange={(e) => setNewRole(e.target.value)}>
-                                    <option value="admin">管理者</option>
+                                    <option value="admin">スタッフ</option>
                                     <option value="owner">オーナー</option>
                                 </select>
                             </div>
