@@ -62,7 +62,7 @@ function StatusProgressBar({ status }: { status: string }) {
     }
 
     return (
-        <div className="flex items-center gap-0">
+        <div className="flex items-center justify-between w-full max-w-md">
             {stepLabels.map((label, i) => {
                 const step = i + 1;
                 const isCompleted = step < currentStep;
@@ -93,7 +93,7 @@ function StatusProgressBar({ status }: { status: string }) {
                         </div>
                         {step < 4 && (
                             <div
-                                className={`w-6 h-0.5 mx-0.5 mb-4 ${
+                                className={`flex-1 h-0.5 mx-1 mb-4 ${
                                     step < currentStep ? 'bg-yellow-400' : 'bg-gray-200'
                                 }`}
                             />
@@ -441,9 +441,22 @@ const CustomerCard = ({
                 </div>
                 <div className="space-y-2">
                     <div className="font-medium break-words">{pickupAddress || '-'}</div>
-                    {pickupDetail && (
-                        <div className="text-sm text-gray-700 break-words">{pickupDetail}</div>
-                    )}
+                    <div className="text-sm break-words">
+                        <span className="text-gray-500 mr-1">番地以降:</span>
+                        {estimate.pickup_address_detail ? (
+                            <span className="text-gray-700">{estimate.pickup_address_detail}</span>
+                        ) : (
+                            <span className="text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded text-xs">未収集</span>
+                        )}
+                    </div>
+                    <div className="text-sm break-words">
+                        <span className="text-gray-500 mr-1">建物名:</span>
+                        {estimate.pickup_building ? (
+                            <span className="text-gray-700">{estimate.pickup_building}</span>
+                        ) : (
+                            <span className="text-gray-400 text-xs">なし</span>
+                        )}
+                    </div>
                     <div className="text-sm text-gray-600">
                         {floorPickup}階 / エレベーター：{hasElevatorPickup ? 'あり' : 'なし'}
                     </div>
@@ -465,9 +478,22 @@ const CustomerCard = ({
                 </div>
                 <div className="space-y-2">
                     <div className="font-medium break-words">{deliveryAddress || '-'}</div>
-                    {deliveryDetail && (
-                        <div className="text-sm text-gray-700 break-words">{deliveryDetail}</div>
-                    )}
+                    <div className="text-sm break-words">
+                        <span className="text-gray-500 mr-1">番地以降:</span>
+                        {estimate.delivery_address_detail ? (
+                            <span className="text-gray-700">{estimate.delivery_address_detail}</span>
+                        ) : (
+                            <span className="text-yellow-600 bg-yellow-50 px-1.5 py-0.5 rounded text-xs">未収集</span>
+                        )}
+                    </div>
+                    <div className="text-sm break-words">
+                        <span className="text-gray-500 mr-1">建物名:</span>
+                        {estimate.delivery_building ? (
+                            <span className="text-gray-700">{estimate.delivery_building}</span>
+                        ) : (
+                            <span className="text-gray-400 text-xs">なし</span>
+                        )}
+                    </div>
                     <div className="text-sm text-gray-600">
                         {floorDelivery}階 / エレベーター：{hasElevatorDelivery ? 'あり' : 'なし'}
                     </div>
