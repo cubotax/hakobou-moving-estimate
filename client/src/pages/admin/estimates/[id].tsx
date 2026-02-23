@@ -540,6 +540,7 @@ export default function EstimateDetail() {
         distanceFee: 0,
     });
     const [feeReason, setFeeReason] = useState('');
+    const [adjTruckCount, setAdjTruckCount] = useState(1);
     const [memoContent, setMemoContent] = useState('');
     const [proposalMessage, setProposalMessage] = useState('');
 
@@ -593,6 +594,7 @@ export default function EstimateDetail() {
 
         switch (field) {
             case 'fee':
+                setAdjTruckCount(estimate.truck_count || 1);
                 setFeeBreakdown({
                     baseFee: estimate.base_fee || 0,
                     planFee: estimate.plan_fee || 0,
@@ -647,7 +649,7 @@ export default function EstimateDetail() {
     const handleFeeSubmit = async () => {
         if (!estimateId) return;
         // この行を削除: await saveSnapshot(estimateId);
-        await updateFee(estimateId, calculatedTotal, feeReason, feeBreakdown.expresswayFee, feeBreakdown);
+        await updateFee(estimateId, calculatedTotal * adjTruckCount, feeReason, feeBreakdown.expresswayFee, { ...feeBreakdown, truckCount: adjTruckCount });
         setEditFeeModal(false);
         setFeeReason('');
         fetchData();
@@ -1143,10 +1145,32 @@ export default function EstimateDetail() {
                                         </div>
                                     </div>
                                 ))}
+                                <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">トラック台数</label>
+                                        <select
+                                            value={adjTruckCount}
+                                            onChange={(e) => setAdjTruckCount(Number(e.target.value))}
+                                            className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border"
+                                        >
+                                            {[1,2,3,4,5].map(n => (
+                                                <option key={n} value={n}>{n}台</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 <div className="border-t border-gray-200 pt-4 mt-4">
+                                    <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
+                                        <span>1台分</span>
+                                        <span>{formatFee(calculatedTotal)}</span>
+                                    </div>
+                                    {adjTruckCount > 1 && (
+                                        <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
+                                            <span>トラック追加（{adjTruckCount - 1}台）</span>
+                                            <span>{formatFee(calculatedTotal * (adjTruckCount - 1))}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between items-center text-lg font-bold">
                                         <span>合計金額</span>
-                                        <span className="text-orange-600">{formatFee(calculatedTotal)}</span>
+                                        <span className="text-orange-600">{formatFee(calculatedTotal * adjTruckCount)}</span>
                                     </div>
                                 </div>
                                 <div className="mb-4">

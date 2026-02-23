@@ -4,7 +4,7 @@
  * LINEアプリ内で開かれ、見積もり情報をトークに送信するページ
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Loader2, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
 
 // LIFF ID
@@ -20,12 +20,28 @@ export default function LiffRedirect() {
     const [status, setStatus] = useState<Status>('loading');
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [debugInfo, setDebugInfo] = useState<string>('');
+    const isProcessing = useRef(false);
 
     useEffect(() => {
+        if (isProcessing.current) return;
+        isProcessing.current = true;
         initializeLiff();
     }, []);
 
     async function initializeLiff() {
+        // sessionStorageで送信済みチェック
+        const urlParams = new URLSearchParams(window.location.search);
+        let checkId = urlParams.get('estimateId');
+        if (!checkId) {
+            const liffState = urlParams.get('liff.state');
+            if (liffState) {
+                checkId = new URLSearchParams(liffState).get('estimateId');
+            }
+        }
+        if (checkId && sessionStorage.getItem(`liff_sent_${checkId}`)) {
+            setStatus('success');
+            return;
+        }
         try {
             let debug = '';
             debug += `[1] Start initialization\n`;

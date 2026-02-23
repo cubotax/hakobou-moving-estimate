@@ -173,6 +173,8 @@ export async function updateEstimateFee(estimateId, { finalFee, feeChangeReason,
         if (feeBreakdown.busySeasonFee !== undefined) updateData.busy_season_fee = feeBreakdown.busySeasonFee;
         if (feeBreakdown.expresswayFee !== undefined) updateData.expressway_fee = feeBreakdown.expresswayFee;
         if (feeBreakdown.distanceFee !== undefined) updateData.distance_fee = feeBreakdown.distanceFee;
+        if (feeBreakdown.truckCount !== undefined) updateData.truck_count = feeBreakdown.truckCount;
+        if (feeBreakdown.truckCount !== undefined) updateData.truck_count = feeBreakdown.truckCount;
     }
 
     const { data, error } = await supabase
