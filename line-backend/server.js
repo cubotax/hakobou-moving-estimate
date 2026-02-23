@@ -1522,7 +1522,14 @@ app.post("/api/estimates/:id/send-payment-email", async (req, res) => {
 
     // Stripe Checkout Session作成
     const session = await stripeClient.checkout.sessions.create({
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'konbini', 'customer_balance'],
+      payment_method_options: {
+        konbini: { expires_after_days: 3 },
+        customer_balance: {
+          funding_type: 'bank_transfer',
+          bank_transfer: { type: 'jp_bank_transfer' },
+        },
+      },
       line_items: [
         {
           price_data: {
@@ -1558,7 +1565,7 @@ app.post("/api/estimates/:id/send-payment-email", async (req, res) => {
 ■ 決済ページ:
 ${session.url}
 
-※クレジットカード決済（Stripe）となります。
+※クレジットカード・コンビニ決済・銀行振込に対応しています。
 ※このリンクは24時間有効です。
 
 ご不明な点がございましたら、LINEにてお気軽にお問い合わせください。
@@ -1597,7 +1604,7 @@ app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async
   // 決済完了イベント
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const estimateId = session.metadata?.estimateId;
+    const estimateId = session.metadata?.estimate_id || session.metadata?.estimateId;
 
     console.log("Payment completed for estimate:", estimateId);
 
@@ -1619,6 +1626,17 @@ app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async
                 text: `お支払いありがとうございます！\n\n見積もりID: ${estimateId}\n金額: ¥${estimate.total_fee?.toLocaleString()}\n\nご予約が確定しました。当日よろしくお願いいたします。`
               }]
             });
+
+          // メール通知（カード決済完了時）
+          if (estimate.email && resend) {
+            await resend.emails.send({
+              from: "ハコボウ <info@hakobou.com>",
+              to: estimate.email,
+              subject: "【ハコボウ】お支払い確認のお知らせ",
+              text: `お支払いありがとうございます。\n\n■ 見積もりID: ${estimateId}\n■ お支払い金額: ¥${(estimate.final_fee || estimate.total_fee)?.toLocaleString()}\n\nご予約が確定しました。当日よろしくお願いいたします。\n\n━━━━━━━━━━━━━━━━\nハコボウ引越しサービス\nhttps://hakobou.com\n━━━━━━━━━━━━━━━━`
+            });
+            console.log("Email payment confirmation sent");
+          }
           }
 
           // 管理者メール通知
@@ -1627,6 +1645,62 @@ app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async
       } catch (error) {
         console.error("Error processing payment:", error);
       }
+    }
+  }
+
+  // 銀行振込・コンビニ決済の非同期支払い完了
+  if (event.type === 'checkout.session.async_payment_succeeded') {
+    const session = event.data.object;
+    const estimateId = session.metadata?.estimate_id || session.metadata?.estimateId;
+
+    console.log("Async payment succeeded for estimate:", estimateId);
+
+    if (estimateId) {
+      try {
+        await updateEstimateStatus(estimateId, 'paid');
+
+        const estimate = await getEstimateById(estimateId);
+
+        if (estimate) {
+          // LINE通知
+          if (estimate.line_user_id && client) {
+            await client.pushMessage({
+              to: estimate.line_user_id,
+              messages: [{
+                type: 'text',
+                text: `お支払いの確認が取れました！\n\n見積もりID: ${estimateId}\n金額: ¥${(estimate.final_fee || estimate.total_fee)?.toLocaleString()}\n\nご予約が確定しました。当日よろしくお願いいたします。`
+              }]
+            });
+            console.log("LINE payment confirmation sent (async)");
+          }
+
+          // メール通知
+          if (estimate.email && resend) {
+            await resend.emails.send({
+              from: "ハコボウ <info@hakobou.com>",
+              to: estimate.email,
+              subject: "【ハコボウ】お支払い確認のお知らせ",
+              text: `お支払いの確認が取れました。\n\n■ 見積もりID: ${estimateId}\n■ お支払い金額: ¥${(estimate.final_fee || estimate.total_fee)?.toLocaleString()}\n\nご予約が確定しました。当日よろしくお願いいたします。\n\n━━━━━━━━━━━━━━━━\nハコボウ引越しサービス\nhttps://hakobou.com\n━━━━━━━━━━━━━━━━`
+            });
+            console.log("Email payment confirmation sent (async)");
+          }
+
+          await addActionLog(estimateId, 'paid', '非同期決済（銀行振込/コンビニ）が完了しました');
+        }
+      } catch (err) {
+        console.error("Error processing async payment:", err);
+      }
+    }
+  }
+
+  // 非同期支払い失敗
+  if (event.type === 'checkout.session.async_payment_failed') {
+    const session = event.data.object;
+    const estimateId = session.metadata?.estimate_id || session.metadata?.estimateId;
+    console.error("Async payment failed for estimate:", estimateId);
+
+    if (estimateId) {
+      await addActionLog(estimateId, 'payment_failed', '非同期決済（銀行振込/コンビニ）が失敗しました');
     }
   }
 

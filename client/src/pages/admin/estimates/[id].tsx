@@ -538,40 +538,157 @@ const CustomerCard = ({
 };
 
 // 提案カードコンポーネント（履歴表示用）
-const ProposalCard = ({ proposal }: { proposal: any }) => {
+const ProposalCard = ({ proposal, prevProposal }: { proposal: any; prevProposal?: any }) => {
+    const changed = (key: string) => {
+        if (!prevProposal) return false;
+        const a = prevProposal[key];
+        const b = proposal[key];
+        if (a == null && b == null) return false;
+        if (a == null || b == null) return true;
+        return String(a) !== String(b);
+    };
+    const hlClass = (key: string) => changed(key) ? 'bg-orange-100 rounded px-1' : '';
+
+    // 変更サマリー
+    const changes: string[] = [];
+    if (prevProposal) {
+        if (changed('total_fee')) changes.push(`金額: ${formatFee(prevProposal.total_fee)} → ${formatFee(proposal.total_fee)}`);
+        if (changed('plan')) changes.push(`プラン: ${planLabels[prevProposal.plan] || 'ヘルパープラン'} → ${planLabels[proposal.plan] || 'ヘルパープラン'}`);
+        if (changed('pickup_date')) changes.push(`集荷日: ${formatDate(prevProposal.pickup_date)} → ${formatDate(proposal.pickup_date)}`);
+        if (changed('delivery_date')) changes.push(`お届け日: ${formatDate(prevProposal.delivery_date)} → ${formatDate(proposal.delivery_date)}`);
+        if (changed('pickup_time_slot')) changes.push(`集荷時間帯を変更`);
+        if (changed('delivery_time_slot')) changes.push(`お届け時間帯を変更`);
+        if (changed('needs_packing')) changes.push(`梱包サービス: ${proposal.needs_packing ? '利用する' : '利用しない'}`);
+        if (changed('floor_pickup')) changes.push(`集荷先階数: ${prevProposal.floor_pickup} → ${proposal.floor_pickup}`);
+        if (changed('floor_delivery')) changes.push(`届け先階数: ${prevProposal.floor_delivery} → ${proposal.floor_delivery}`);
+        if (changed('has_elevator_pickup')) changes.push(`集荷先エレベーター: ${proposal.has_elevator_pickup ? 'あり' : 'なし'}`);
+        if (changed('has_elevator_delivery')) changes.push(`届け先エレベーター: ${proposal.has_elevator_delivery ? 'あり' : 'なし'}`);
+        const feeKeys = ['base_fee','plan_fee','packing_fee','time_slot_fee','weekend_holiday_fee','floor_pickup_fee','floor_delivery_fee','storage_fee','busy_season_fee','expressway_fee','distance_fee'];
+        feeKeys.forEach(k => {
+            if (changed(k)) {
+                const label: Record<string,string> = {base_fee:'基本料金',plan_fee:'お任せプラン',packing_fee:'梱包サービス',time_slot_fee:'時間指定',weekend_holiday_fee:'土日祝加算',floor_pickup_fee:'集荷先階数料金',floor_delivery_fee:'届け先階数料金',storage_fee:'積み置き料金',busy_season_fee:'繁忙期加算',expressway_fee:'高速道路料金',distance_fee:'距離超過料金'};
+                changes.push(`${label[k] || k}: ${formatFee(prevProposal[k] || 0)} → ${formatFee(proposal[k] || 0)}`);
+            }
+        });
+    }
+
     return (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-3">
-            <div className="flex justify-between items-center mb-3">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 mb-3">
+            <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-gray-600" />
-                    <span className="font-medium">提案 #{proposal.proposal_number}</span>
+                    <FileText className="w-5 h-5 text-gray-600" />
+                    <span className="font-bold text-lg">提案 #{proposal.proposal_number}</span>
                 </div>
                 <span className="text-sm text-gray-500">{formatDateTime(proposal.created_at)}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                    <span className="text-gray-500">金額：</span>
-                    <span className="font-medium">{formatFee(proposal.total_fee)}</span>
+            {/* 変更サマリー */}
+            {changes.length > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                    <div className="text-sm font-medium text-orange-700 mb-1">変更点</div>
+                    {changes.map((c, i) => (
+                        <div key={i} className="text-sm text-orange-800">• {c}</div>
+                    ))}
                 </div>
-                <div>
-                    <span className="text-gray-500">プラン：</span>
-                    <span>{planLabels[proposal.plan] || 'ヘルパープラン'}</span>
+            )}
+            {!prevProposal && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <div className="text-sm text-blue-700">初回見積もり</div>
                 </div>
-                <div>
-                    <span className="text-gray-500">集荷日：</span>
-                    <span>{formatDate(proposal.pickup_date)}</span>
+            )}
+
+            {/* お見積もり金額 */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-3 border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                    <CreditCard className="w-5 h-5 text-gray-600" />
+                    <span className="font-medium text-gray-800">お見積もり金額</span>
                 </div>
-                <div>
-                    <span className="text-gray-500">お届け日：</span>
-                    <span>{formatDate(proposal.delivery_date)}</span>
+                <div className={`text-2xl font-bold text-gray-800 ${hlClass('total_fee')}`}>{formatFee(proposal.total_fee)}</div>
+                <div className="mt-3 pt-3 border-t border-gray-200 space-y-1">
+                    <div className="text-sm font-medium text-gray-700 mb-2">料金内訳</div>
+                    {[
+                        ['base_fee', '基本料金'], ['plan_fee', 'お任せプラン'], ['packing_fee', '梱包サービス'],
+                        ['time_slot_fee', '時間指定'], ['weekend_holiday_fee', '土日祝加算'],
+                        ['floor_pickup_fee', '集荷先階数料金'], ['floor_delivery_fee', '届け先階数料金'],
+                        ['storage_fee', '積み置き料金'], ['busy_season_fee', '繁忙期加算'],
+                        ['expressway_fee', '高速道路料金'], ['distance_fee', '距離超過料金'],
+                    ].map(([key, label]) => (
+                        <div key={key} className={`flex justify-between text-sm ${hlClass(key)}`}>
+                            <span className="text-gray-600">{label}</span>
+                            <span className="font-medium">{formatFee(proposal[key] || 0)}</span>
+                        </div>
+                    ))}
                 </div>
             </div>
 
+            {/* 日程 */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-3 border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-5 h-5 text-gray-600" />
+                    <span className="font-medium text-gray-800">日程</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <div className="text-xs text-gray-500">集荷日</div>
+                        <div className={`font-medium ${hlClass('pickup_date')}`}>{formatDate(proposal.pickup_date)}</div>
+                        <div className={`text-sm text-gray-600 ${hlClass('pickup_time_slot')}`}>{timeSlotLabels[proposal.pickup_time_slot || ''] || 'どちらでも'}</div>
+                    </div>
+                    <div>
+                        <div className="text-xs text-gray-500">お届け日</div>
+                        <div className={`font-medium ${hlClass('delivery_date')}`}>{formatDate(proposal.delivery_date)}</div>
+                        <div className={`text-sm text-gray-600 ${hlClass('delivery_time_slot')}`}>{timeSlotLabels[proposal.delivery_time_slot || ''] || 'どちらでも'}</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* プラン・オプション */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-3 border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                    <Package className="w-5 h-5 text-gray-600" />
+                    <span className="font-medium text-gray-800">プラン・オプション</span>
+                </div>
+                <div className="space-y-2">
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">プラン</span>
+                        <span className={`font-medium ${hlClass('plan')}`}>{planLabels[proposal.plan] || 'ヘルパープラン'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">梱包サービス</span>
+                        <span className={`font-medium ${hlClass('needs_packing')}`}>{proposal.needs_packing ? '利用する' : '利用しない'}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* 集荷先 */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-3 border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="w-5 h-5 text-gray-600" />
+                    <span className="font-medium text-gray-800">集荷先</span>
+                </div>
+                <div className="space-y-1">
+                    <div className={`text-sm text-gray-600 ${hlClass('floor_pickup')}`}>{proposal.floor_pickup || 1}階 / エレベーター：{proposal.has_elevator_pickup ? 'あり' : 'なし'}</div>
+                </div>
+            </div>
+
+            {/* お届け先 */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-3 border border-gray-100">
+                <div className="flex items-center gap-2 mb-2">
+                    <Truck className="w-5 h-5 text-gray-600" />
+                    <span className="font-medium text-gray-800">お届け先</span>
+                </div>
+                <div className="space-y-1">
+                    <div className={`text-sm text-gray-600 ${hlClass('floor_delivery')}`}>{proposal.floor_delivery || 1}階 / エレベーター：{proposal.has_elevator_delivery ? 'あり' : 'なし'}</div>
+                </div>
+            </div>
+
+            {/* メッセージ */}
             {proposal.message && (
-                <div className="mt-3 p-2 bg-white rounded border border-gray-100">
-                    <div className="text-xs text-gray-500 mb-1">メッセージ</div>
-                    <div className="text-sm break-words">{proposal.message}</div>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <div className="flex items-center gap-2 mb-2">
+                        <FileText className="w-5 h-5 text-gray-600" />
+                        <span className="font-medium text-gray-800">メッセージ</span>
+                    </div>
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">{proposal.message}</p>
                 </div>
             )}
         </div>
@@ -1068,21 +1185,12 @@ export default function EstimateDetail() {
                                 申込案内
                             </Button>
                             <Button
-                                onClick={() => { setPaymentMethod('line'); setSendModal('payment'); }}
-                                disabled={!estimate.line_user_id}
-                                className="w-full py-3 text-sm bg-green-600 hover:bg-green-700"
+                                onClick={() => { setPaymentEmail(estimate.email || ''); setSendModal('payment'); }}
+                                className="w-full py-3 text-sm"
                                 size="default"
                             >
                                 <Send className="w-4 h-4 mr-2" />
-                                決済案内（LINE）
-                            </Button>
-                            <Button
-                                onClick={() => { setPaymentMethod('email'); setPaymentEmail(estimate.email || ''); setSendModal('payment'); }}
-                                className="w-full py-3 text-sm bg-blue-600 hover:bg-blue-700"
-                                size="default"
-                            >
-                                <Send className="w-4 h-4 mr-2" />
-                                決済案内（メール）
+                                決済案内
                             </Button>
                             <Button
                                 onClick={() => setCancelModal(true)}
@@ -1212,8 +1320,9 @@ export default function EstimateDetail() {
                                 const proposal = reversedProposals[activeProposalTab];
                                 if (!proposal) return null;
 
+                                const prevProp = idx > 0 ? reversedProposals[idx - 1] : undefined;
                                 return (
-                                    <ProposalCard proposal={proposal} />
+                                    <ProposalCard proposal={proposal} prevProposal={prevProp} />
                                 );
                             })()}
                         </Section>
