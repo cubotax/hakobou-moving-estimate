@@ -27,7 +27,7 @@ export default function AdminMembers() {
 
     const fetchMembers = async () => {
         try {
-            const token = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_BASE}/api/admin/members`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -46,7 +46,7 @@ export default function AdminMembers() {
         if (!newEmail) return;
         setSaving(true);
         try {
-            const token = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_BASE}/api/admin/members`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -73,7 +73,7 @@ export default function AdminMembers() {
         if (!deleteModal) return;
         setSaving(true);
         try {
-            const token = localStorage.getItem('admin_token');
+            const token = localStorage.getItem('adminToken');
             const res = await fetch(`${API_BASE}/api/admin/members/${deleteModal.id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` },
