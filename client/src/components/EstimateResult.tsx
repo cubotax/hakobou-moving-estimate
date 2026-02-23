@@ -500,18 +500,12 @@ export function EstimateResult() {
           </div>
         </div>
 
-        {/* 今すぐ相談をはじめるセクション */}
-        <div className="px-6 pt-14 pb-1 text-center relative">
-          <div className="absolute top-4 left-8 opacity-30">
-            <Sparkles className="w-6 h-6 text-[oklch(0.92_0.16_95)]" />
-          </div>
-          <div className="absolute top-4 right-8 opacity-30">
-            <Sparkles className="w-6 h-6 text-[oklch(0.92_0.16_95)]" />
-          </div>
-          <h2 className="text-3xl font-black text-black inline-block relative">
-            今すぐ相談をはじめる
-            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[oklch(0.92_0.16_95)] rounded-full" />
-          </h2>
+        {/* 案内テキスト */}
+        <div className="mt-8 mb-2 px-4">
+          <p className="text-sm text-gray-600 text-center leading-relaxed">
+            LINEやメールと連携して見積もり内容を保存できます！<br />
+            今回のお見積もり金額は本日より3日間有効です。
+          </p>
         </div>
 
         {/* LINE相談ボタン */}
