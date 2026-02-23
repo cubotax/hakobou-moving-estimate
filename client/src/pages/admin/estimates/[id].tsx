@@ -1067,13 +1067,21 @@ export default function EstimateDetail() {
                                 申込案内
                             </Button>
                             <Button
-                                onClick={() => { setPaymentEmail(estimate.email || ''); setSendModal('payment'); }}
+                                onClick={() => { setPaymentMethod('line'); setSendModal('payment'); }}
                                 disabled={!estimate.line_user_id}
-                                className="w-full py-3 text-sm"
+                                className="w-full py-3 text-sm bg-green-600 hover:bg-green-700"
                                 size="default"
                             >
                                 <Send className="w-4 h-4 mr-2" />
-                                決済案内
+                                決済案内（LINE）
+                            </Button>
+                            <Button
+                                onClick={() => { setPaymentMethod('email'); setPaymentEmail(estimate.email || ''); setSendModal('payment'); }}
+                                className="w-full py-3 text-sm bg-blue-600 hover:bg-blue-700"
+                                size="default"
+                            >
+                                <Send className="w-4 h-4 mr-2" />
+                                決済案内（メール）
                             </Button>
                             <Button
                                 onClick={() => setCancelModal(true)}

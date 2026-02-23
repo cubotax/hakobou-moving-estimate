@@ -254,15 +254,9 @@ function AdminDashboard() {
                                                 </td>
                                                 <td className="px-4 py-3 text-sm">
                                                     {estimate.pickup_prefecture}{estimate.pickup_city?.slice(0, 4)}...
-                                                    {!estimate.pickup_address_detail && (
-                                                        <span className="ml-1 text-xs bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded">番地未収集</span>
-                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm">
                                                     {estimate.delivery_prefecture}{estimate.delivery_city?.slice(0, 4)}...
-                                                    {!estimate.delivery_address_detail && (
-                                                        <span className="ml-1 text-xs bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded">番地未収集</span>
-                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm text-right font-medium">
                                                     {formatFee(estimate.final_fee || estimate.total_fee)}
