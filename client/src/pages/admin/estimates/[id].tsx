@@ -720,6 +720,7 @@ export default function EstimateDetail() {
     const [selectedMemo, setSelectedMemo] = useState<Memo | null>(null);
     const [sendModal, setSendModal] = useState<'invite' | 'payment' | null>(null);
     const [sendConfirm, setSendConfirm] = useState(false);
+    const [sendLoading, setSendLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'line' | 'email'>('line');
     const [activeProposalTab, setActiveProposalTab] = useState<number>(0);
     const [paymentEmail, setPaymentEmail] = useState('');
@@ -927,6 +928,7 @@ export default function EstimateDetail() {
     // 案内送信
     const handleSend = async (type: 'invite' | 'payment') => {
         if (!estimateId) return;
+        setSendLoading(true);
 
         let success = false;
         if (type === 'invite') {
@@ -954,8 +956,10 @@ export default function EstimateDetail() {
             }
         }
 
+        setSendLoading(false);
         if (success) {
             setSendModal(null);
+            setSendConfirm(false);
             setPaymentEmail('');
             fetchData();
         }
@@ -1668,7 +1672,7 @@ export default function EstimateDetail() {
                     </Dialog>
 
                     {/* 送信確認モーダル */}
-                    <Dialog open={sendModal !== null} onOpenChange={() => { setSendModal(null); setSendConfirm(false); }}>
+                    <Dialog open={sendModal !== null} onOpenChange={() => { if (!sendLoading) { setSendModal(null); setSendConfirm(false); } }}>
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>{sendModal === 'invite' ? '申込案内を送信' : '決済案内を送信'}</DialogTitle>
@@ -1722,7 +1726,7 @@ export default function EstimateDetail() {
                                 ) : (
                                     <>
                                         <Button variant="outline" onClick={() => setSendConfirm(false)}>戻る</Button>
-                                        <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => { sendModal && handleSend(sendModal); setSendConfirm(false); }}>本当に送信する</Button>
+                                        <Button className="bg-red-600 hover:bg-red-700 text-white" disabled={sendLoading} onClick={() => { sendModal && handleSend(sendModal); }}>{sendLoading ? '送信中...' : '本当に送信する'}</Button>
                                     </>
                                 )}
                             </DialogFooter>
