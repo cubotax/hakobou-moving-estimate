@@ -40,14 +40,14 @@ const statusStepMap: Record<string, number> = {
     estimated: 1,
     photo_diagnosis: 1,
     consulting: 2,
-    invite_sent: 2,
-    applied: 3,
-    payment_sent: 3,
-    paid: 4,
+    invite_sent: 3,
+    applied: 4,
+    payment_sent: 5,
+    paid: 6,
     cancelled: 0,
 };
 
-const stepLabels = ['概算見積', '日程調整', '本申込', '決済完了'];
+const stepLabels = ['概算見積', '日程調整', '申込案内', '本申込', '決済案内', '決済完了'];
 
 function StatusProgressBar({ status }: { status: string }) {
     const currentStep = statusStepMap[status] || 1;

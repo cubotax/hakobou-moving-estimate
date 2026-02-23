@@ -740,7 +740,7 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                     },
                     {
                         type: 'text',
-text: '・クレジットカード（VISA / Master / JCB / AMEX）\n・Apple Pay\n・銀行振込\n・コンビニ決済',
+text: '・クレジットカード\n・Apple Pay\n・銀行振込\n・コンビニ決済',
                         size: 'xs',
                         color: '#555555',
                         margin: 'sm',
