@@ -132,7 +132,7 @@ export function verifyToken(token) {
  * 認証ミドルウェア
  * リクエストヘッダーからJWTを検証し、req.adminUserにユーザー情報を設定
  */
-export function authMiddleware(req, res, next) {
+export async function authMiddleware(req, res, next) {
   // Authorizationヘッダーからトークンを取得
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') 
