@@ -500,6 +500,20 @@ export function EstimateResult() {
           </div>
         </div>
 
+        {/* 今すぐ相談をはじめるセクション */}
+        <div className="px-6 pt-14 pb-1 text-center relative">
+          <div className="absolute top-4 left-8 opacity-30">
+            <Sparkles className="w-6 h-6 text-[oklch(0.92_0.16_95)]" />
+          </div>
+          <div className="absolute top-4 right-8 opacity-30">
+            <Sparkles className="w-6 h-6 text-[oklch(0.92_0.16_95)]" />
+          </div>
+          <h2 className="text-3xl font-black text-black inline-block relative">
+            今すぐ相談をはじめる
+            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[oklch(0.92_0.16_95)] rounded-full" />
+          </h2>
+        </div>
+
         {/* LINE相談ボタン */}
         <div className="mt-6">
           <div className="relative">

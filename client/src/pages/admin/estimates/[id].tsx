@@ -62,7 +62,7 @@ function StatusProgressBar({ status }: { status: string }) {
     }
 
     return (
-        <div className="flex items-center justify-between w-full max-w-md">
+        <div className="flex items-center w-full">
             {stepLabels.map((label, i) => {
                 const step = i + 1;
                 const isCompleted = step < currentStep;
@@ -93,7 +93,7 @@ function StatusProgressBar({ status }: { status: string }) {
                         </div>
                         {step < 4 && (
                             <div
-                                className={`flex-1 h-0.5 mx-1 mb-4 ${
+                                className={`flex-1 h-[2px] mb-4 ${
                                     step < currentStep ? 'bg-yellow-400' : 'bg-gray-200'
                                 }`}
                             />
@@ -1012,13 +1012,15 @@ export default function EstimateDetail() {
             <AdminLayout>
                 <div className="max-w-4xl mx-auto p-4">
                     {/* ヘッダー */}
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="mb-2">
                         <Link href="/admin/estimates">
                             <a className="flex items-center text-gray-600 hover:text-gray-800">
                                 <ArrowLeft className="w-5 h-5 mr-1" />
                                 一覧に戻る
                             </a>
                         </Link>
+                    </div>
+                    <div className="mb-6">
                         <StatusProgressBar status={estimate.status} />
                     </div>
 
