@@ -1320,7 +1320,7 @@ export default function EstimateDetail() {
                                 const proposal = reversedProposals[activeProposalTab];
                                 if (!proposal) return null;
 
-                                const prevProp = idx > 0 ? reversedProposals[idx - 1] : undefined;
+                                const prevProp = activeProposalTab > 0 ? reversedProposals[activeProposalTab - 1] : undefined;
                                 return (
                                     <ProposalCard proposal={proposal} prevProposal={prevProp} />
                                 );
