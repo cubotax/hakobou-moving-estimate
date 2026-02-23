@@ -76,9 +76,26 @@ export async function getGoogleUserInfo(accessToken) {
 /**
  * メールアドレスが許可されているか確認
  */
-export function isEmailAllowed(email) {
+export async function isEmailAllowed(email) {
+  // まずSupabaseのadmin_membersテーブルを確認
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_ANON_KEY;
+    if (supabaseUrl && supabaseKey) {
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      const { data } = await supabase
+        .from('admin_members')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .limit(1);
+      if (data && data.length > 0) return true;
+    }
+  } catch (err) {
+    console.error('Supabase admin_members check failed:', err);
+  }
+  // フォールバック: 環境変数のADMIN_EMAILS
   if (ADMIN_EMAILS.length === 0) {
-    // 開発環境: ADMIN_EMAILSが設定されていない場合は全て許可
     console.warn('Warning: ADMIN_EMAILS not configured, allowing all emails');
     return true;
   }
@@ -140,7 +157,7 @@ export function authMiddleware(req, res, next) {
   }
 
   // メールアドレスが許可されているか確認
-  if (!isEmailAllowed(decoded.email)) {
+  if (!(await isEmailAllowed(decoded.email))) {
     return res.status(403).json({ 
       success: false, 
       error: 'Access denied',

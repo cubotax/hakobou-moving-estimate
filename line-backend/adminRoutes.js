@@ -100,7 +100,7 @@ router.get('/auth/callback', async (req, res) => {
         const tokens = await exchangeCodeForTokens(code);
         const userInfo = await getGoogleUserInfo(tokens.access_token);
 
-        if (!isEmailAllowed(userInfo.email)) {
+        if (!(await isEmailAllowed(userInfo.email))) {
             return res.redirect('/admin/login?error=not_authorized');
         }
 
@@ -1592,6 +1592,79 @@ router.post('/estimates/:id/action-logs', authMiddleware, async (req, res) => {
     } catch (err) {
         console.error('Error adding action log:', err);
         res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
+// ========== メンバー管理API ==========
+router.get('/members', authMiddleware, async (req, res) => {
+    try {
+        const supabase = getSupabase();
+        const { data, error } = await supabase
+            .from('admin_members')
+            .select('*')
+            .order('created_at', { ascending: true });
+        if (error) throw error;
+        res.json({ success: true, members: data });
+    } catch (err) {
+        console.error('Error fetching members:', err);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
+router.post('/members', authMiddleware, async (req, res) => {
+    try {
+        const { email, name, role } = req.body;
+        if (!email) return res.status(400).json({ success: false, error: 'メールアドレスは必須です' });
+
+        const supabase = getSupabase();
+        // 重複チェック
+        const { data: existing } = await supabase
+            .from('admin_members')
+            .select('id')
+            .eq('email', email.toLowerCase())
+            .limit(1);
+        if (existing && existing.length > 0) {
+            return res.status(400).json({ success: false, error: 'このメールアドレスは既に登録されています' });
+        }
+
+        const { data, error } = await supabase
+            .from('admin_members')
+            .insert({ email: email.toLowerCase(), name: name || null, role: role || 'admin' })
+            .select()
+            .single();
+        if (error) throw error;
+        res.json({ success: true, member: data });
+    } catch (err) {
+        console.error('Error adding member:', err);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
+router.delete('/members/:id', authMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const supabase = getSupabase();
+
+        // オーナーは削除不可
+        const { data: member } = await supabase
+            .from('admin_members')
+            .select('role')
+            .eq('id', id)
+            .single();
+        if (member?.role === 'owner') {
+            return res.status(400).json({ success: false, error: 'オーナーは削除できません' });
+        }
+
+        const { error } = await supabase
+            .from('admin_members')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting member:', err);
+        res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
