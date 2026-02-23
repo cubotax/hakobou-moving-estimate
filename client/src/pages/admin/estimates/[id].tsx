@@ -551,8 +551,12 @@ export default function EstimateDetail() {
     const [adjNeedsPacking, setAdjNeedsPacking] = useState(false);
     const [adjFloorPickup, setAdjFloorPickup] = useState(1);
     const [adjHasElevatorPickup, setAdjHasElevatorPickup] = useState(false);
+    const [adjPickupAddressDetail, setAdjPickupAddressDetail] = useState('');
+    const [adjPickupBuilding, setAdjPickupBuilding] = useState('');
     const [adjFloorDelivery, setAdjFloorDelivery] = useState(1);
     const [adjHasElevatorDelivery, setAdjHasElevatorDelivery] = useState(false);
+    const [adjDeliveryAddressDetail, setAdjDeliveryAddressDetail] = useState('');
+    const [adjDeliveryBuilding, setAdjDeliveryBuilding] = useState('');
 
     // 合計金額を自動計算
     const calculatedTotal = useMemo(() => {
@@ -635,11 +639,15 @@ export default function EstimateDetail() {
             case 'pickup':
                 setAdjFloorPickup(estimate.adjusted_floor_pickup ?? estimate.floor_pickup ?? 1);
                 setAdjHasElevatorPickup(estimate.adjusted_has_elevator_pickup ?? estimate.has_elevator_pickup ?? false);
+                setAdjPickupAddressDetail(estimate.pickup_address_detail || '');
+                setAdjPickupBuilding(estimate.pickup_building || '');
                 setEditPickupModal(true);
                 break;
             case 'delivery':
                 setAdjFloorDelivery(estimate.adjusted_floor_delivery ?? estimate.floor_delivery ?? 1);
                 setAdjHasElevatorDelivery(estimate.adjusted_has_elevator_delivery ?? estimate.has_elevator_delivery ?? false);
+                setAdjDeliveryAddressDetail(estimate.delivery_address_detail || '');
+                setAdjDeliveryBuilding(estimate.delivery_building || '');
                 setEditDeliveryModal(true);
                 break;
         }
@@ -798,12 +806,15 @@ export default function EstimateDetail() {
     // 集荷条件調整
     const handlePickupAdjustment = async () => {
         if (!estimateId) return;
-        // この行を削除: await saveSnapshot(estimateId);
         const data: AdjustmentData = {
             adjustedFloorPickup: adjFloorPickup,
             adjustedHasElevatorPickup: adjHasElevatorPickup,
         };
         await updateAdjustment(estimateId, data);
+        // 住所詳細を保存
+        try {
+            await updateCustomer(estimateId, { pickup_address_detail: adjPickupAddressDetail, pickup_building: adjPickupBuilding });
+        } catch (e) { console.error('住所保存エラー:', e); }
         setEditPickupModal(false);
         fetchData();
     };
@@ -812,12 +823,15 @@ export default function EstimateDetail() {
     // お届け条件調整
     const handleDeliveryAdjustment = async () => {
         if (!estimateId) return;
-        // この行を削除: await saveSnapshot(estimateId);
         const data: AdjustmentData = {
             adjustedFloorDelivery: adjFloorDelivery,
             adjustedHasElevatorDelivery: adjHasElevatorDelivery,
         };
         await updateAdjustment(estimateId, data);
+        // 住所詳細を保存
+        try {
+            await updateCustomer(estimateId, { delivery_address_detail: adjDeliveryAddressDetail, delivery_building: adjDeliveryBuilding });
+        } catch (e) { console.error('住所保存エラー:', e); }
         setEditDeliveryModal(false);
         fetchData();
     };
@@ -1342,6 +1356,14 @@ export default function EstimateDetail() {
                                         <option value="true">あり</option>
                                     </select>
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">番地以降</label>
+                                    <input type="text" className="w-full h-10 px-3 border border-gray-300 rounded-md" value={adjPickupAddressDetail} onChange={(e) => setAdjPickupAddressDetail(e.target.value)} placeholder="例: 1-2-3" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">建物名・部屋番号</label>
+                                    <input type="text" className="w-full h-10 px-3 border border-gray-300 rounded-md" value={adjPickupBuilding} onChange={(e) => setAdjPickupBuilding(e.target.value)} placeholder="例: ○○マンション101" />
+                                </div>
                             </div>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setEditPickupModal(false)}>キャンセル</Button>
@@ -1379,6 +1401,14 @@ export default function EstimateDetail() {
                                         <option value="false">なし</option>
                                         <option value="true">あり</option>
                                     </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">番地以降</label>
+                                    <input type="text" className="w-full h-10 px-3 border border-gray-300 rounded-md" value={adjDeliveryAddressDetail} onChange={(e) => setAdjDeliveryAddressDetail(e.target.value)} placeholder="例: 4-5-6" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">建物名・部屋番号</label>
+                                    <input type="text" className="w-full h-10 px-3 border border-gray-300 rounded-md" value={adjDeliveryBuilding} onChange={(e) => setAdjDeliveryBuilding(e.target.value)} placeholder="例: △△ビル202" />
                                 </div>
                             </div>
                             <DialogFooter>

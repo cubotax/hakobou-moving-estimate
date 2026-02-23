@@ -266,7 +266,8 @@ router.patch('/estimates/:id/customer', authMiddleware, async (req, res) => {
     try {
         const allowedFields = [
             'last_name', 'first_name', 'last_name_kana', 'first_name_kana',
-            'phone', 'email', 'pickup_time_slot', 'delivery_time_slot'
+            'phone', 'email', 'pickup_time_slot', 'delivery_time_slot',
+            'pickup_address_detail', 'pickup_building', 'delivery_address_detail', 'delivery_building'
         ];
         const updates = {};
         for (const field of allowedFields) {

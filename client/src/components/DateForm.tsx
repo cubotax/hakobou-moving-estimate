@@ -189,11 +189,10 @@ export function DateForm() {
 
   useEffect(() => {
     if (!isPickupDirty) return;
-    if (!pickupDate || !deliveryDate) return;
-    if (deliveryDate < pickupDate) {
-      setValue('dates.deliveryDate', pickupDate, { shouldDirty: true });
-    }
-  }, [pickupDate, deliveryDate, setValue, isPickupDirty]);
+    if (!pickupDate) return;
+    // 集荷日を変更したらお届け日も同日にする
+    setValue('dates.deliveryDate', pickupDate, { shouldDirty: true });
+  }, [pickupDate, setValue, isPickupDirty]);
 
   // 繁忙期チェック（集荷日またはお届け日のどちらかが繁忙期なら警告表示）
   const isPickupBusySeason = isBusySeason(pickupDate);

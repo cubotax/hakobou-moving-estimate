@@ -310,6 +310,24 @@ export function useEstimates() {
         }
     }, []);
 
+    const updateCustomer = useCallback(async (id: string, customerData: Record<string, any>) => {
+        try {
+            setLoading(true);
+            const response = await authFetch(\`\${API_BASE_URL}/api/admin/estimates/\${id}/customer\`, {
+                method: 'PATCH',
+                body: JSON.stringify(customerData),
+            });
+            const data = await response.json();
+            if (!data.success) throw new Error(data.error);
+            return data.estimate;
+        } catch (err: any) {
+            setError(err.message);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         loading,
         error,
@@ -320,6 +338,7 @@ export function useEstimates() {
         updateFee,
         updateAdjustment,
         saveSnapshot,
+        updateCustomer,
     };
 }
 
