@@ -148,7 +148,9 @@ export async function authMiddleware(req, res, next) {
   }
 
   const decoded = verifyToken(token);
+  console.log('[AUTH] decoded:', decoded ? decoded.email : 'null');
   if (!decoded) {
+    console.log('[AUTH] Token invalid or expired');
     return res.status(401).json({ 
       success: false, 
       error: 'Invalid or expired token',
@@ -157,7 +159,9 @@ export async function authMiddleware(req, res, next) {
   }
 
   // メールアドレスが許可されているか確認
-  if (!(await isEmailAllowed(decoded.email))) {
+  const allowed = await isEmailAllowed(decoded.email);
+  console.log('[AUTH] isEmailAllowed result:', allowed);
+  if (!allowed) {
     return res.status(403).json({ 
       success: false, 
       error: 'Access denied',
