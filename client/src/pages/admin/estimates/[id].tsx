@@ -72,7 +72,7 @@ function StatusProgressBar({ status }: { status: string }) {
     const row2 = stepLabels.slice(3);
 
     const renderRow = (labels: string[], startIndex: number) => (
-        <div className="flex items-center w-full">
+        <div className="flex items-center justify-between w-full">
             {labels.map((label, i) => {
                 const step = startIndex + i + 1;
                 const isCompleted = step < currentStep;
@@ -83,18 +83,18 @@ function StatusProgressBar({ status }: { status: string }) {
                     <div key={step} className={!isLastInRow ? 'flex items-center flex-1' : 'flex items-center'}>
                         <div className="flex flex-col items-center">
                             <div
-                                className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm ${
                                     isCompleted
-                                        ? 'bg-yellow-400 border-yellow-500 text-white'
+                                        ? 'bg-yellow-400 text-white shadow-yellow-200'
                                         : isCurrent
-                                        ? 'bg-yellow-400 border-yellow-500 text-white ring-2 ring-yellow-200'
-                                        : 'bg-gray-100 border-gray-300 text-gray-400'
+                                        ? 'bg-yellow-400 text-white ring-2 ring-yellow-200 shadow-yellow-300'
+                                        : 'bg-gray-100 text-gray-400 border border-gray-200'
                                 }`}
                             >
                                 {isCompleted ? '\u2713' : step}
                             </div>
                             <span
-                                className={`text-[10px] mt-1 whitespace-pre-line text-center leading-tight ${
+                                className={`text-[10px] mt-1.5 whitespace-pre-line text-center leading-tight ${
                                     isCompleted || isCurrent ? 'font-bold text-gray-800' : 'text-gray-400'
                                 }`}
                             >
@@ -103,7 +103,7 @@ function StatusProgressBar({ status }: { status: string }) {
                         </div>
                         {!isLastInRow && (
                             <div
-                                className={`flex-1 h-[2px] mx-1 -mt-5 ${
+                                className={`flex-1 h-[3px] mx-1 -mt-6 rounded-full ${
                                     step < currentStep ? 'bg-yellow-400' : 'bg-gray-200'
                                 }`}
                             />
@@ -535,11 +535,11 @@ const CustomerCard = ({
                         <Button
                             onClick={onProposalClick}
                             disabled={!estimate.line_user_id}
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-base font-bold"
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-sm font-bold rounded-lg"
                             size="default"
                         >
-                            <Send className="w-4 h-4 mr-2" />
-                            顧客に再提案する
+                            <Send className="w-4 h-4 mr-2 flex-shrink-0" />
+                            <span>顧客に再提案する</span>
                         </Button>
                         {!estimate.line_user_id && (
                             <p className="text-xs text-gray-500 text-center mt-1">
@@ -1182,7 +1182,7 @@ export default function EstimateDetail() {
                             </a>
                         </Link>
                     </div>
-                    <div className="mb-6">
+                    <div className="mt-6 mb-6">
                         <StatusProgressBar status={estimate.status} />
                     </div>
 
