@@ -71,53 +71,63 @@ function StatusProgressBar({ status }: { status: string }) {
     const row1 = stepLabels.slice(0, 3);
     const row2 = stepLabels.slice(3);
 
-    const renderRow = (labels: string[], startIndex: number) => (
-        <div className="flex items-center justify-between w-full">
-            {labels.map((label, i) => {
-                const step = startIndex + i + 1;
-                const isCompleted = step < currentStep;
-                const isCurrent = step === currentStep;
-                const isLastInRow = i === labels.length - 1;
-
-                return (
-                    <div key={step} className={!isLastInRow ? 'flex items-center flex-1' : 'flex items-center'}>
-                        <div className="flex flex-col items-center">
-                            <div
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm ${
-                                    isCompleted
-                                        ? 'bg-yellow-400 text-white shadow-yellow-200'
-                                        : isCurrent
-                                        ? 'bg-yellow-400 text-white ring-2 ring-yellow-200 shadow-yellow-300'
-                                        : 'bg-gray-100 text-gray-400 border border-gray-200'
-                                }`}
-                            >
-                                {isCompleted ? '\u2713' : step}
-                            </div>
-                            <span
-                                className={`text-[10px] mt-1.5 whitespace-pre-line text-center leading-tight ${
-                                    isCompleted || isCurrent ? 'font-bold text-gray-800' : 'text-gray-400'
-                                }`}
-                            >
-                                {label}
-                            </span>
-                        </div>
-                        {!isLastInRow && (
-                            <div
-                                className={`flex-1 h-[3px] mx-1 -mt-6 rounded-full ${
-                                    step < currentStep ? 'bg-yellow-400' : 'bg-gray-200'
-                                }`}
-                            />
-                        )}
+    const renderStep = (label: string, step: number, isLastInRow: boolean) => {
+        const isCompleted = step < currentStep;
+        const isCurrent = step === currentStep;
+        return (
+            <div key={step} className={!isLastInRow ? 'flex items-center flex-1' : 'flex items-center'}>
+                <div className="flex flex-col items-center">
+                    <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm ${
+                            isCompleted
+                                ? 'bg-yellow-400 text-white shadow-yellow-200'
+                                : isCurrent
+                                ? 'bg-yellow-400 text-white ring-2 ring-yellow-200 shadow-yellow-300'
+                                : 'bg-gray-100 text-gray-400 border border-gray-200'
+                        }`}
+                    >
+                        {isCompleted ? '\u2713' : step}
+                    </div>
+                    <span
+                        className={`text-[10px] mt-1.5 whitespace-pre-line text-center leading-tight ${
+                            isCompleted || isCurrent ? 'font-bold text-gray-800' : 'text-gray-400'
+                        }`}
+                    >
+                        {label}
+                    </span>
+                </div>
+                {!isLastInRow && (
+                    <div
+                        className={`flex-1 h-[3px] mx-1 -mt-6 rounded-full ${
+                            step < currentStep ? 'bg-yellow-400' : 'bg-gray-200'
+                        }`}
+                    />
+                )}
                     </div>
                 );
             })}
         </div>
     );
 
+    const renderRow = (labels: string[], startIndex: number) => (
+        <div className="flex items-center justify-between w-full">
+            {labels.map((label, i) => renderStep(label, startIndex + i + 1, i === labels.length - 1))}
+        </div>
+    );
+
     return (
-        <div className="w-full space-y-3">
-            {renderRow(row1, 0)}
-            {renderRow(row2, 3)}
+        <div className="w-full">
+            {/* PC: 1段表示 */}
+            <div className="hidden md:block">
+                <div className="flex items-center justify-between w-full">
+                    {stepLabels.map((label, i) => renderStep(label, i + 1, i === stepLabels.length - 1))}
+                </div>
+            </div>
+            {/* スマホ: 2段表示 */}
+            <div className="md:hidden space-y-3">
+                {renderRow(row1, 0)}
+                {renderRow(row2, 3)}
+            </div>
         </div>
     );
 }
@@ -535,10 +545,10 @@ const CustomerCard = ({
                         <Button
                             onClick={onProposalClick}
                             disabled={!estimate.line_user_id}
-                            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-sm font-bold rounded-lg"
+                            className="w-full max-w-xs mx-auto bg-orange-500 hover:bg-orange-600 text-white py-4 text-base font-bold rounded-xl shadow-md"
                             size="default"
                         >
-                            <Send className="w-4 h-4 mr-2 flex-shrink-0" />
+                            <Send className="w-5 h-5 mr-2 flex-shrink-0" />
                             <span>顧客に再提案する</span>
                         </Button>
                         {!estimate.line_user_id && (
@@ -1176,8 +1186,8 @@ export default function EstimateDetail() {
                     {/* ヘッダー */}
                     <div className="mb-2">
                         <Link href="/admin/estimates">
-                            <a className="flex items-center text-gray-600 hover:text-gray-800">
-                                <ArrowLeft className="w-5 h-5 mr-1" />
+                            <a className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                <ArrowLeft className="w-4 h-4 mr-2" />
                                 一覧に戻る
                             </a>
                         </Link>
