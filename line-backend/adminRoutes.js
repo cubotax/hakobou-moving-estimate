@@ -649,10 +649,11 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
     const finalFee = estimate.final_fee || estimate.total_fee || 0;
     const discountAmount = estimate.discount_amount || 0;
     const feeText = `¥${finalFee.toLocaleString()}`;
+    const customerName = [estimate.last_name, estimate.first_name].filter(Boolean).join(' ') || 'お客様';
 
     return {
         type: 'flex',
-        altText: '💳 決済のご案内',
+        altText: '【ハコボウ】決済のご案内',
         contents: {
             type: 'bubble',
             header: {
@@ -661,10 +662,17 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                 contents: [
                     {
                         type: 'text',
+                        text: '🚚 ハコボウ引越しサービス',
+                        size: 'xs',
+                        color: '#888888',
+                    },
+                    {
+                        type: 'text',
                         text: '💳 決済のご案内',
                         weight: 'bold',
                         size: 'lg',
                         color: '#1DB446',
+                        margin: 'sm',
                     },
                 ],
                 backgroundColor: '#F5F5F5',
@@ -676,10 +684,30 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                 contents: [
                     {
                         type: 'text',
+                        text: `${customerName}様`,
+                        size: 'md',
+                        weight: 'bold',
+                        color: '#333333',
+                    },
+                    {
+                        type: 'text',
+                        text: 'この度はハコボウをご利用いただきありがとうございます。下記の内容でお支払いをお願いいたします。',
+                        size: 'sm',
+                        color: '#555555',
+                        margin: 'md',
+                        wrap: true,
+                    },
+                    {
+                        type: 'separator',
+                        margin: 'lg',
+                    },
+                    {
+                        type: 'text',
                         text: 'お支払い金額',
                         size: 'sm',
                         color: '#555555',
-                        align: 'center',  // 追加
+                        margin: 'lg',
+                        align: 'center',
                     },
                     {
                         type: 'text',
@@ -688,7 +716,7 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                         size: '3xl',
                         color: '#1DB446',
                         margin: 'sm',
-                        align: 'center',  // 追加
+                        align: 'center',
                     },
                     discountAmount > 0 ? {
                         type: 'text',
@@ -696,8 +724,7 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                         size: 'xs',
                         color: '#888888',
                         margin: 'sm',
-                        align: 'center',  // 追加
-
+                        align: 'center',
                     } : null,
                     {
                         type: 'separator',
@@ -705,19 +732,38 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                     },
                     {
                         type: 'text',
-                        text: '下のボタンからクレジットカードでお支払いください。',
+                        text: '■ ご利用可能な決済方法',
                         size: 'sm',
-                        color: '#555555',
+                        weight: 'bold',
+                        color: '#333333',
                         margin: 'lg',
-                        wrap: true,
                     },
                     {
                         type: 'text',
-                        text: '24時間以内にお支払いください。',
+text: '・クレジットカード（VISA / Master / JCB / AMEX）\n・Apple Pay\n・銀行振込\n・コンビニ決済',
+                        size: 'xs',
+                        color: '#555555',
+                        margin: 'sm',
+                        wrap: true,
+                    },
+                    {
+                        type: 'separator',
+                        margin: 'lg',
+                    },
+                    {
+                        type: 'text',
+                        text: '⏰ お支払い期限：24時間以内',
                         size: 'sm',
-                        color: '#111111',
+                        color: '#E85D3A',
                         weight: 'bold',
-                        margin: 'md',
+                        margin: 'lg',
+                    },
+                    {
+                        type: 'text',
+                        text: '※期限を過ぎた場合は、お手数ですがLINEにてご連絡ください。新しい決済リンクをお送りいたします。',
+                        size: 'xs',
+                        color: '#888888',
+                        margin: 'sm',
                         wrap: true,
                     },
                 ].filter(Boolean),
@@ -739,11 +785,19 @@ function buildPaymentFlexMessage(estimate, paymentUrl) {
                     },
                     {
                         type: 'text',
-                        text: '※クレジットカード決済（Stripe）',
+                        text: '安全な決済ページ（Stripe）に移動します',
                         size: 'xs',
                         color: '#888888',
                         align: 'center',
                         margin: 'md',
+                    },
+                    {
+                        type: 'text',
+                        text: 'ご不明な点はこのLINEにお気軽にどうぞ😊',
+                        size: 'xs',
+                        color: '#888888',
+                        align: 'center',
+                        margin: 'sm',
                     },
                 ],
                 paddingAll: '16px',
