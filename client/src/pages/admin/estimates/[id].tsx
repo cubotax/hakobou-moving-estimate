@@ -603,6 +603,7 @@ export default function EstimateDetail() {
     const [selectedMemo, setSelectedMemo] = useState<Memo | null>(null);
     const [sendModal, setSendModal] = useState<'invite' | 'payment' | null>(null);
     const [paymentMethod, setPaymentMethod] = useState<'line' | 'email'>('line');
+    const [activeProposalTab, setActiveProposalTab] = useState<number>(0);
     const [paymentEmail, setPaymentEmail] = useState('');
     const [cancelModal, setCancelModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState(false);
@@ -1186,76 +1187,37 @@ export default function EstimateDetail() {
                     </Section>
 
                     {/* 変更履歴 */}
-                    <Section title="変更履歴" icon={<FileText className="w-5 h-5 text-gray-600" />}>
-                        {proposals.length === 0 ? (
-                            <p className="text-gray-400 text-sm">変更履歴はありません</p>
-                        ) : (
-                            <div className="space-y-4">
-                                {[...proposals].reverse().map((proposal) => {
-                                    // proposalデータをestimate形式に変換
-                                    const proposalAsEstimate = {
-                                        ...estimate,
-                                        // 提案時点のデータで上書き
-                                        adjusted_pickup_date: proposal.pickup_date,
-                                        adjusted_delivery_date: proposal.delivery_date,
-                                        pickup_time_slot: proposal.pickup_time_slot,
-                                        delivery_time_slot: proposal.delivery_time_slot,
-                                        adjusted_floor_pickup: proposal.floor_pickup,
-                                        adjusted_has_elevator_pickup: proposal.has_elevator_pickup,
-                                        adjusted_floor_delivery: proposal.floor_delivery,
-                                        adjusted_has_elevator_delivery: proposal.has_elevator_delivery,
-                                        adjusted_plan: proposal.plan,
-                                        adjusted_needs_packing: proposal.needs_packing,
-                                        final_fee: proposal.total_fee,
-                                        total_fee: proposal.total_fee,
-                                        expressway_fee: proposal.expressway_fee || 0,
-                                        base_fee: proposal.base_fee || 0,
-                                        plan_fee: proposal.plan_fee || 0,
-                                        packing_fee: proposal.packing_fee || 0,
-                                        time_slot_fee: proposal.time_slot_fee || 0,
-                                        weekend_holiday_fee: proposal.weekend_holiday_fee || 0,
-                                        floor_pickup_fee: proposal.floor_pickup_fee || 0,
-                                        floor_delivery_fee: proposal.floor_delivery_fee || 0,
-                                        storage_fee: proposal.storage_fee || 0,
-                                        busy_season_fee: proposal.busy_season_fee || 0,
-                                        distance_fee: proposal.distance_fee || 0,
-                                        // 住所情報（proposalに保存されている場合はそちらを使用）
-                                        pickup_prefecture: proposal.pickup_prefecture || estimate.pickup_prefecture,
-                                        pickup_city: proposal.pickup_city || estimate.pickup_city,
-                                        pickup_town: proposal.pickup_town || estimate.pickup_town,
-                                        pickup_address_detail: proposal.pickup_address_detail || estimate.pickup_address_detail,
-                                        pickup_building: proposal.pickup_building || estimate.pickup_building,
-                                        delivery_prefecture: proposal.delivery_prefecture || estimate.delivery_prefecture,
-                                        delivery_city: proposal.delivery_city || estimate.delivery_city,
-                                        delivery_town: proposal.delivery_town || estimate.delivery_town,
-                                        delivery_address_detail: proposal.delivery_address_detail || estimate.delivery_address_detail,
-                                        delivery_building: proposal.delivery_building || estimate.delivery_building,
-                                        // 顧客情報
-                                        last_name: proposal.last_name || estimate.last_name,
-                                        first_name: proposal.first_name || estimate.first_name,
-                                        last_name_kana: proposal.last_name_kana || estimate.last_name_kana,
-                                        first_name_kana: proposal.first_name_kana || estimate.first_name_kana,
-                                        phone: proposal.phone || estimate.phone,
-                                        notes: proposal.notes || estimate.notes,
-                                        created_at: proposal.created_at,
-                                    };
-
-                                    return (
-                                        <CustomerCard
-                                            key={proposal.id}
-                                            estimate={proposalAsEstimate}
-                                            editable={false}
-                                            title="変更履歴"
-                                            proposalNumber={proposal.proposal_number}
-                                            sentAt={proposal.created_at}
-                                            showProposalButton={false}
-                                            showCreatedAt={false}
-                                        />
-                                    );
-                                })}
+                    {proposals.length > 1 && (
+                        <Section title="変更履歴" icon={<FileText className="w-5 h-5 text-gray-600" />}>
+                            {/* タブ */}
+                            <div className="flex border-b border-gray-200 mb-4 overflow-x-auto">
+                                {[...proposals].reverse().map((proposal, idx) => (
+                                    <button
+                                        key={proposal.id}
+                                        onClick={() => setActiveProposalTab(idx)}
+                                        className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                                            activeProposalTab === idx
+                                                ? 'border-orange-500 text-orange-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        #{proposal.proposal_number} {formatDateTime(proposal.created_at)}
+                                    </button>
+                                ))}
                             </div>
-                        )}
-                    </Section>
+
+                            {/* 選択中のタブの内容 */}
+                            {(() => {
+                                const reversedProposals = [...proposals].reverse();
+                                const proposal = reversedProposals[activeProposalTab];
+                                if (!proposal) return null;
+
+                                return (
+                                    <ProposalCard proposal={proposal} />
+                                );
+                            })()}
+                        </Section>
+                    )}
 
                     {/* ===== モーダル群 ===== */}
 
