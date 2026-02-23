@@ -103,11 +103,9 @@ function StatusProgressBar({ status }: { status: string }) {
                         }`}
                     />
                 )}
-                    </div>
-                );
-            })}
-        </div>
-    );
+            </div>
+        );
+    };
 
     const renderRow = (labels: string[], startIndex: number) => (
         <div className="flex items-center justify-between w-full">
