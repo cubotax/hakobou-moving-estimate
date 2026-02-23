@@ -1531,7 +1531,6 @@ app.post("/api/estimates/:id/send-payment-email", async (req, res) => {
     // Stripe Checkout Session作成
     const session = await stripeClient.checkout.sessions.create({
       customer: stripeCustomer.id,
-      payment_method_types: ['card', 'konbini'],
       payment_method_options: {
         konbini: { expires_after_days: 3 },
       },
