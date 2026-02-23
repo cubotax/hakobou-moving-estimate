@@ -502,7 +502,7 @@ export function EstimateResult() {
 
         {/* 案内テキスト */}
         <div className="mt-8 mb-2 px-4">
-          <p className="text-sm text-gray-600 text-center leading-relaxed">
+          <p className="text-base text-gray-700 text-left sm:text-center leading-relaxed font-medium">
             LINEやメールと連携して見積もり内容を保存できます！<br />
             今回のお見積もり金額は本日より3日間有効です。
           </p>

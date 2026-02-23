@@ -1491,6 +1491,92 @@ app.get("*", (req, res) => {
 });
 
 // Stripe Webhook
+
+// 決済案内メール送信
+app.post("/api/estimates/:id/send-payment-email", async (req, res) => {
+  try {
+    const estimate = await getEstimateById(req.params.id);
+    if (!estimate) {
+      return res.status(404).json({ success: false, error: "Estimate not found" });
+    }
+
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, error: "Email is required" });
+    }
+
+    if (!resend) {
+      return res.status(500).json({ success: false, error: "Resend not configured" });
+    }
+
+    // Stripe初期化
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeKey) {
+      return res.status(500).json({ success: false, error: "Stripe not configured" });
+    }
+    const stripe = (await import('stripe')).default;
+    const stripeClient = new stripe(stripeKey);
+
+    const finalFee = estimate.final_fee || estimate.total_fee || 0;
+    const APP_BASE_URL = process.env.APP_BASE_URL || 'https://mitsumori.hakobou.com/';
+
+    // Stripe Checkout Session作成
+    const session = await stripeClient.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'jpy',
+            product_data: {
+              name: `引越し料金（見積もりID: ${estimate.id}）`,
+            },
+            unit_amount: Math.round(finalFee),
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${APP_BASE_URL}payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${APP_BASE_URL}payment/cancel`,
+      metadata: {
+        estimate_id: estimate.id,
+      },
+    });
+
+    // メール送信
+    await resend.emails.send({
+      from: "ハコボウ <info@hakobou.com>",
+      to: email,
+      subject: "【ハコボウ】決済のご案内",
+      text: `
+引越しのお見積もりをご利用いただきありがとうございます。
+
+下記リンクよりお支払いをお願いいたします。
+
+■ お支払い金額: ${finalFee.toLocaleString()}円
+
+■ 決済ページ:
+${session.url}
+
+※クレジットカード決済（Stripe）となります。
+※このリンクは24時間有効です。
+
+ご不明な点がございましたら、LINEにてお気軽にお問い合わせください。
+
+━━━━━━━━━━━━━━━━
+ハコボウ引越しサービス
+https://hakobou.com
+━━━━━━━━━━━━━━━━
+`.trim(),
+    });
+
+    res.json({ success: true, message: "Payment email sent", sessionUrl: session.url });
+  } catch (error) {
+    console.error("Error sending payment email:", error);
+    res.status(500).json({ success: false, error: error?.message || String(error) });
+  }
+});
+
 app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
