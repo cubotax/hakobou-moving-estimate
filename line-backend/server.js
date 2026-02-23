@@ -1520,8 +1520,17 @@ app.post("/api/estimates/:id/send-payment-email", async (req, res) => {
     const finalFee = estimate.final_fee || estimate.total_fee || 0;
     const APP_BASE_URL = process.env.APP_BASE_URL || 'https://mitsumori.hakobou.com/';
 
+    // Stripe顧客を作成
+    const customerName = [estimate.last_name, estimate.first_name].filter(Boolean).join(' ') || '顧客';
+    const stripeCustomer = await stripeClient.customers.create({
+      name: customerName,
+      email: email,
+      metadata: { estimate_id: estimate.id },
+    });
+
     // Stripe Checkout Session作成
     const session = await stripeClient.checkout.sessions.create({
+      customer: stripeCustomer.id,
       payment_method_types: ['card', 'konbini', 'customer_balance'],
       payment_method_options: {
         konbini: { expires_after_days: 3 },

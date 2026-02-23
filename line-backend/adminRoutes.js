@@ -814,8 +814,16 @@ router.post('/estimates/:id/send-payment', authMiddleware, async (req, res) => {
 
         const finalFee = estimate.final_fee || estimate.total_fee || 0;
 
+        // Stripe顧客を作成または取得
+        const customerName = [estimate.last_name, estimate.first_name].filter(Boolean).join(' ') || '顧客';
+        const stripeCustomer = await stripe.customers.create({
+            name: customerName,
+            metadata: { estimate_id: estimate.id },
+        });
+
         // Stripe Checkout Session作成
         const session = await stripe.checkout.sessions.create({
+            customer: stripeCustomer.id,
             payment_method_types: ['card', 'konbini', 'customer_balance'],
             payment_method_options: {
                 konbini: { expires_after_days: 3 },
