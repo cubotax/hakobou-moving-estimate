@@ -2,6 +2,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
@@ -46,6 +48,8 @@ function Router() {
       <Route path="/apply" component={ApplyForm} />
       <Route path="/apply/confirm" component={Confirm} />
       <Route path="/apply/complete" component={Complete} />
+      <Route path="/payment/success" component={PaymentSuccess} />
+      <Route path="/payment/cancel" component={PaymentCancel} />
       <Route path="/liff" component={LiffRedirect} />
 
       {/* 管理画面 */}
