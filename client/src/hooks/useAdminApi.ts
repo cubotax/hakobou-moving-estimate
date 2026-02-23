@@ -313,7 +313,7 @@ export function useEstimates() {
     const updateCustomer = useCallback(async (id: string, customerData: Record<string, any>) => {
         try {
             setLoading(true);
-            const response = await authFetch(\`\${API_BASE_URL}/api/admin/estimates/\${id}/customer\`, {
+            const response = await authFetch(`${API_BASE_URL}/api/admin/estimates/${id}/customer`, {
                 method: 'PATCH',
                 body: JSON.stringify(customerData),
             });
