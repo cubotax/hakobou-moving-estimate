@@ -34,6 +34,77 @@ const statusBadgeStyles: Record<string, { bg: string; text: string }> = {
 };
 
 
+
+// ステッププログレスバー
+const statusStepMap: Record<string, number> = {
+    estimated: 1,
+    photo_diagnosis: 1,
+    consulting: 2,
+    invite_sent: 2,
+    applied: 3,
+    payment_sent: 3,
+    paid: 4,
+    cancelled: 0,
+};
+
+const stepLabels = ['概算見積', '日程調整', '本申込', '決済完了'];
+
+function StatusProgressBar({ status }: { status: string }) {
+    const currentStep = statusStepMap[status] || 1;
+    const isCancelled = status === 'cancelled';
+
+    if (isCancelled) {
+        return (
+            <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                キャンセル
+            </span>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-0">
+            {stepLabels.map((label, i) => {
+                const step = i + 1;
+                const isCompleted = step < currentStep;
+                const isCurrent = step === currentStep;
+                const isUpcoming = step > currentStep;
+
+                return (
+                    <div key={step} className="flex items-center">
+                        <div className="flex flex-col items-center">
+                            <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+                                    isCompleted
+                                        ? 'bg-yellow-400 border-yellow-500 text-white'
+                                        : isCurrent
+                                        ? 'bg-yellow-400 border-yellow-500 text-white ring-2 ring-yellow-200'
+                                        : 'bg-gray-100 border-gray-300 text-gray-400'
+                                }`}
+                            >
+                                {isCompleted ? '✓' : step}
+                            </div>
+                            <span
+                                className={`text-[10px] mt-1 whitespace-nowrap ${
+                                    isCompleted || isCurrent ? 'font-bold text-gray-800' : 'text-gray-400'
+                                }`}
+                            >
+                                {label}
+                            </span>
+                        </div>
+                        {step < 4 && (
+                            <div
+                                className={`w-6 h-0.5 mx-0.5 mb-4 ${
+                                    step < currentStep ? 'bg-yellow-400' : 'bg-gray-200'
+                                }`}
+                            />
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
 // 時間帯ラベル
 const timeSlotLabels: Record<string, string> = {
     morning: '午前',
@@ -922,12 +993,7 @@ export default function EstimateDetail() {
                                 一覧に戻る
                             </a>
                         </Link>
-                        <span
-                            className="px-3 py-1 rounded-full text-sm font-medium"
-                            style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}
-                        >
-                            {statusLabels[estimate.status] || estimate.status}
-                        </span>
+                        <StatusProgressBar status={estimate.status} />
                     </div>
 
                     {/* 基本情報 */}
