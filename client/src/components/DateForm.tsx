@@ -363,8 +363,8 @@ export function DateForm() {
           </div>
         )}
 
-        {/* 繁忙期料金の但し書き（繁忙期のときだけ表示） */}
-        {isAnyBusySeason && (
+        {/* 繁忙期料金の但し書き（一時非表示） */}
+        {/* isAnyBusySeason && (
           <div className="flex items-start gap-2 p-3 bg-[oklch(0.95_0.1_20)] rounded-xl border-2 border-[oklch(0.8_0.15_20)]">
             <AlertCircle className="w-5 h-5 text-[oklch(0.6_0.2_20)] flex-shrink-0 mt-0.5" />
             <p className="text-sm text-[oklch(0.4_0.1_20)]">
@@ -373,7 +373,7 @@ export function DateForm() {
               基本料金が{Math.round(busySeasonRate * 100)}%増しとなります。
             </p>
           </div>
-        )}
+        ) */}
       </div>
 
       {/* ナビゲーションボタン */}

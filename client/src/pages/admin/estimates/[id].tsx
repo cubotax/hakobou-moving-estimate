@@ -68,12 +68,13 @@ function StatusProgressBar({ status }: { status: string }) {
                     const step = i + 1;
                     const isCompleted = step < currentStep;
                     const isCurrent = step === currentStep;
+                    const isLast = step === stepLabels.length;
 
                     return (
-                        <div key={step} className={step < 4 ? 'flex items-center flex-1' : 'flex items-center'}>
+                        <div key={step} className={!isLast ? 'flex items-center flex-1' : 'flex items-center'}>
                             <div className="flex flex-col items-center">
                                 <div
-                                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
                                         isCompleted
                                             ? 'bg-yellow-400 border-yellow-500 text-white'
                                             : isCurrent
@@ -84,14 +85,14 @@ function StatusProgressBar({ status }: { status: string }) {
                                     {isCompleted ? '\u2713' : step}
                                 </div>
                                 <span
-                                    className={`text-xs mt-1.5 whitespace-nowrap ${
+                                    className={`text-[10px] mt-1 whitespace-nowrap ${
                                         isCompleted || isCurrent ? 'font-bold text-gray-800' : 'text-gray-400'
                                     }`}
                                 >
                                     {label}
                                 </span>
                             </div>
-                            {step < 4 && (
+                            {!isLast && (
                                 <div
                                     className={`flex-1 h-[2px] mx-1 -mt-5 ${
                                         step < currentStep ? 'bg-yellow-400' : 'bg-gray-200'
