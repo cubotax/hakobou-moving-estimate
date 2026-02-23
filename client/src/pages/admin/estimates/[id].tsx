@@ -47,7 +47,14 @@ const statusStepMap: Record<string, number> = {
     cancelled: 0,
 };
 
-const stepLabels = ['概算見積', '日程調整', '申込案内', '本申込', '決済案内', '決済完了'];
+const stepLabels = [
+    '概算見積\n連携',
+    '日程\n調整中',
+    '申込案内\n送信完了',
+    '本申込\n完了',
+    '決済案内\n送信済み',
+    '決済完了'
+];
 
 function StatusProgressBar({ status }: { status: string }) {
     const currentStep = statusStepMap[status] || 1;
@@ -87,7 +94,7 @@ function StatusProgressBar({ status }: { status: string }) {
                                 {isCompleted ? '\u2713' : step}
                             </div>
                             <span
-                                className={`text-[11px] mt-1 whitespace-nowrap ${
+                                className={`text-[10px] mt-1 whitespace-pre-line text-center leading-tight ${
                                     isCompleted || isCurrent ? 'font-bold text-gray-800' : 'text-gray-400'
                                 }`}
                             >
