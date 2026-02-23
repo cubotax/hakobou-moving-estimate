@@ -719,6 +719,7 @@ export default function EstimateDetail() {
     const [deleteMemoModal, setDeleteMemoModal] = useState(false);
     const [selectedMemo, setSelectedMemo] = useState<Memo | null>(null);
     const [sendModal, setSendModal] = useState<'invite' | 'payment' | null>(null);
+    const [sendConfirm, setSendConfirm] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'line' | 'email'>('line');
     const [activeProposalTab, setActiveProposalTab] = useState<number>(0);
     const [paymentEmail, setPaymentEmail] = useState('');
@@ -1667,7 +1668,7 @@ export default function EstimateDetail() {
                     </Dialog>
 
                     {/* 送信確認モーダル */}
-                    <Dialog open={sendModal !== null} onOpenChange={() => setSendModal(null)}>
+                    <Dialog open={sendModal !== null} onOpenChange={() => { setSendModal(null); setSendConfirm(false); }}>
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>{sendModal === 'invite' ? '申込案内を送信' : '決済案内を送信'}</DialogTitle>
@@ -1713,9 +1714,23 @@ export default function EstimateDetail() {
                                 </DialogDescription>
                             )}
                             <DialogFooter>
-                                <Button variant="outline" onClick={() => setSendModal(null)}>キャンセル</Button>
-                                <Button onClick={() => sendModal && handleSend(sendModal)}>送信</Button>
+                                {!sendConfirm ? (
+                                    <>
+                                        <Button variant="outline" onClick={() => setSendModal(null)}>キャンセル</Button>
+                                        <Button onClick={() => setSendConfirm(true)}>送信</Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button variant="outline" onClick={() => setSendConfirm(false)}>戻る</Button>
+                                        <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => { sendModal && handleSend(sendModal); setSendConfirm(false); }}>本当に送信する</Button>
+                                    </>
+                                )}
                             </DialogFooter>
+                            {sendConfirm && (
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 -mt-2">
+                                    <p className="text-sm text-yellow-800 font-medium text-center">⚠️ 本当に送信しますか？この操作は取り消せません。</p>
+                                </div>
+                            )}
                         </DialogContent>
                     </Dialog>
 
