@@ -602,6 +602,8 @@ export default function EstimateDetail() {
     const [deleteMemoModal, setDeleteMemoModal] = useState(false);
     const [selectedMemo, setSelectedMemo] = useState<Memo | null>(null);
     const [sendModal, setSendModal] = useState<'invite' | 'payment' | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<'line' | 'email'>('line');
+    const [paymentEmail, setPaymentEmail] = useState('');
     const [cancelModal, setCancelModal] = useState(false);
     const [deleteModal, setDeleteModal] = useState(false);
     const [editDateModal, setEditDateModal] = useState(false);
@@ -810,12 +812,32 @@ export default function EstimateDetail() {
         let success = false;
         if (type === 'invite') {
             success = await sendInvite(estimateId);
-        } else {
+        } else if (paymentMethod === 'line') {
             success = await sendPayment(estimateId);
+        } else {
+            // メールで決済案内送信
+            try {
+                if (!paymentEmail) {
+                    alert('メールアドレスを入力してください');
+                    return;
+                }
+                const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/estimates/${estimateId}/send-payment-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: paymentEmail }),
+                });
+                const data = await response.json();
+                success = data.success;
+                if (!success) alert(data.error || '送信に失敗しました');
+            } catch (err) {
+                console.error('Payment email error:', err);
+                alert('送信に失敗しました');
+            }
         }
 
         if (success) {
             setSendModal(null);
+            setPaymentEmail('');
             fetchData();
         }
     };
@@ -1045,7 +1067,7 @@ export default function EstimateDetail() {
                                 申込案内
                             </Button>
                             <Button
-                                onClick={() => setSendModal('payment')}
+                                onClick={() => { setPaymentEmail(estimate.email || ''); setSendModal('payment'); }}
                                 disabled={!estimate.line_user_id}
                                 className="w-full py-3 text-sm"
                                 size="default"
@@ -1570,10 +1592,47 @@ export default function EstimateDetail() {
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>{sendModal === 'invite' ? '申込案内を送信' : '決済案内を送信'}</DialogTitle>
-                                <DialogDescription>
-                                    LINEで{sendModal === 'invite' ? '申込案内' : '決済案内'}を送信します。よろしいですか？
-                                </DialogDescription>
                             </DialogHeader>
+                            {sendModal === 'payment' ? (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">送信方法</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                className={`flex-1 py-2 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${paymentMethod === 'line' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-500'}`}
+                                                onClick={() => setPaymentMethod('line')}
+                                            >
+                                                LINE
+                                            </button>
+                                            <button
+                                                className={`flex-1 py-2 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${paymentMethod === 'email' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500'}`}
+                                                onClick={() => setPaymentMethod('email')}
+                                            >
+                                                メール
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {paymentMethod === 'email' && (
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">メールアドレス</label>
+                                            <input
+                                                type="email"
+                                                className="w-full h-10 px-3 border border-gray-300 rounded-md"
+                                                value={paymentEmail}
+                                                onChange={(e) => setPaymentEmail(e.target.value)}
+                                                placeholder="example@email.com"
+                                            />
+                                        </div>
+                                    )}
+                                    {paymentMethod === 'line' && (
+                                        <p className="text-sm text-gray-600">LINEで決済案内を送信します。よろしいですか？</p>
+                                    )}
+                                </div>
+                            ) : (
+                                <DialogDescription>
+                                    LINEで申込案内を送信します。よろしいですか？
+                                </DialogDescription>
+                            )}
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setSendModal(null)}>キャンセル</Button>
                                 <Button onClick={() => sendModal && handleSend(sendModal)}>送信</Button>
